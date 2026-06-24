@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF6D9"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+<rect width="800" height="600" rx="36" fill="url(#g)"/>
+<circle cx="400" cy="305" r="240" fill="#fff" opacity=".55"/>
+<path d="M312 160h176v78l28 42v206H284V280l28-42z" fill="#F4B942"/><rect x="330" y="110" width="140" height="65" rx="20" fill="#07543d"/><rect x="315" y="322" width="202" height="95" rx="24" fill="#fff" opacity=".9"/>
+<text x="400" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#07543d">زيت عباد الشمس</text>
+<text x="400" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#F4B942">OIL</text>
+</svg>

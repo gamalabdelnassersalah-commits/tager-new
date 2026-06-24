@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF8E6"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+<rect width="800" height="600" rx="36" fill="url(#g)"/>
+<circle cx="400" cy="305" r="240" fill="#fff" opacity=".55"/>
+<path d="M245 155h310l38 350H207z" fill="#E2D0A4"/><path d="M255 155h290" stroke="#07543d" stroke-width="18"/><ellipse cx="400" cy="335" rx="120" ry="80" fill="#fff"/><path d="M330 335c45-55 95-55 140 0-45 55-95 55-140 0z" fill="#D8C28A"/>
+<text x="400" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#07543d">أرز مصري فاخر</text>
+<text x="400" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#D8C28A">RICE</text>
+</svg>

@@ -1,496 +1,206 @@
-const STORAGE_KEY = 'tager-clean-mvp-v1';
-const SESSION_KEY = 'tager-clean-session-v1';
-const CART_KEY = 'tager-clean-cart-v1';
-const LANG_KEY = 'tager-clean-lang-v1';
+const STORAGE_KEY='tager-clean-mvp-v2';
+const SESSION_KEY='tager-clean-session-v2';
+const CART_KEY='tager-clean-cart-v2';
+const CART_MODE_KEY='tager-clean-cart-mode-v2';
 
-const governorates = {
-  'القاهرة': ['مدينة نصر','مصر الجديدة','المعادي','التجمع الخامس','المرج','حلوان'],
-  'الجيزة': ['الدقي','المهندسين','الهرم','فيصل','6 أكتوبر','الشيخ زايد'],
-  'الإسكندرية': ['المنتزه','سيدي جابر','العجمي','برج العرب','سموحة'],
-  'القليوبية': ['بنها','شبرا الخيمة','قليوب','الخانكة','العبور'],
-  'الشرقية': ['الزقازيق','العاشر من رمضان','بلبيس','منيا القمح','فاقوس'],
-  'الدقهلية': ['المنصورة','ميت غمر','طلخا','دكرنس','السنبلاوين'],
-  'البحيرة': ['دمنهور','كفر الدوار','رشيد','إدكو','وادي النطرون'],
-  'الغربية': ['طنطا','المحلة الكبرى','كفر الزيات','زفتى','السنطة'],
-  'المنوفية': ['شبين الكوم','السادات','منوف','أشمون','قويسنا'],
-  'كفر الشيخ': ['كفر الشيخ','دسوق','بلطيم','سيدي سالم','الحامول'],
-  'دمياط': ['دمياط','دمياط الجديدة','رأس البر','فارسكور','كفر سعد'],
-  'بورسعيد': ['بورفؤاد','شرق','العرب','المناخ','الزهور'],
-  'الإسماعيلية': ['الإسماعيلية','فايد','القنطرة شرق','القنطرة غرب','التل الكبير'],
-  'السويس': ['السويس','الأربعين','عتاقة','فيصل','الجناين'],
-  'شمال سيناء': ['العريش','بئر العبد','الشيخ زويد','رفح'],
-  'جنوب سيناء': ['شرم الشيخ','طور سيناء','دهب','نويبع','رأس سدر'],
-  'بني سويف': ['بني سويف','الواسطى','ناصر','ببا','الفشن'],
-  'الفيوم': ['الفيوم','سنورس','إطسا','طامية','يوسف الصديق'],
-  'المنيا': ['المنيا','ملوي','سمالوط','بني مزار','أبو قرقاص'],
-  'أسيوط': ['أسيوط','ديروط','القوصية','منفلوط','أبنوب'],
-  'سوهاج': ['سوهاج','أخميم','جرجا','طهطا','البلينا'],
-  'قنا': ['قنا','نجع حمادي','دشنا','قفط','قوص'],
-  'الأقصر': ['الأقصر','إسنا','أرمنت','القرنة','الطود'],
-  'أسوان': ['أسوان','إدفو','كوم أمبو','دراو','نصر النوبة'],
-  'البحر الأحمر': ['الغردقة','سفاجا','القصير','مرسى علم','رأس غارب'],
-  'الوادي الجديد': ['الخارجة','الداخلة','الفرافرة','باريس','بلاط'],
-  'مطروح': ['مرسى مطروح','العلمين','الحمام','الضبعة','سيوة']
+const governorates={
+'القاهرة':['مدينة نصر','مصر الجديدة','المعادي','التجمع الخامس','حلوان'],
+'الجيزة':['الدقي','المهندسين','الهرم','فيصل','6 أكتوبر','الشيخ زايد'],
+'الإسكندرية':['المنتزه','سيدي جابر','سموحة','العجمي','برج العرب'],
+'القليوبية':['بنها','شبرا الخيمة','قليوب','الخانكة','العبور'],
+'الشرقية':['الزقازيق','العاشر من رمضان','بلبيس','منيا القمح','فاقوس'],
+'الدقهلية':['المنصورة','ميت غمر','طلخا','دكرنس','السنبلاوين'],
+'البحيرة':['دمنهور','كفر الدوار','رشيد','إدكو','وادي النطرون'],
+'الغربية':['طنطا','المحلة الكبرى','كفر الزيات','زفتى','السنطة'],
+'المنوفية':['شبين الكوم','السادات','منوف','أشمون','قويسنا'],
+'كفر الشيخ':['كفر الشيخ','دسوق','بلطيم','سيدي سالم','الحامول'],
+'دمياط':['دمياط','دمياط الجديدة','رأس البر','فارسكور','كفر سعد'],
+'بورسعيد':['بورفؤاد','شرق','العرب','المناخ','الزهور'],
+'الإسماعيلية':['الإسماعيلية','فايد','القنطرة شرق','القنطرة غرب','التل الكبير'],
+'السويس':['السويس','الأربعين','عتاقة','فيصل','الجناين'],
+'شمال سيناء':['العريش','بئر العبد','الشيخ زويد','رفح'],
+'جنوب سيناء':['شرم الشيخ','طور سيناء','دهب','نويبع','رأس سدر'],
+'بني سويف':['بني سويف','الواسطى','ناصر','ببا','الفشن'],
+'الفيوم':['الفيوم','سنورس','إطسا','طامية','يوسف الصديق'],
+'المنيا':['المنيا','ملوي','سمالوط','بني مزار','أبو قرقاص'],
+'أسيوط':['أسيوط','ديروط','القوصية','منفلوط','أبنوب'],
+'سوهاج':['سوهاج','أخميم','جرجا','طهطا','البلينا'],
+'قنا':['قنا','نجع حمادي','دشنا','قفط','قوص'],
+'الأقصر':['الأقصر','إسنا','أرمنت','القرنة','الطود'],
+'أسوان':['أسوان','إدفو','كوم أمبو','دراو','نصر النوبة'],
+'البحر الأحمر':['الغردقة','سفاجا','القصير','مرسى علم','رأس غارب'],
+'الوادي الجديد':['الخارجة','الداخلة','الفرافرة','باريس','بلاط'],
+'مطروح':['مرسى مطروح','العلمين','الحمام','الضبعة','سيوة']
 };
 
-const categories = [
-  ['مواد غذائية','🍚'],['زيوت','🫗'],['مشروبات','🥤'],['ألبان','🥛'],['منظفات','🧼'],['ورقيات','🧻'],['معلبات','🥫'],['حلويات','🍪']
-];
-
-const ui = {
-  ar: {
-    home:'الرئيسية', market:'المنتجات', vendors:'الموردون', how:'كيف تعمل؟', login:'تسجيل الدخول', account:'حسابي', logout:'خروج', cart:'السلة', search:'ابحث',
-    retail:'قطاعي', wholesale:'جملة', bulk:'جملة الجملة', add:'أضف للسلة', view:'عرض', all:'الكل', admin:'الإدارة', vendor:'المورد', customer:'العميل'
-  },
-  en: {
-    home:'Home', market:'Products', vendors:'Vendors', how:'How it works', login:'Login', account:'My Account', logout:'Logout', cart:'Cart', search:'Search',
-    retail:'Retail', wholesale:'Wholesale', bulk:'Bulk Wholesale', add:'Add to cart', view:'View', all:'All', admin:'Admin', vendor:'Vendor', customer:'Customer'
-  }
+const districts={
+'مدينة نصر':['الحي الأول','الحي السادس','الحي السابع','الحي العاشر'],
+'مصر الجديدة':['الكوربة','روكسي','النزهة','ألماظة'],
+'المعادي':['المعادي الجديدة','زهراء المعادي','دجلة','حدائق المعادي'],
+'التجمع الخامس':['الياسمين','البنفسج','النرجس','اللوتس'],
+'6 أكتوبر':['الحصري','التوسعات الشمالية','الحي المتميز','المنطقة الصناعية'],
+'الشيخ زايد':['الحي الأول','الحي الرابع','الحي الثامن','بيفرلي هيلز'],
+'الدقي':['ميدان المساحة','مصدق','محيي الدين','البحوث'],
+'المهندسين':['جامعة الدول','شهاب','لبنان','سوريا'],
+'المنصورة':['توريل','المشاية','جديلة','حي الجامعة'],
+'الزقازيق':['القومية','فلل الجامعة','الغشام','الحكماء'],
+'طنطا':['سيجر','الاستاد','العجيزي','سبرباي'],
+'الإسكندرية':['سموحة','ميامي','العصافرة','محرم بك']
 };
+const categories=['مواد غذائية','زيوت','مشروبات','ألبان','منظفات','ورقيات','معلبات','حلويات'];
+const paymentMethods={cash:'نقدي',bank:'تحويل بنكي',instapay:'InstaPay',wallet:'محفظة إلكترونية',fawry:'فوري',card:'بطاقة بنكية'};
 
-function t(key){ return ui[getLang()][key] || key; }
-function getLang(){ return localStorage.getItem(LANG_KEY) || 'ar'; }
-function setLang(lang){ localStorage.setItem(LANG_KEY, lang); document.documentElement.lang=lang; document.documentElement.dir=lang==='ar'?'rtl':'ltr'; document.body.classList.toggle('ltr',lang==='en'); render(); }
+function uid(prefix='id'){return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`}
+function money(v){return new Intl.NumberFormat('ar-EG',{style:'currency',currency:'EGP',maximumFractionDigits:2}).format(Number(v)||0)}
+function dateText(v){return new Intl.DateTimeFormat('ar-EG',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}
+function esc(v=''){return String(v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function phone(v=''){return String(v).replace(/\D/g,'').replace(/^20(?=1[0125]\d{8}$)/,'')}
+function validPhone(v){return /^01[0125]\d{8}$/.test(phone(v))}
+function validEmail(v){return !v||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
+function asset(name){return `assets/${name}`}
+function route(path){location.hash=path.startsWith('#')?path:`#${path}`}
+function path(){return location.hash.replace(/^#/,'')||'/'}
+function parts(){return path().split('?')[0].split('/').filter(Boolean)}
+function query(){return new URLSearchParams(path().split('?')[1]||'')}
+function toast(msg,type='ok'){let el=document.querySelector('.toast');if(!el){el=document.createElement('div');el.className='toast';document.body.appendChild(el)}el.textContent=msg;el.className=`toast ${type==='error'?'error':''} show`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600)}
 
-function svgData(emoji, bg='#eaf7f1', fg='#07543d'){
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" rx="36" fill="${bg}"/><circle cx="400" cy="285" r="180" fill="#fff" opacity=".62"/><text x="400" y="345" text-anchor="middle" font-size="190">${emoji}</text><path d="M180 500h440" stroke="${fg}" stroke-width="12" opacity=".16" stroke-linecap="round"/></svg>`;
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+function defaultCoverage(vendorIndex=0){
+ if(vendorIndex===0)return [
+  {governorate:'القاهرة',center:'مدينة نصر',district:'الحي السادس',fee:45,eta:'1-2 يوم'},
+  {governorate:'القاهرة',center:'التجمع الخامس',district:'الياسمين',fee:60,eta:'2 يوم'},
+  {governorate:'الجيزة',center:'6 أكتوبر',district:'المنطقة الصناعية',fee:70,eta:'2-3 أيام'}
+ ];
+ return [
+  {governorate:'الجيزة',center:'6 أكتوبر',district:'الحي المتميز',fee:50,eta:'1-2 يوم'},
+  {governorate:'الجيزة',center:'الشيخ زايد',district:'الحي الرابع',fee:55,eta:'1-2 يوم'},
+  {governorate:'القاهرة',center:'المعادي',district:'زهراء المعادي',fee:75,eta:'2-3 أيام'}
+ ];
 }
-
-function uid(prefix='id'){ return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`; }
-function money(n){ return new Intl.NumberFormat(getLang()==='ar'?'ar-EG':'en-EG',{style:'currency',currency:'EGP',maximumFractionDigits:2}).format(Number(n)||0); }
-function dateText(v){ return new Intl.DateTimeFormat(getLang()==='ar'?'ar-EG':'en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v)); }
-function escapeHtml(value=''){ return String(value).replace(/[&<>'"]/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[m])); }
-function slugify(v=''){ return v.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w\-\u0600-\u06FF]/g,''); }
-function normalizePhone(v=''){ return v.replace(/\D/g,'').replace(/^20(?=1[0125]\d{8}$)/,''); }
-function validPhone(v){ return /^01[0125]\d{8}$/.test(normalizePhone(v)); }
-function validEmail(v){ return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 function seedState(){
-  const adminId='u_admin'; const vendor1='u_vendor_1'; const vendor2='u_vendor_2'; const customer='u_customer_1';
-  const products=[
-    ['p1',vendor1,'زيت عباد الشمس 1 لتر','Sunflower Oil 1L','زيوت','زيتة','زجاجة',100,90,80,12,48,500,200,2,'🫗'],
-    ['p2',vendor1,'أرز مصري فاخر 5 كجم','Premium Egyptian Rice 5kg','مواد غذائية','الخير','كيس',260,235,220,6,30,300,100,2,'🍚'],
-    ['p3',vendor1,'سكر أبيض 1 كجم','White Sugar 1kg','مواد غذائية','سكرنا','كيس',38,34,31,12,60,900,300,1,'🧂'],
-    ['p4',vendor2,'مناديل مطبخ 6 رول','Kitchen Towels 6 Rolls','ورقيات','نظافة','عبوة',145,130,118,8,40,240,80,3,'🧻'],
-    ['p5',vendor2,'مسحوق غسيل 5 كجم','Laundry Powder 5kg','منظفات','بريق','كرتونة',390,355,330,4,20,160,60,3,'🧼'],
-    ['p6',vendor2,'مياه معدنية 600 مل × 24','Mineral Water 600ml × 24','مشروبات','نقاء','كرتونة',135,122,112,5,25,400,100,1,'💧'],
-    ['p7',vendor1,'لبن كامل الدسم 1 لتر × 12','Full Cream Milk 1L × 12','ألبان','مزارعنا','كرتونة',540,505,470,3,15,140,50,2,'🥛'],
-    ['p8',vendor2,'تونة قطع 185 جم × 48','Tuna Chunks 185g × 48','معلبات','بحر','كرتونة',2250,2090,1950,2,10,90,30,4,'🥫']
-  ].map(([id,vendorId,nameAr,nameEn,category,brand,unit,retail,wholesale,bulk,wq,bq,stock,maxQty,prep,emoji],i)=>({
-    id,vendorId,nameAr,nameEn,category,brand,unit,retail,wholesale,bulk,wholesaleQty:wq,bulkQty:bq,stock,maxQty,prepDays:prep,status:'approved',description:`منتج ${nameAr} بجودة مناسبة للتجارة والقطاعي، متاح بأسعار متدرجة حسب الكمية.`,image:svgData(emoji,i%2?'#eef8f3':'#f7f3e8'),createdAt:Date.now()-i*86400000
-  }));
-  return {
-    version:1,
-    settings:{platformName:'Tager',globalCommission:10,premiumCartFee:1.5,shippingEnabled:true,defaultShipping:55,freeShippingThreshold:2500,maintenance:false},
-    users:[
-      {id:adminId,role:'admin',name:'مدير منصة تاجر',phone:'01000000000',email:'admin@tager.test',password:'Admin@123',status:'approved',permissions:['all'],createdAt:Date.now()},
-      {id:vendor1,role:'vendor',name:'أحمد محمود',phone:'01111111111',email:'vendor1@tager.test',password:'Vendor@123',status:'approved',storeName:'مؤسسة الخير للتجارة',governorate:'القاهرة',city:'مدينة نصر',minOrder:1000,commission:8,premiumFee:1.5,verified:true,businessType:'مواد غذائية وزيوت',description:'توريد مواد غذائية وزيوت للمحال والسوبر ماركت بأسعار جملة.',logo:svgData('🏪','#e8f5ef'),cover:svgData('📦','#07543d','#d9a441'),createdAt:Date.now()},
-      {id:vendor2,role:'vendor',name:'سارة علي',phone:'01555555555',email:'vendor2@tager.test',password:'Vendor@123',status:'approved',storeName:'شركة النور للتوزيع',governorate:'الجيزة',city:'6 أكتوبر',minOrder:750,commission:9,premiumFee:2,verified:true,businessType:'منظفات وورقيات ومشروبات',description:'موزع جملة للمنظفات والورقيات والمياه والمشروبات.',logo:svgData('🏬','#f7f3e8'),cover:svgData('🚚','#0a7755','#fff'),createdAt:Date.now()},
-      {id:customer,role:'customer',name:'عميل تجريبي',phone:'01222222222',email:'customer@tager.test',password:'Customer@123',status:'approved',governorate:'القاهرة',city:'المعادي',address:'شارع 9',createdAt:Date.now()}
-    ],
-    products,
-    orders:[],
-    notifications:[],
-    adminTeam:[]
-  };
+ const now=Date.now();
+ const admin='u_admin',v1='u_vendor_1',v2='u_vendor_2',customer='u_customer_1';
+ const products=[
+  ['p1',v1,'زيت عباد الشمس 1 لتر','زيوت','زيتة','زجاجة',100,90,80,12,48,500,200,2,'product-oil.svg'],
+  ['p2',v1,'أرز مصري فاخر 5 كجم','مواد غذائية','الخير','كيس',260,235,220,6,30,300,100,2,'product-rice.svg'],
+  ['p3',v1,'سكر أبيض 1 كجم','مواد غذائية','سكرنا','كيس',38,34,31,12,60,900,300,1,'product-sugar.svg'],
+  ['p4',v2,'مناديل مطبخ 6 رول','ورقيات','نظافة','عبوة',145,130,118,8,40,240,80,3,'product-tissue.svg'],
+  ['p5',v2,'مسحوق غسيل 5 كجم','منظفات','بريق','كرتونة',390,355,330,4,20,160,60,3,'product-detergent.svg'],
+  ['p6',v2,'مياه معدنية 600 مل × 24','مشروبات','نقاء','كرتونة',135,122,112,5,25,400,100,1,'product-water.svg'],
+  ['p7',v1,'لبن كامل الدسم 1 لتر × 12','ألبان','مزارعنا','كرتونة',540,505,470,3,15,140,50,2,'product-milk.svg'],
+  ['p8',v2,'تونة قطع 185 جم × 48','معلبات','بحر','كرتونة',2250,2090,1950,2,10,90,30,4,'product-tuna.svg']
+ ].map(([id,vendorId,nameAr,category,brand,unit,retail,wholesale,bulk,wholesaleQty,bulkQty,stock,maxQty,prepDays,image],i)=>({id,vendorId,nameAr,nameEn:nameAr,category,brand,unit,retail,wholesale,bulk,wholesaleQty,bulkQty,stock,maxQty,prepDays,image:asset(image),gallery:[],description:`${nameAr} متاح بأسعار قطاعي وجملة وجملة الجملة، مع توضيح الكميات والمخزون ومدة التجهيز.`,status:'approved',createdAt:now-i*86400000}));
+ const orders=[
+  {id:'ord_demo_1',customerId:customer,status:'completed',createdAt:now-12*86400000,payment:'cash',governorate:'القاهرة',center:'مدينة نصر',district:'الحي السادس',address:'شارع الطيران',items:[{productId:'p1',vendorId:v1,qty:24,price:90,tier:'wholesale'},{productId:'p4',vendorId:v2,qty:10,price:130,tier:'wholesale'}],shipping:95,premiumFee:0,total:3555,cartMode:'separated'},
+  {id:'ord_demo_2',customerId:customer,status:'completed',createdAt:now-5*86400000,payment:'bank',governorate:'الجيزة',center:'6 أكتوبر',district:'الحي المتميز',address:'المحور المركزي',items:[{productId:'p2',vendorId:v1,qty:30,price:220,tier:'bulk'},{productId:'p5',vendorId:v2,qty:6,price:355,tier:'wholesale'}],shipping:120,premiumFee:130.95,total:8980.95,cartMode:'premium'}
+ ];
+ return {version:2,settings:{platformName:'Tager',globalCommission:10,premiumCartFee:1.5,freeShippingThreshold:3000},users:[
+  {id:admin,role:'admin',name:'مدير منصة تاجر',phone:'01000000000',email:'admin@tager.test',password:'Admin@123',status:'approved'},
+  {id:v1,role:'vendor',name:'أحمد محمود',phone:'01111111111',email:'vendor1@tager.test',password:'Vendor@123',status:'approved',storeName:'مؤسسة الخير للتجارة',commission:8,premiumFee:1.5,minOrder:1000,verified:true,businessType:'مواد غذائية وزيوت',description:'توريد مواد غذائية وزيوت للمحال والسوبر ماركت.',logo:asset('vendor-kheir-logo.svg'),cover:asset('vendor-kheir-cover.svg'),deliveryAreas:defaultCoverage(0)},
+  {id:v2,role:'vendor',name:'سارة علي',phone:'01555555555',email:'vendor2@tager.test',password:'Vendor@123',status:'approved',storeName:'شركة النور للتوزيع',commission:9,premiumFee:2,minOrder:750,verified:true,businessType:'منظفات وورقيات ومشروبات',description:'موزع جملة للمنظفات والورقيات والمياه والمشروبات.',logo:asset('vendor-noor-logo.svg'),cover:asset('vendor-noor-cover.svg'),deliveryAreas:defaultCoverage(1)},
+  {id:customer,role:'customer',name:'عميل تجريبي',phone:'01222222222',email:'customer@tager.test',password:'Customer@123',status:'approved',governorate:'القاهرة',center:'مدينة نصر',district:'الحي السادس',address:'شارع الطيران'}
+ ],products,orders,financePayments:[
+  {id:'pay_1',vendorId:v1,amount:250,method:'bank',reference:'TRX-1001',note:'دفعة عمولة تجريبية',status:'approved',createdAt:now-3*86400000,approvedAt:now-2*86400000},
+  {id:'pay_2',vendorId:v2,amount:100,method:'instapay',reference:'IP-222',note:'دفعة معلقة للمراجعة',status:'pending',createdAt:now-86400000}
+ ],adminTeam:[]};
 }
 
-function getState(){
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw){ const seed=seedState(); localStorage.setItem(STORAGE_KEY,JSON.stringify(seed)); return seed; }
-    return JSON.parse(raw);
-  }catch(e){ const seed=seedState(); localStorage.setItem(STORAGE_KEY,JSON.stringify(seed)); return seed; }
-}
-function saveState(state){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
-function getSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} }
-function setSession(userId){ localStorage.setItem(SESSION_KEY,JSON.stringify({userId,loginAt:Date.now()})); }
-function clearSession(){ localStorage.removeItem(SESSION_KEY); }
-function currentUser(){ const s=getSession(); if(!s) return null; return getState().users.find(u=>u.id===s.userId)||null; }
-function getCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch{return []} }
-function saveCart(cart){ localStorage.setItem(CART_KEY,JSON.stringify(cart)); updateCartCount(); }
-function cartCount(){ return getCart().reduce((s,i)=>s+Number(i.qty||0),0); }
+function getState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw){const s=seedState();saveState(s);return s}const s=JSON.parse(raw);if(s.version!==2){const fresh=seedState();saveState(fresh);return fresh}return s}catch{const s=seedState();saveState(s);return s}}
+function saveState(s){localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null}}
+function setSession(userId){localStorage.setItem(SESSION_KEY,JSON.stringify({userId,at:Date.now()}))}
+function logout(){localStorage.removeItem(SESSION_KEY)}
+function currentUser(){const ss=getSession();return ss?getState().users.find(u=>u.id===ss.userId)||null:null}
+function userById(id){return getState().users.find(u=>u.id===id)}
+function productById(id){return getState().products.find(p=>p.id===id)}
+function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch{return []}}
+function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));updateCartCount()}
+function cartCount(){return getCart().reduce((s,i)=>s+Number(i.qty||0),0)}
+function tierPrice(p,qty){qty=Number(qty)||1;if(qty>=p.bulkQty)return{tier:'bulk',price:p.bulk};if(qty>=p.wholesaleQty)return{tier:'wholesale',price:p.wholesale};return{tier:'retail',price:p.retail}}
+function tierLabel(t){return{retail:'قطاعي',wholesale:'جملة',bulk:'جملة الجملة'}[t]||t}
+function statusLabel(s){return{pending:'تحت المراجعة',approved:'معتمد',rejected:'مرفوض',new:'جديد',processing:'جاري التجهيز',shipped:'تم الشحن',completed:'مكتمل',cancelled:'ملغي'}[s]||s}
+function dashboardPath(u=currentUser()){if(!u)return'/login';if(u.role==='admin')return'/admin';if(u.role==='vendor')return'/vendor-dashboard';return'/customer'}
+function requireRole(roles){const u=currentUser();if(!u){route('/login');return false}if(!roles.includes(u.role)){toast('غير مصرح لك','error');route(dashboardPath(u));return false}return true}
 
-function productName(p){ return getLang()==='en' ? (p.nameEn||p.nameAr) : p.nameAr; }
-function userById(id){ return getState().users.find(u=>u.id===id); }
-function productById(id){ return getState().products.find(p=>p.id===id); }
-function tierPrice(p,qty){ qty=Number(qty)||1; if(qty>=p.bulkQty) return {tier:'bulk',price:p.bulk}; if(qty>=p.wholesaleQty) return {tier:'wholesale',price:p.wholesale}; return {tier:'retail',price:p.retail}; }
-function tierLabel(tier){ return t(tier); }
-function route(path){ location.hash=path.startsWith('#')?path:`#${path}`; }
-function currentPath(){ return location.hash.replace(/^#/,'')||'/'; }
-function routeParts(){ return currentPath().split('/').filter(Boolean); }
+function approvedVendors(){return getState().users.filter(u=>u.role==='vendor'&&u.status==='approved')}
+function vendorCoverage(v){return Array.isArray(v.deliveryAreas)?v.deliveryAreas:[]}
+function availableGovernorates(vendors=approvedVendors()){return [...new Set(vendors.flatMap(v=>vendorCoverage(v).map(a=>a.governorate)))].sort()}
+function availableCenters(gov,vendors=approvedVendors()){return [...new Set(vendors.flatMap(v=>vendorCoverage(v).filter(a=>!gov||a.governorate===gov).map(a=>a.center)))].sort()}
+function availableDistricts(gov,center,vendors=approvedVendors()){return [...new Set(vendors.flatMap(v=>vendorCoverage(v).filter(a=>(!gov||a.governorate===gov)&&(!center||a.center===center)).map(a=>a.district).filter(Boolean)))].sort()}
+function vendorServes(v,gov,center,district=''){return vendorCoverage(v).some(a=>a.governorate===gov&&a.center===center&&(!district||!a.district||a.district===district))}
+function coverageMatch(v,gov,center,district=''){return vendorCoverage(v).find(a=>a.governorate===gov&&a.center===center&&(!district||!a.district||a.district===district))||null}
+function coverageText(v,max=4){const list=vendorCoverage(v).slice(0,max).map(a=>`${a.governorate} / ${a.center}${a.district?` / ${a.district}`:''}`);return list.length?list:['لم يحدد مناطق توصيل']}
 
-function toast(message,type='ok'){
-  let el=document.querySelector('.toast');
-  if(!el){el=document.createElement('div');el.className='toast';document.body.appendChild(el)}
-  el.textContent=message;el.className=`toast ${type==='error'?'error':''} show`;
-  clearTimeout(el._timer);el._timer=setTimeout(()=>el.classList.remove('show'),3000);
-}
+function vendorOrderGross(vendorId){return getState().orders.filter(o=>o.status!=='cancelled').reduce((sum,o)=>sum+o.items.filter(i=>i.vendorId===vendorId).reduce((s,i)=>s+i.price*i.qty,0),0)}
+function vendorCommissionDue(vendorId){const v=userById(vendorId);return vendorOrderGross(vendorId)*(Number(v?.commission||0)/100)}
+function vendorCommissionPaid(vendorId){return getState().financePayments.filter(p=>p.vendorId===vendorId&&p.status==='approved').reduce((s,p)=>s+Number(p.amount||0),0)}
+function vendorFinancials(vendorId){const gross=vendorOrderGross(vendorId),due=vendorCommissionDue(vendorId),paid=vendorCommissionPaid(vendorId);return{gross,due,paid,outstanding:Math.max(0,due-paid),vendorNet:gross-due,pending:getState().financePayments.filter(p=>p.vendorId===vendorId&&p.status==='pending').reduce((s,p)=>s+Number(p.amount||0),0)}}
+function platformFinancials(){const vendors=approvedVendors();return vendors.reduce((a,v)=>{const f=vendorFinancials(v.id);a.gross+=f.gross;a.due+=f.due;a.paid+=f.paid;a.outstanding+=f.outstanding;a.vendorNet+=f.vendorNet;a.pending+=f.pending;return a},{gross:0,due:0,paid:0,outstanding:0,vendorNet:0,pending:0})}
 
-function requireRole(roles){
-  const user=currentUser();
-  if(!user){ route('/login'); return false; }
-  if(!roles.includes(user.role)){ toast('غير مصرح لك بدخول هذه الصفحة','error'); route(dashboardPath(user)); return false; }
-  return true;
-}
-function dashboardPath(user=currentUser()){
-  if(!user) return '/login';
-  if(user.role==='admin'||user.role==='staff') return '/admin';
-  if(user.role==='vendor') return '/vendor-dashboard';
-  return '/customer';
-}
+function header(){const u=currentUser();return `<div class="demo-banner">نسخة اختبار على Vercel — البيانات محفوظة داخل نفس المتصفح حاليًا.</div><div class="topbar"><div class="container"><span>قطاعي وجملة وجملة الجملة</span><span>الدعم التجريبي: 01000000000</span></div></div><header class="site-header"><div class="container header-row"><a class="brand" href="#/"><img src="assets/logo.svg" alt="Tager"><span>Tager <em>تاجر</em></span></a><button class="icon-btn menu-toggle" data-action="menu">☰</button><nav class="main-nav" id="mainNav"><a href="#/">الرئيسية</a><a href="#/market">المنتجات</a><a href="#/vendors">الموردون</a><a href="#/how">كيف تعمل؟</a></nav><div class="header-actions"><a class="nav-btn" href="#/cart">🛍️ <span>السلة</span> <b class="cart-count">${cartCount()}</b></a><a class="nav-btn primary" href="#${u?dashboardPath(u):'/login'}">👤 <span>${u?esc(u.name.split(' ')[0]):'دخول'}</span></a></div></div></header>`}
+function footer(){return `<footer class="site-footer"><div class="container footer-grid"><div><h3>Tager تاجر</h3><p>منصة مصرية للقطاعي والجملة وجملة الجملة مع متاجر مستقلة للموردين.</p></div><div><h3>التسوق</h3><a href="#/market">المنتجات</a><a href="#/vendors">الموردون</a><a href="#/cart">السلة</a></div><div><h3>الحساب</h3><a href="#/login">تسجيل الدخول</a><a href="#/register/customer">تسجيل عميل</a><a href="#/register/vendor">تسجيل مورد</a></div><div><h3>المساعدة</h3><a href="#/how">كيف تعمل؟</a><a href="#/policies">السياسات</a><a href="#/contact">اتصل بنا</a></div></div><div class="copyright">© ${new Date().getFullYear()} Tager Marketplace</div></footer>`}
+function shell(content){document.getElementById('app').innerHTML=`${header()}<main><div class="container">${content}</div></main>${footer()}`;updateCartCount()}
+function updateCartCount(){const el=document.querySelector('.cart-count');if(el)el.textContent=cartCount()}
 
-function updateCartCount(){ const el=document.querySelector('.cart-count'); if(el) el.textContent=cartCount(); }
-function activeNav(path){ const current=currentPath(); return current===path||current.startsWith(path+'/')?'active':''; }
-function renderHeader(){
-  const user=currentUser();
-  const accountLabel=user?escapeHtml(user.name.split(' ')[0]):t('login');
-  return `
-    <div class="demo-banner">نسخة تجريبية تعمل فورًا على Vercel — البيانات محفوظة في هذا المتصفح حتى يتم ربط Supabase.</div>
-    <div class="topbar"><div class="container"><span>أسعار قطاعي وجملة وجملة الجملة في منصة واحدة</span><span>الدعم التجريبي: 01000000000</span></div></div>
-    <header class="site-header"><div class="container header-row">
-      <a class="brand" href="#/"><span class="brand-mark">🛒</span><span>Tager <em>تاجر</em></span></a>
-      <button class="icon-btn menu-toggle" data-action="toggle-menu">☰</button>
-      <nav class="main-nav" id="mainNav">
-        <a class="${activeNav('/')}" href="#/">${t('home')}</a>
-        <a class="${activeNav('/market')}" href="#/market">${t('market')}</a>
-        <a class="${activeNav('/vendors')}" href="#/vendors">${t('vendors')}</a>
-        <a class="${activeNav('/how')}" href="#/how">${t('how')}</a>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-btn" data-action="toggle-lang">${getLang()==='ar'?'EN':'عربي'}</button>
-        <a class="nav-btn cart-btn" href="#/cart">🛍️ <span>${t('cart')}</span><b class="cart-count">${cartCount()}</b></a>
-        <a class="nav-btn primary" href="#${user?dashboardPath(user):'/login'}">👤 <span>${accountLabel}</span></a>
-      </div>
-    </div></header>`;
-}
-function renderFooter(){
-  return `<footer class="site-footer"><div class="container footer-grid">
-    <div><h3>Tager تاجر</h3><p>منصة تجارة إلكترونية مصرية تجمع القطاعي والجملة وجملة الجملة، وتمنح كل مورد متجرًا مستقلًا ولوحة إدارة خاصة.</p></div>
-    <div><h3>التسوق</h3><a href="#/market">المنتجات</a><a href="#/vendors">دليل الموردين</a><a href="#/cart">السلة</a></div>
-    <div><h3>الحساب</h3><a href="#/login">تسجيل الدخول</a><a href="#/register/customer">تسجيل عميل</a><a href="#/register/vendor">انضم كمورد</a></div>
-    <div><h3>المساعدة</h3><a href="#/how">كيف تعمل المنصة؟</a><a href="#/policies">الشروط والسياسات</a><a href="#/contact">تواصل معنا</a></div>
-  </div><div class="copyright">© ${new Date().getFullYear()} Tager Marketplace — نسخة اختبار تفاعلية</div></footer>`;
-}
+function productCard(p,selectedTier=''){const v=userById(p.vendorId);const displayPrice=selectedTier==='wholesale'?p.wholesale:selectedTier==='bulk'?p.bulk:p.retail;const displayLabel=selectedTier?`سعر ${tierLabel(selectedTier)}`:'سعر القطاعي';return `<article class="card product-card hover"><a class="product-image" href="#/product/${p.id}"><img loading="lazy" src="${esc(p.image||asset('product-rice.svg'))}" alt="${esc(p.nameAr)}" onerror="this.src='assets/product-rice.svg'"></a><div class="product-body"><div class="product-meta"><span>${esc(p.category)}</span><a href="#/vendor/${v?.id}">${esc(v?.storeName||'مورد')}</a></div><h3><a href="#/product/${p.id}" style="text-decoration:none">${esc(p.nameAr)}</a></h3><div class="price">${money(displayPrice)} <small style="font-size:11px;color:var(--muted)">${displayLabel}</small></div><div class="tiers"><span>قطاعي: ${money(p.retail)}</span><span>جملة من ${p.wholesaleQty}: ${money(p.wholesale)}</span><span>جملة الجملة من ${p.bulkQty}: ${money(p.bulk)}</span></div><span class="stock ${p.stock<20?'low':''}">${p.stock>0?`متاح ${p.stock} ${esc(p.unit)}`:'غير متاح'}</span><div class="qty-add"><input type="number" min="1" max="${p.maxQty}" value="1" data-qty="${p.id}"><button class="btn primary" data-action="add-cart" data-id="${p.id}">أضف للسلة</button></div></div></article>`}
+function homeView(){const s=getState(),products=s.products.filter(p=>p.status==='approved').slice(0,8),vendors=approvedVendors();return `<section class="hero"><div><span class="kicker">منصة تجارة للسوق المصري</span><h1>قطاعي وجملة<br>وجملة الجملة</h1><p>اختر المورد ومكان التوصيل ونوع السعر، وتابع الطلبات والأرصدة من لوحة واحدة.</p><form class="search-box" data-form="search"><input name="q" placeholder="ابحث عن منتج أو مورد"><button>بحث الآن</button></form><div class="hero-actions"><a class="btn gold" href="#/market">ابدأ التسوق</a><a class="btn secondary" href="#/register/vendor">انضم كمورد</a></div></div><div class="hero-card"><div class="metric"><b>${products.length}+</b><span>منتج واضح الصور</span></div><div class="metric"><b>${vendors.length}</b><span>موردون معتمدون</span></div><div class="metric"><b>${availableGovernorates(vendors).length}</b><span>محافظات توصيل</span></div></div></section><section class="stats"><article><b>قطاعي</b><span>من قطعة واحدة</span></article><article><b>جملة</b><span>سعر حسب الكمية</span></article><article><b>جملة الجملة</b><span>للتجار والموزعين</span></article><article><b>أرصدة واضحة</b><span>مستحق ومدفوع ومتبقي</span></article></section><section class="section"><div class="section-head"><div><h2>منتجات مقترحة</h2><p>صور SVG واضحة لا تفقد الجودة عند الرفع</p></div><a href="#/market">عرض الجميع</a></div><div class="grid cols-4">${products.map(productCard).join('')}</div></section><section class="section grid cols-2"><article class="card"><h2>للمشترين</h2><p>ابحث حسب المحافظة والمركز والقسم ونوع السعر.</p><a class="btn primary" href="#/register/customer">إنشاء حساب عميل</a></article><article class="card" style="background:linear-gradient(135deg,#063d2e,#087050);color:#fff"><h2>للموردين</h2><p style="color:#d7ebe3">حدد مناطق التوصيل، أضف المنتجات والصور، وتابع عمولة المنصة والمدفوع والمتبقي.</p><a class="btn gold" href="#/register/vendor">إنشاء متجر مورد</a></article></section>`}
 
-function shell(content){
-  document.getElementById('app').innerHTML=`${renderHeader()}<main><div class="container">${content}</div></main>${renderFooter()}`;
-  updateCartCount();
-}
+function filterVendorsByCoverage(gov,center,district){return approvedVendors().filter(v=>(!gov||vendorCoverage(v).some(a=>a.governorate===gov))&&(!center||vendorCoverage(v).some(a=>a.governorate===gov&&a.center===center))&&(!district||vendorCoverage(v).some(a=>a.governorate===gov&&a.center===center&&a.district===district)))}
+function marketView(){const qs=query(),qv=qs.get('q')||'',tier=qs.get('tier')||'',category=qs.get('category')||'',gov=qs.get('governorate')||'',center=qs.get('center')||'',district=qs.get('district')||'';const vendors=filterVendorsByCoverage(gov,center,district);let products=getState().products.filter(p=>p.status==='approved'&&p.stock>0&&vendors.some(v=>v.id===p.vendorId));if(qv){const z=qv.toLowerCase();products=products.filter(p=>`${p.nameAr} ${p.brand} ${userById(p.vendorId)?.storeName}`.toLowerCase().includes(z))}if(category)products=products.filter(p=>p.category===category);const govs=availableGovernorates(),centers=availableCenters(gov),dists=availableDistricts(gov,center);return `<section class="page-hero"><h1>سوق تاجر</h1><p>المراكز والأقسام الظاهرة مأخوذة من مناطق التوصيل الفعلية للموردين.</p></section><form class="toolbar" data-form="market-filter"><label>بحث<input name="q" value="${esc(qv)}" placeholder="اسم المنتج أو المورد"></label><label>نوع السعر<select name="tier"><option value="">الكل</option><option value="retail" ${tier==='retail'?'selected':''}>قطاعي</option><option value="wholesale" ${tier==='wholesale'?'selected':''}>جملة</option><option value="bulk" ${tier==='bulk'?'selected':''}>جملة الجملة</option></select></label><label>القسم<select name="category"><option value="">كل الأقسام</option>${categories.map(c=>`<option ${category===c?'selected':''}>${c}</option>`).join('')}</select></label><label>المحافظة<select name="governorate" data-coverage-scope="market"><option value="">كل المحافظات</option>${govs.map(g=>`<option ${gov===g?'selected':''}>${g}</option>`).join('')}</select></label><label>المركز<select name="center"><option value="">كل المراكز</option>${centers.map(c=>`<option ${center===c?'selected':''}>${c}</option>`).join('')}</select></label><label>القسم / الحي<select name="district"><option value="">كل الأقسام</option>${dists.map(d=>`<option ${district===d?'selected':''}>${d}</option>`).join('')}</select></label><button class="btn primary">تطبيق</button></form><div class="section-head"><div><h2>${products.length} منتج</h2><p>متاح من ${vendors.length} مورد في النطاق المختار</p></div></div>${products.length?`<div class="grid cols-4">${products.map(p=>productCard(p,tier)).join('')}</div>`:'<div class="empty">لا توجد منتجات متاحة في نطاق التوصيل المختار.</div>'}`}
+function productView(id){const p=productById(id);if(!p||p.status!=='approved')return empty('المنتج غير متاح');const v=userById(p.vendorId);return `<div class="grid cols-2"><section class="card"><div class="product-image" style="height:500px"><img src="${esc(p.image)}" alt="${esc(p.nameAr)}"></div></section><section class="card"><span class="status approved">${esc(p.category)}</span><h1>${esc(p.nameAr)}</h1><p>${esc(p.description)}</p><div class="price">${money(p.retail)}</div><div class="tiers"><span>قطاعي: ${money(p.retail)}</span><span>جملة من ${p.wholesaleQty}: ${money(p.wholesale)}</span><span>جملة الجملة من ${p.bulkQty}: ${money(p.bulk)}</span></div><p><b>المخزون:</b> ${p.stock} ${esc(p.unit)} · <b>التجهيز:</b> ${p.prepDays} يوم</p><div class="qty-add"><input id="detailQty" type="number" min="1" max="${p.maxQty}" value="1"><button class="btn primary" data-action="add-cart-detail" data-id="${p.id}">أضف للسلة</button></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><div class="vendor-card"><img class="avatar" src="${esc(v.logo)}"><div><h3 style="margin:0">${esc(v.storeName)}</h3><p>${coverageText(v,2).map(esc).join(' · ')}</p><a href="#/vendor/${v.id}">زيارة متجر المورد</a></div></div></section></div>`}
+function vendorCard(v){const count=getState().products.filter(p=>p.vendorId===v.id&&p.status==='approved').length;return `<article class="card hover"><div class="vendor-cover"><img src="${esc(v.cover)}" alt=""></div><div class="vendor-card"><img class="avatar" src="${esc(v.logo)}"><div><h3 style="margin:0">${esc(v.storeName)}</h3><span>${v.verified?'✅ مورد موثّق':'مورد'}</span><p>${count} منتج</p></div></div><p>${esc(v.description)}</p><div class="coverage-list">${coverageText(v,4).map(x=>`<span class="coverage-chip">${esc(x)}</span>`).join('')}</div><div class="tiers"><span>الحد الأدنى: ${money(v.minOrder)}</span><span>عمولة المنصة: ${v.commission}%</span></div><a class="btn primary block" href="#/vendor/${v.id}">فتح متجر المورد</a></article>`}
+function vendorsView(){const qs=query(),qv=qs.get('q')||'',gov=qs.get('governorate')||'',center=qs.get('center')||'',district=qs.get('district')||'';let vendors=filterVendorsByCoverage(gov,center,district);if(qv){const s=qv.toLowerCase();vendors=vendors.filter(v=>`${v.storeName} ${v.name} ${v.businessType}`.toLowerCase().includes(s))}return `<section class="page-hero"><h1>دليل الموردين</h1><p>اعرض الموردين حسب أماكن التوصيل الفعلية، وليس عنوان المورد فقط.</p></section><form class="toolbar" data-form="vendors-filter"><label>بحث<input name="q" value="${esc(qv)}"></label><label>المحافظة<select name="governorate"><option value="">كل المحافظات</option>${availableGovernorates().map(g=>`<option ${gov===g?'selected':''}>${g}</option>`).join('')}</select></label><label>المركز<select name="center"><option value="">كل المراكز</option>${availableCenters(gov).map(c=>`<option ${center===c?'selected':''}>${c}</option>`).join('')}</select></label><label>القسم / الحي<select name="district"><option value="">كل الأقسام</option>${availableDistricts(gov,center).map(d=>`<option ${district===d?'selected':''}>${d}</option>`).join('')}</select></label><button class="btn primary">بحث</button></form><div class="grid cols-3">${vendors.map(vendorCard).join('')}</div>`}
+function vendorStoreView(id){const v=userById(id);if(!v||v.status!=='approved')return empty('المورد غير موجود');const products=getState().products.filter(p=>p.vendorId===v.id&&p.status==='approved');return `<section class="store-hero"><div class="store-cover"><img src="${esc(v.cover)}"></div><div class="store-info"><img class="store-logo" src="${esc(v.logo)}"><div><h1>${esc(v.storeName)}</h1><p>${esc(v.description)}</p><div class="coverage-list">${coverageText(v,20).map(x=>`<span class="coverage-chip">${esc(x)}</span>`).join('')}</div></div></div></section><div class="section-head"><div><h2>منتجات المورد</h2><p>الحد الأدنى للطلب: ${money(v.minOrder)} · العمولة الحالية: ${v.commission}%</p></div></div>${products.length?`<div class="grid cols-4">${products.map(productCard).join('')}</div>`:'<div class="empty">لا توجد منتجات منشورة.</div>'}`}
 
-function homeView(){
-  const state=getState(); const approved=state.products.filter(p=>p.status==='approved').slice(0,8);
-  const approvedVendors=state.users.filter(u=>u.role==='vendor'&&u.status==='approved');
-  return `
-  <section class="hero">
-    <div><span class="kicker">منصة تجارة متكاملة للسوق المصري</span><h1>اشتري قطاعي أو جملة<br>أو جملة الجملة</h1><p>اختر منتجاتك من موردين موثّقين، وقارن الأسعار حسب الكمية، أو أنشئ سلة مميزة تجمع أصنافًا من عدة موردين.</p>
-      <form class="search-box" data-form="hero-search"><input name="q" placeholder="ابحث عن منتج أو مورد..." /><button>بحث الآن</button></form>
-      <div class="hero-actions"><a class="btn gold" href="#/market">ابدأ التسوق</a><a class="btn secondary" href="#/register/vendor">انضم كمورد</a></div>
-    </div>
-    <div class="hero-card"><div class="metric"><b>${state.products.filter(p=>p.status==='approved').length}+</b><span>منتج متاح</span></div><div class="metric"><b>${approvedVendors.length}</b><span>موردون معتمدون</span></div><div class="metric"><b>3</b><span>مستويات تسعير</span></div></div>
-  </section>
-  <section class="stats"><article><b>قطاعي</b><span>بدون حد أدنى للمنتج</span></article><article><b>جملة</b><span>أسعار أفضل للكميات</span></article><article><b>جملة الجملة</b><span>للتجار والموزعين</span></article><article><b>سلة مميزة</b><span>أصناف من عدة موردين</span></article></section>
-  <section class="section"><div class="section-head"><div><h2>الأقسام الرئيسية</h2><p>ابدأ من القسم المناسب لنشاطك</p></div><a href="#/market">عرض الجميع</a></div><div class="grid cols-6">${categories.slice(0,6).map(([name,emoji])=>`<a class="card hover category-card" href="#/market?category=${encodeURIComponent(name)}"><span class="emoji">${emoji}</span><b>${name}</b><small>تصفح المنتجات</small></a>`).join('')}</div></section>
-  <section class="section"><div class="section-head"><div><h2>منتجات مقترحة</h2><p>أسعار متدرجة حسب الكمية</p></div><a href="#/market">كل المنتجات</a></div><div class="grid cols-4">${approved.map(productCard).join('')}</div></section>
-  <section class="section grid cols-2"><article class="card hover"><h2>للمشترين</h2><p>سجل برقم الهاتف، اختر السعر المناسب، تابع طلباتك وعناوينك من لوحة واحدة.</p><a class="btn primary" href="#/register/customer">إنشاء حساب عميل</a></article><article class="card hover" style="background:linear-gradient(135deg,#063d2e,#087050);color:#fff"><h2>للموردين</h2><p style="color:#d7ebe3">أنشئ متجرك، أضف صور المنتجات والأسعار والمخزون، وانتظر موافقة الإدارة.</p><a class="btn gold" href="#/register/vendor">تسجيل مورد</a></article></section>`;
-}
+function authView(mode){const u=currentUser();if(u){route(dashboardPath(u));return''}const vendor=mode==='vendor',login=mode==='login';return `<section class="auth-shell"><div class="auth-side"><span class="kicker">Tager Marketplace</span><h2>${login?'مرحبًا بعودتك':vendor?'ابدأ البيع على تاجر':'أنشئ حساب العميل'}</h2><p>${login?'الدخول برقم الهاتف أو البريد إن وجد.':vendor?'حدد بيانات متجرك ثم أضف مناطق التوصيل من لوحة المورد.':'البريد الإلكتروني اختياري.'}</p><ul><li>لوحات مستقلة</li><li>صور منتجات واضحة</li><li>مستحق ومدفوع ومتبقي</li></ul></div><div class="auth-form"><h1>${login?'تسجيل الدخول':vendor?'تسجيل مورد':'تسجيل عميل'}</h1><div class="auth-tabs"><a class="${login?'active':''}" href="#/login">دخول</a><a class="${mode==='customer'?'active':''}" href="#/register/customer">عميل</a><a class="${vendor?'active':''}" href="#/register/vendor">مورد</a></div>${login?`<form data-form="login"><label>رقم الهاتف أو البريد<input name="identifier" required></label><label>كلمة المرور<input name="password" type="password" required></label><button class="btn primary block">دخول</button><a style="text-align:center" href="#/forgot-password">نسيت كلمة المرور؟</a></form><div class="notice"><b>حسابات تجربة</b><br>أدمن: 01000000000 / Admin@123<br>مورد: 01111111111 / Vendor@123<br>عميل: 01222222222 / Customer@123</div>`:registerForm(vendor)}</div></section>`}
+function registerForm(vendor){return `<form data-form="register" data-role="${vendor?'vendor':'customer'}"><div class="form-grid"><label>الاسم<input name="name" required></label><label>رقم الهاتف<input name="phone" required></label><label>البريد اختياري<input name="email" type="email"></label><label>كلمة المرور<input name="password" type="password" minlength="8" required></label>${vendor?`<label>اسم المتجر<input name="storeName" required></label><label>نوع النشاط<input name="businessType" required></label><label>الحد الأدنى للطلب<input name="minOrder" type="number" value="500" min="0" required></label><label>وصف النشاط<textarea name="description" required></textarea></label>`:`<label>المحافظة<select name="governorate">${govOptions()}</select></label><label>المركز<select name="center"><option value="">اختر المحافظة أولًا</option></select></label><label style="grid-column:1/-1">العنوان<textarea name="address"></textarea></label>`}</div><button class="btn primary block">إنشاء الحساب</button></form>`}
+function forgotView(){return `<section class="form-card"><h1>استعادة كلمة المرور</h1><form data-form="forgot"><label>رقم الهاتف<input name="phone" required></label><label>كلمة المرور الجديدة<input name="password" type="password" minlength="8" required></label><button class="btn primary">حفظ</button></form></section>`}
 
-function productCard(p){
-  const vendor=userById(p.vendorId); const name=productName(p);
-  return `<article class="card product-card hover">
-    <a class="product-image" href="#/product/${p.id}"><img src="${p.image}" alt="${escapeHtml(name)}"></a>
-    <div class="product-body"><div class="product-meta"><span>${escapeHtml(p.category)}</span><a href="#/vendor/${vendor?.id}">${escapeHtml(vendor?.storeName||'مورد')}</a></div><h3><a href="#/product/${p.id}" style="text-decoration:none">${escapeHtml(name)}</a></h3><div class="price">${money(p.retail)}</div>
-    <div class="tiers"><span>${t('retail')}: ${money(p.retail)}</span><span>${t('wholesale')} من ${p.wholesaleQty}: ${money(p.wholesale)}</span><span>${t('bulk')} من ${p.bulkQty}: ${money(p.bulk)}</span></div>
-    <span class="stock ${p.stock<20?'low':''}">${p.stock>0?`متاح: ${p.stock} ${escapeHtml(p.unit)}`:'غير متوفر'}</span>
-    <div class="qty-add"><input type="number" min="1" max="${p.maxQty}" value="1" data-qty-for="${p.id}"><button class="btn primary" data-action="add-cart" data-product="${p.id}">${t('add')}</button></div></div></article>`;
-}
+function customerView(tab='overview'){if(!requireRole(['customer']))return'';const u=currentUser(),orders=getState().orders.filter(o=>o.customerId===u.id);const content=tab==='orders'?ordersTable(orders):tab==='profile'?customerProfile(u):`<div class="kpis"><div class="kpi"><span>عدد الطلبات</span><b>${orders.length}</b></div><div class="kpi"><span>طلبات نشطة</span><b>${orders.filter(o=>!['completed','cancelled'].includes(o.status)).length}</b></div><div class="kpi"><span>إجمالي المشتريات</span><b>${money(orders.reduce((s,o)=>s+o.total,0))}</b></div><div class="kpi"><span>الموقع</span><b style="font-size:17px">${esc(u.governorate||'-')}</b></div></div><section class="card"><h2>آخر الطلبات</h2>${orders.length?orders.slice(-5).reverse().map(o=>`<div class="summary-row"><span>${o.id}</span><b>${money(o.total)} · ${statusLabel(o.status)}</b></div>`).join(''):'لا توجد طلبات'}</section>`;return dashboard('customer','حساب العميل',content,tab)}
+function customerProfile(u){return `<section class="card"><h2>الملف الشخصي</h2><form data-form="customer-profile"><div class="form-grid"><label>الاسم<input name="name" value="${esc(u.name)}" required></label><label>الهاتف<input name="phone" value="${esc(u.phone)}" required></label><label>البريد اختياري<input name="email" type="email" value="${esc(u.email||'')}"></label><label>المحافظة<select name="governorate">${govOptions(u.governorate)}</select></label><label>المركز<select name="center">${centerOptions(u.governorate,u.center)}</select></label><label>القسم / الحي<input name="district" value="${esc(u.district||'')}"></label><label style="grid-column:1/-1">العنوان<textarea name="address">${esc(u.address||'')}</textarea></label></div><button class="btn primary">حفظ البيانات</button></form></section>`}
+function ordersTable(orders){return `<section class="card"><h2>طلباتي</h2>${orders.length?`<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>التاريخ</th><th>المكان</th><th>الدفع</th><th>الإجمالي</th><th>الحالة</th></tr></thead><tbody>${orders.slice().reverse().map(o=>`<tr><td>${o.id}</td><td>${dateText(o.createdAt)}</td><td>${esc(o.governorate)} / ${esc(o.center)}</td><td>${paymentMethods[o.payment]}</td><td>${money(o.total)}</td><td><span class="status ${o.status}">${statusLabel(o.status)}</span></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">لا توجد طلبات.</div>'}</section>`}
 
-function marketView(){
-  const hash=currentPath(); const queryString=hash.includes('?')?hash.split('?')[1]:''; const qs=new URLSearchParams(queryString);
-  const state=getState();
-  const filters={q:qs.get('q')||'',tier:qs.get('tier')||'',governorate:qs.get('governorate')||'',city:qs.get('city')||'',category:qs.get('category')||''};
-  let products=state.products.filter(p=>p.status==='approved'&&p.stock>0);
-  if(filters.q){const q=filters.q.toLowerCase();products=products.filter(p=>`${p.nameAr} ${p.nameEn} ${p.brand} ${userById(p.vendorId)?.storeName}`.toLowerCase().includes(q));}
-  if(filters.category) products=products.filter(p=>p.category===filters.category);
-  if(filters.governorate) products=products.filter(p=>userById(p.vendorId)?.governorate===filters.governorate);
-  if(filters.city) products=products.filter(p=>userById(p.vendorId)?.city===filters.city);
-  const cities=filters.governorate?governorates[filters.governorate]||[]:[];
-  return `<section class="page-hero"><h1>سوق تاجر</h1><p>ابحث حسب المنتج، نوع السعر، المحافظة والمركز.</p></section>
-  <form class="toolbar" data-form="market-filter"><label>بحث<input name="q" value="${escapeHtml(filters.q)}" placeholder="اسم المنتج أو المورد"></label><label>نوع السعر<select name="tier"><option value="">الكل</option><option value="retail" ${filters.tier==='retail'?'selected':''}>قطاعي</option><option value="wholesale" ${filters.tier==='wholesale'?'selected':''}>جملة</option><option value="bulk" ${filters.tier==='bulk'?'selected':''}>جملة الجملة</option></select></label><label>القسم<select name="category"><option value="">كل الأقسام</option>${categories.map(([c])=>`<option ${filters.category===c?'selected':''}>${c}</option>`).join('')}</select></label><label>المحافظة<select name="governorate">${governorateOptions(filters.governorate,true)}</select></label><label>المركز<select name="city"><option value="">كل المراكز</option>${cities.map(c=>`<option ${filters.city===c?'selected':''}>${c}</option>`).join('')}</select></label><button class="btn primary">تطبيق</button></form>
-  <div class="section-head"><div><h2>${products.length} منتج</h2><p>الأسعار تتغير تلقائيًا عند اختيار الكمية</p></div></div>
-  ${products.length?`<div class="grid cols-4">${products.map(productCard).join('')}</div>`:`<div class="empty">لا توجد منتجات مطابقة للبحث.</div>`}`;
-}
+function vendorDashboardView(tab='overview'){if(!requireRole(['vendor']))return'';const v=currentUser();if(v.status!=='approved')return dashboard('vendor','لوحة المورد','<div class="notice warning">حسابك تحت مراجعة الإدارة.</div>',tab);const products=getState().products.filter(p=>p.vendorId===v.id),fin=vendorFinancials(v.id);let content='';if(tab==='products')content=vendorProducts(products);else if(tab==='add-product')content=vendorProductForm();else if(tab==='orders')content=vendorOrders(v.id);else if(tab==='settings')content=vendorSettings(v);else if(tab==='finance')content=vendorFinance(v,fin);else content=`<div class="kpis"><div class="kpi"><span>المنتجات</span><b>${products.length}</b></div><div class="kpi"><span>المبيعات</span><b>${money(fin.gross)}</b></div><div class="kpi"><span>العمولة المستحقة</span><b>${money(fin.due)}</b></div><div class="kpi"><span>المتبقي للمنصة</span><b>${money(fin.outstanding)}</b></div></div><div class="grid cols-2"><section class="card"><h2>مناطق التوصيل</h2><div class="coverage-list">${coverageText(v,30).map(x=>`<span class="coverage-chip">${esc(x)}</span>`).join('')}</div><a class="btn secondary" href="#/vendor-dashboard/settings">تعديل المناطق</a></section><section class="card"><h2>الحساب المالي</h2><div class="summary-row"><span>صافي المورد بعد العمولة</span><b>${money(fin.vendorNet)}</b></div><div class="summary-row"><span>عمولات مدفوعة</span><b>${money(fin.paid)}</b></div><div class="summary-row"><span>دفعات تحت المراجعة</span><b>${money(fin.pending)}</b></div><a class="btn primary" href="#/vendor-dashboard/finance">فتح الحساب المالي</a></section></div>`;return dashboard('vendor','لوحة المورد',content,tab)}
+function vendorProducts(products){return `<section class="card"><div class="section-head"><div><h2>منتجاتي</h2><p>المنتج الجديد أو المعدل يذهب للمراجعة.</p></div><a class="btn primary" href="#/vendor-dashboard/add-product">إضافة منتج</a></div>${products.length?`<div class="table-wrap"><table><thead><tr><th>الصورة</th><th>المنتج</th><th>الأسعار</th><th>المخزون</th><th>الحالة</th><th></th></tr></thead><tbody>${products.map(p=>`<tr><td><img class="avatar" src="${esc(p.image)}"></td><td>${esc(p.nameAr)}</td><td>${money(p.retail)} / ${money(p.wholesale)} / ${money(p.bulk)}</td><td>${p.stock}</td><td><span class="status ${p.status}">${statusLabel(p.status)}</span></td><td><button class="btn small secondary" data-action="edit-product" data-id="${p.id}">تعديل</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">لم تضف منتجات بعد.</div>'}</section>`}
+function vendorProductForm(p={}){return `<section class="card"><h2>${p.id?'تعديل المنتج':'إضافة منتج'}</h2><form data-form="vendor-product"><input type="hidden" name="id" value="${esc(p.id||'')}"><input type="hidden" name="existingImage" value="${esc(p.image||'')}"><div class="form-grid"><label>اسم المنتج<input name="nameAr" value="${esc(p.nameAr||'')}" required></label><label>القسم<select name="category">${categories.map(c=>`<option ${p.category===c?'selected':''}>${c}</option>`).join('')}</select></label><label>العلامة<input name="brand" value="${esc(p.brand||'')}"></label><label>وحدة البيع<input name="unit" value="${esc(p.unit||'كرتونة')}" required></label><label>سعر القطاعي<input name="retail" type="number" step=".01" value="${p.retail||''}" required></label><label>سعر الجملة<input name="wholesale" type="number" step=".01" value="${p.wholesale||''}" required></label><label>سعر جملة الجملة<input name="bulk" type="number" step=".01" value="${p.bulk||''}" required></label><label>حد الجملة<input name="wholesaleQty" type="number" value="${p.wholesaleQty||10}" required></label><label>حد جملة الجملة<input name="bulkQty" type="number" value="${p.bulkQty||50}" required></label><label>المخزون<input name="stock" type="number" value="${p.stock||0}" required></label><label>أقصى طلب<input name="maxQty" type="number" value="${p.maxQty||100}" required></label><label>مدة التجهيز بالأيام<input name="prepDays" type="number" value="${p.prepDays||2}" required></label><label style="grid-column:1/-1">صورة المنتج واضحة (JPG/PNG/WebP، حد أدنى 600×600)<input name="imageFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label style="grid-column:1/-1">الوصف<textarea name="description" required>${esc(p.description||'')}</textarea></label></div><button class="btn primary">حفظ وإرسال للمراجعة</button></form></section>`}
+function vendorOrders(vendorId){const orders=getState().orders.filter(o=>o.items.some(i=>i.vendorId===vendorId));return `<section class="card"><h2>طلبات المورد</h2>${orders.length?`<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>التاريخ</th><th>القيمة الخاصة بك</th><th>المكان</th><th>الحالة</th></tr></thead><tbody>${orders.slice().reverse().map(o=>{const total=o.items.filter(i=>i.vendorId===vendorId).reduce((s,i)=>s+i.price*i.qty,0);return`<tr><td>${o.id}</td><td>${dateText(o.createdAt)}</td><td>${money(total)}</td><td>${esc(o.governorate)} / ${esc(o.center)} / ${esc(o.district||'')}</td><td><select data-order-status="${o.id}"><option value="new" ${o.status==='new'?'selected':''}>جديد</option><option value="processing" ${o.status==='processing'?'selected':''}>جاري التجهيز</option><option value="shipped" ${o.status==='shipped'?'selected':''}>تم الشحن</option><option value="completed" ${o.status==='completed'?'selected':''}>مكتمل</option></select></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">لا توجد طلبات.</div>'}</section>`}
+function coverageRows(v){const rows=vendorCoverage(v);return `<div class="coverage-editor" id="coverageEditor">${rows.map((a,i)=>coverageRow(a,i)).join('')}</div><button type="button" class="btn secondary" data-action="add-coverage">+ إضافة منطقة توصيل</button>`}
+function coverageRow(a={},i=0){const gov=a.governorate||'',center=a.center||'',ds=districts[center]||[];return `<div class="coverage-row" data-coverage-row><label>المحافظة<select data-field="governorate"><option value="">اختر</option>${Object.keys(governorates).map(g=>`<option ${gov===g?'selected':''}>${g}</option>`).join('')}</select></label><label>المركز<select data-field="center"><option value="">اختر</option>${(governorates[gov]||[]).map(c=>`<option ${center===c?'selected':''}>${c}</option>`).join('')}</select></label><label>القسم / الحي<select data-field="district"><option value="">بدون تحديد</option>${ds.map(d=>`<option ${a.district===d?'selected':''}>${d}</option>`).join('')}</select></label><label>رسوم الشحن<input data-field="fee" type="number" value="${Number(a.fee||0)}"></label><label>المدة<input data-field="eta" value="${esc(a.eta||'2-3 أيام')}"></label><button type="button" class="btn danger small" data-action="remove-coverage">حذف</button></div>`}
+function vendorSettings(v){return `<section class="card"><h2>إعدادات المتجر ومناطق التوصيل</h2><form data-form="vendor-settings"><div class="form-grid"><label>اسم المتجر<input name="storeName" value="${esc(v.storeName)}" required></label><label>اسم المسؤول<input name="name" value="${esc(v.name)}" required></label><label>الهاتف<input name="phone" value="${esc(v.phone)}" required></label><label>البريد اختياري<input name="email" value="${esc(v.email||'')}"></label><label>الحد الأدنى للطلب<input name="minOrder" type="number" value="${v.minOrder}" required></label><label>نوع النشاط<input name="businessType" value="${esc(v.businessType)}" required></label><label style="grid-column:1/-1">وصف المتجر<textarea name="description">${esc(v.description)}</textarea></label><label>شعار المتجر<input name="logoFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label>غلاف المتجر<input name="coverFile" type="file" accept="image/jpeg,image/png,image/webp"></label></div><h3>أماكن التوصيل</h3><p class="form-help">أضف المحافظة ثم المركز ثم القسم/الحي ورسوم ومدة التوصيل. هذه البيانات تظهر في البحث وصفحة المتجر والسلة.</p>${coverageRows(v)}<br><button class="btn primary">حفظ المتجر ومناطق التوصيل</button></form></section>`}
+function vendorFinance(v,fin){const payments=getState().financePayments.filter(p=>p.vendorId===v.id).sort((a,b)=>b.createdAt-a.createdAt);return `<div class="finance-summary"><div class="finance-card"><span>إجمالي المبيعات</span><b>${money(fin.gross)}</b></div><div class="finance-card"><span>عمولة المنصة المستحقة (${v.commission}%)</span><b class="money-due">${money(fin.due)}</b></div><div class="finance-card"><span>العمولة المدفوعة</span><b class="money-paid">${money(fin.paid)}</b></div><div class="finance-card"><span>المتبقي للمنصة</span><b class="money-due">${money(fin.outstanding)}</b></div><div class="finance-card"><span>صافي المورد</span><b>${money(fin.vendorNet)}</b></div></div><div class="grid cols-2"><section class="card"><h2>تسجيل دفعة عمولة</h2><form data-form="vendor-commission-payment"><div class="form-grid"><label>المبلغ<input name="amount" type="number" step=".01" max="${fin.outstanding}" required></label><label>طريقة الدفع<select name="method">${Object.entries(paymentMethods).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></label><label>رقم العملية / المرجع<input name="reference" required></label><label>ملاحظة<input name="note"></label></div><div class="notice warning">تظهر الدفعة تحت المراجعة، ولا تخصم من المتبقي إلا بعد موافقة الإدارة.</div><button class="btn primary">إرسال الدفعة للمراجعة</button></form></section><section class="card"><h2>سجل الدفعات</h2>${payments.length?payments.map(p=>`<div class="summary-row"><span>${dateText(p.createdAt)} · ${paymentMethods[p.method]} · ${esc(p.reference)}</span><b>${money(p.amount)} · ${statusLabel(p.status)}</b></div>`).join(''):'لا توجد دفعات.'}</section></div>`}
 
-function productView(id){
-  const p=productById(id); if(!p||p.status!=='approved') return notFound('المنتج غير موجود أو لم تتم الموافقة عليه.');
-  const vendor=userById(p.vendorId); const name=productName(p);
-  return `<div class="grid cols-2"><div class="card"><div class="product-image" style="height:470px"><img src="${p.image}" alt="${escapeHtml(name)}"></div></div><div class="card"><span class="status approved">${escapeHtml(p.category)}</span><h1>${escapeHtml(name)}</h1><p>${escapeHtml(p.description)}</p><div class="price">${money(p.retail)}</div><div class="tiers"><span>قطاعي: ${money(p.retail)}</span><span>جملة من ${p.wholesaleQty}: ${money(p.wholesale)}</span><span>جملة الجملة من ${p.bulkQty}: ${money(p.bulk)}</span></div><p><b>العلامة:</b> ${escapeHtml(p.brand)} — <b>الوحدة:</b> ${escapeHtml(p.unit)} — <b>التجهيز:</b> ${p.prepDays} يوم</p><p><b>المخزون:</b> ${p.stock} — <b>أقصى طلب:</b> ${p.maxQty}</p><div class="qty-add"><input id="productQty" type="number" min="1" max="${p.maxQty}" value="1"><button class="btn primary" data-action="add-cart-detail" data-product="${p.id}">أضف للسلة</button></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><div class="vendor-card"><img class="avatar" src="${vendor.logo}" alt=""><div><b>${escapeHtml(vendor.storeName)}</b><div>${vendor.governorate} - ${vendor.city}</div><a href="#/vendor/${vendor.id}">زيارة متجر المورد</a></div></div></div></div>`;
-}
+function adminView(tab='overview'){if(!requireRole(['admin']))return'';let content='';if(tab==='vendors')content=adminVendors();else if(tab==='products')content=adminProducts();else if(tab==='orders')content=adminOrders();else if(tab==='finance')content=adminFinance();else if(tab==='settings')content=adminSettings();else content=adminOverview();return dashboard('admin','بوابة الإدارة',content,tab)}
+function adminOverview(){const s=getState(),f=platformFinancials();return `<div class="kpis"><div class="kpi"><span>الموردون</span><b>${approvedVendors().length}</b></div><div class="kpi"><span>المنتجات</span><b>${s.products.filter(p=>p.status==='approved').length}</b></div><div class="kpi"><span>الطلبات</span><b>${s.orders.length}</b></div><div class="kpi"><span>عمولات غير مدفوعة</span><b>${money(f.outstanding)}</b></div></div><section class="card"><h2>ملخص مالي</h2><div class="finance-summary"><div class="finance-card"><span>إجمالي المبيعات</span><b>${money(f.gross)}</b></div><div class="finance-card"><span>عمولات مستحقة</span><b>${money(f.due)}</b></div><div class="finance-card"><span>عمولات مدفوعة</span><b>${money(f.paid)}</b></div><div class="finance-card"><span>متبقي</span><b>${money(f.outstanding)}</b></div><div class="finance-card"><span>صافي الموردين</span><b>${money(f.vendorNet)}</b></div></div><a class="btn primary" href="#/admin/finance">فتح الإدارة المالية</a></section>`}
+function adminVendors(){const vs=getState().users.filter(u=>u.role==='vendor');return `<section class="card"><h2>إدارة الموردين</h2><div class="table-wrap"><table><thead><tr><th>المورد</th><th>المناطق</th><th>الحد الأدنى</th><th>العمولة</th><th>الحالة</th><th></th></tr></thead><tbody>${vs.map(v=>`<tr><td>${esc(v.storeName)}</td><td>${coverageText(v,2).map(esc).join('<br>')}</td><td><input data-min="${v.id}" type="number" value="${v.minOrder}"></td><td><input data-commission="${v.id}" type="number" value="${v.commission}"></td><td><span class="status ${v.status}">${statusLabel(v.status)}</span></td><td><button class="btn small primary" data-action="save-vendor" data-id="${v.id}">حفظ</button> <button class="btn small secondary" data-action="vendor-status" data-id="${v.id}" data-status="approved">اعتماد</button> <button class="btn small danger" data-action="vendor-status" data-id="${v.id}" data-status="rejected">رفض</button></td></tr>`).join('')}</tbody></table></div></section>`}
+function adminProducts(){const ps=getState().products;return `<section class="card"><h2>مراجعة المنتجات</h2><div class="table-wrap"><table><thead><tr><th>الصورة</th><th>المنتج</th><th>المورد</th><th>الأسعار</th><th>الحالة</th><th></th></tr></thead><tbody>${ps.map(p=>`<tr><td><img class="avatar" src="${esc(p.image)}"></td><td>${esc(p.nameAr)}</td><td>${esc(userById(p.vendorId)?.storeName||'')}</td><td>${money(p.retail)} / ${money(p.wholesale)} / ${money(p.bulk)}</td><td><span class="status ${p.status}">${statusLabel(p.status)}</span></td><td><button class="btn small primary" data-action="product-status" data-id="${p.id}" data-status="approved">نشر</button> <button class="btn small danger" data-action="product-status" data-id="${p.id}" data-status="rejected">رفض</button></td></tr>`).join('')}</tbody></table></div></section>`}
+function adminOrders(){const os=getState().orders;return `<section class="card"><h2>الطلبات</h2>${ordersTable(os)}</section>`}
+function adminFinance(){const vendors=approvedVendors(),f=platformFinancials(),payments=getState().financePayments.slice().sort((a,b)=>b.createdAt-a.createdAt);return `<div class="finance-summary"><div class="finance-card"><span>إجمالي المبيعات</span><b>${money(f.gross)}</b></div><div class="finance-card"><span>العمولات المستحقة</span><b>${money(f.due)}</b></div><div class="finance-card"><span>المدفوع</span><b>${money(f.paid)}</b></div><div class="finance-card"><span>المتبقي</span><b>${money(f.outstanding)}</b></div><div class="finance-card"><span>دفعات معلقة</span><b>${money(f.pending)}</b></div></div><section class="card"><h2>أرصدة جميع الموردين</h2><div class="table-wrap"><table><thead><tr><th>المورد</th><th>المبيعات</th><th>نسبة العمولة</th><th>المستحق</th><th>المدفوع</th><th>المتبقي</th><th>صافي المورد</th></tr></thead><tbody>${vendors.map(v=>{const x=vendorFinancials(v.id);return`<tr><td>${esc(v.storeName)}</td><td>${money(x.gross)}</td><td>${v.commission}%</td><td>${money(x.due)}</td><td>${money(x.paid)}</td><td><b style="color:var(--danger)">${money(x.outstanding)}</b></td><td>${money(x.vendorNet)}</td></tr>`}).join('')}</tbody></table></div></section><section class="card" style="margin-top:16px"><h2>دفعات العمولة</h2>${payments.length?`<div class="table-wrap"><table><thead><tr><th>المورد</th><th>المبلغ</th><th>الطريقة</th><th>المرجع</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${payments.map(p=>`<tr><td>${esc(userById(p.vendorId)?.storeName||'')}</td><td>${money(p.amount)}</td><td>${paymentMethods[p.method]}</td><td>${esc(p.reference)}</td><td>${dateText(p.createdAt)}</td><td><span class="status ${p.status}">${statusLabel(p.status)}</span></td><td>${p.status==='pending'?`<button class="btn small primary" data-action="payment-status" data-id="${p.id}" data-status="approved">اعتماد</button> <button class="btn small danger" data-action="payment-status" data-id="${p.id}" data-status="rejected">رفض</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'لا توجد دفعات.'}</section>`}
+function adminSettings(){const s=getState().settings;return `<section class="card"><h2>الإعدادات العامة</h2><form data-form="admin-settings"><div class="form-grid"><label>عمولة افتراضية %<input name="globalCommission" type="number" value="${s.globalCommission}"></label><label>رسوم السلة المميزة %<input name="premiumCartFee" type="number" step=".1" value="${s.premiumCartFee}"></label><label>حد الشحن المجاني<input name="freeShippingThreshold" type="number" value="${s.freeShippingThreshold}"></label></div><button class="btn primary">حفظ</button></form></section>`}
 
-function vendorsView(){
-  const qs=new URLSearchParams(currentPath().split('?')[1]||''); const gov=qs.get('governorate')||''; const city=qs.get('city')||''; const q=qs.get('q')||'';
-  let vendors=getState().users.filter(u=>u.role==='vendor'&&u.status==='approved');
-  if(gov) vendors=vendors.filter(v=>v.governorate===gov); if(city) vendors=vendors.filter(v=>v.city===city); if(q){const s=q.toLowerCase();vendors=vendors.filter(v=>`${v.storeName} ${v.name} ${v.businessType}`.toLowerCase().includes(s));}
-  const cities=gov?governorates[gov]||[]:[];
-  return `<section class="page-hero"><h1>دليل الموردين</h1><p>ابحث عن المورد حسب المحافظة والمركز ونوع النشاط.</p></section><form class="toolbar" style="grid-template-columns:2fr 1fr 1fr auto" data-form="vendors-filter"><label>بحث<input name="q" value="${escapeHtml(q)}" placeholder="اسم المورد أو النشاط"></label><label>المحافظة<select name="governorate">${governorateOptions(gov,true)}</select></label><label>المركز<select name="city"><option value="">كل المراكز</option>${cities.map(c=>`<option ${city===c?'selected':''}>${c}</option>`).join('')}</select></label><button class="btn primary">بحث</button></form>
-  <div class="grid cols-3">${vendors.map(vendorCard).join('')}</div>`;
-}
-function vendorCard(v){
-  const count=getState().products.filter(p=>p.vendorId===v.id&&p.status==='approved').length;
-  return `<article class="card hover"><div class="vendor-cover"><img src="${v.cover||svgData('📦')}" alt=""></div><div class="vendor-card"><img class="avatar" src="${v.logo||svgData('🏪')}" alt=""><div><h3 style="margin:0">${escapeHtml(v.storeName)}</h3><span>${v.verified?'✅ مورد موثّق':'مورد'}</span><p>${escapeHtml(v.governorate)} - ${escapeHtml(v.city)}</p></div></div><p>${escapeHtml(v.description||v.businessType||'')}</p><div class="tiers"><span>${count} منتج</span><span>الحد الأدنى للطلب: ${money(v.minOrder)}</span><span>مدة التوصيل المتوقعة: 2–4 أيام</span></div><a class="btn primary block" href="#/vendor/${v.id}">فتح متجر المورد</a></article>`;
-}
-function vendorStoreView(id){
-  const v=userById(id); if(!v||v.role!=='vendor'||v.status!=='approved') return notFound('المورد غير موجود أو غير معتمد.');
-  const products=getState().products.filter(p=>p.vendorId===v.id&&p.status==='approved');
-  return `<section class="store-hero"><div class="store-cover"><img src="${v.cover||svgData('📦')}" alt=""></div><div class="store-info"><img class="store-logo" src="${v.logo||svgData('🏪')}" alt=""><div><h1>${escapeHtml(v.storeName)}</h1><p>${escapeHtml(v.governorate)} - ${escapeHtml(v.city)} · ${v.verified?'مورد موثّق':'مورد'}</p><p>${escapeHtml(v.description||'')}</p></div></div></section><div class="section-head"><div><h2>منتجات المورد</h2><p>الحد الأدنى للطلب من هذا المورد: ${money(v.minOrder)}</p></div></div>${products.length?`<div class="grid cols-4">${products.map(productCard).join('')}</div>`:`<div class="empty">لا توجد منتجات منشورة حاليًا.</div>`}`;
-}
+function dashboard(type,title,content,tab){const menus={customer:[['overview','الرئيسية','/customer'],['orders','طلباتي','/customer/orders'],['profile','بياناتي','/customer/profile']],vendor:[['overview','الرئيسية','/vendor-dashboard'],['products','المنتجات','/vendor-dashboard/products'],['add-product','إضافة منتج','/vendor-dashboard/add-product'],['orders','الطلبات','/vendor-dashboard/orders'],['finance','الحساب المالي','/vendor-dashboard/finance'],['settings','المتجر والتوصيل','/vendor-dashboard/settings']],admin:[['overview','نظرة عامة','/admin'],['vendors','الموردون','/admin/vendors'],['products','المنتجات','/admin/products'],['orders','الطلبات','/admin/orders'],['finance','الأرصدة والعمولات','/admin/finance'],['settings','الإعدادات','/admin/settings']]};return `<section class="page-hero"><h1>${title}</h1><p>${esc(currentUser()?.name||'')}</p></section><div class="dashboard"><aside class="sidebar"><h3>${title}</h3>${menus[type].map(([k,l,p])=>`<a class="${tab===k?'active':''}" href="#${p}">${l}</a>`).join('')}<a href="#/market">مشاهدة السوق</a><a href="#/" data-action="logout">تسجيل الخروج</a></aside><div class="dash-content">${content}</div></div>`}
 
-function authView(mode='login'){
-  const user=currentUser(); if(user){ route(dashboardPath(user)); return '<div></div>'; }
-  const isLogin=mode==='login'; const isVendor=mode==='vendor';
-  return `<section class="auth-shell"><div class="auth-side"><div><span class="kicker">Tager Marketplace</span><h2>${isLogin?'مرحبًا بعودتك':isVendor?'ابدأ البيع على تاجر':'تسوق بسهولة وبأسعار أفضل'}</h2><p>${isLogin?'سجّل الدخول برقم الهاتف أو البريد الإلكتروني إن كان موجودًا.':isVendor?'أنشئ حساب المورد ثم انتظر موافقة الإدارة قبل إضافة المنتجات.':'رقم الهاتف إجباري، والبريد الإلكتروني اختياري.'}</p><ul><li>قطاعي وجملة وجملة الجملة</li><li>لوحة مستقلة لكل مستخدم</li><li>مراجعة الموردين والمنتجات</li></ul></div><div class="notice warning">بيانات الاختبار موجودة أسفل النموذج.</div></div><div class="auth-form"><h1>${isLogin?'تسجيل الدخول':isVendor?'تسجيل مورد جديد':'تسجيل عميل جديد'}</h1><p class="form-help">استخدم رقم هاتف مصري صحيح مثل 01012345678.</p><div class="auth-tabs"><a class="${isLogin?'active':''}" href="#/login">دخول</a><a class="${!isLogin&&!isVendor?'active':''}" href="#/register/customer">عميل</a><a class="${isVendor?'active':''}" href="#/register/vendor">مورد</a></div>${isLogin?loginForm():registerForm(isVendor)}${isLogin?`<div class="notice"><b>حسابات جاهزة:</b><br>أدمن: 01000000000 / Admin@123<br>مورد: 01111111111 / Vendor@123<br>عميل: 01222222222 / Customer@123</div>`:''}</div></section>`;
-}
-function loginForm(){return `<form data-form="login"><label>رقم الهاتف أو البريد<input name="identifier" required autocomplete="username"></label><label>كلمة المرور<input name="password" type="password" required autocomplete="current-password"></label><button class="btn primary block">دخول</button><a style="text-align:center;margin-top:10px" href="#/forgot-password">نسيت كلمة المرور؟</a></form>`;}
-function registerForm(isVendor){return `<form data-form="register" data-role="${isVendor?'vendor':'customer'}"><div class="form-grid"><label>الاسم الكامل<input name="name" required></label><label>رقم الهاتف<input name="phone" required placeholder="01012345678"></label><label>البريد الإلكتروني (اختياري)<input name="email" type="email"></label><label>كلمة المرور<input name="password" type="password" required minlength="8"></label>${isVendor?`<label>اسم المتجر<input name="storeName" required></label><label>نوع النشاط<input name="businessType" required></label>`:''}<label>المحافظة<select name="governorate" required>${governorateOptions('',false)}</select></label><label>المركز / المدينة<select name="city" required><option value="">اختر المحافظة أولًا</option></select></label>${isVendor?`<label>الحد الأدنى للطلب بالجنيه<input name="minOrder" type="number" min="0" value="500" required></label><label>وصف النشاط<textarea name="description" required></textarea></label>`:`<label style="grid-column:1/-1">العنوان التفصيلي<textarea name="address"></textarea></label>`}</div><label style="display:flex;grid-template-columns:auto 1fr;align-items:center"><input type="checkbox" name="terms" required style="width:auto"> أوافق على الشروط وسياسة الخصوصية</label><button class="btn primary block">إنشاء الحساب</button></form>`;}
-function forgotPasswordView(){return `<section class="form-card"><h1>استعادة كلمة المرور</h1><p>في النسخة التجريبية يمكنك إعادة كلمة المرور باستخدام رقم الهاتف، بدون إرسال SMS.</p><form data-form="forgot"><label>رقم الهاتف<input name="phone" required></label><label>كلمة المرور الجديدة<input name="password" type="password" minlength="8" required></label><button class="btn primary">تغيير كلمة المرور</button></form></section>`;}
+function cartView(){const calc=calculateCart(),groups=calc.groups;return `<section class="page-hero"><h1>سلة المشتريات</h1><p>رسوم الشحن تحسب حسب مناطق التوصيل التي حددها كل مورد.</p></section>${calc.items.length?`<div class="cart-layout"><div>${groups.map(g=>`<section class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>${esc(g.vendor.storeName)}</h3><p>الحد الأدنى ${money(g.vendor.minOrder)} · إجمالي المورد ${money(g.subtotal)}</p></div></div>${g.items.map(i=>`<div class="cart-item"><img src="${esc(i.product.image)}"><div><b>${esc(i.product.nameAr)}</b><br><small>${tierLabel(i.tier)} · ${money(i.price)}</small></div><input type="number" min="1" max="${i.product.maxQty}" value="${i.qty}" data-cart-qty="${i.product.id}"><div class="item-price">${money(i.subtotal)}</div><button class="btn small danger" data-action="remove-cart" data-id="${i.product.id}">حذف</button></div>`).join('')}</section>`).join('')}</div><aside class="card cart-summary"><h2>ملخص الطلب</h2><div class="choice-grid"><label class="choice-card ${calc.mode==='separated'?'active':''}"><input type="radio" name="cartMode" value="separated" ${calc.mode==='separated'?'checked':''}> <b>سلة منفصلة</b><small>تحقيق حد كل مورد.</small></label><label class="choice-card ${calc.mode==='premium'?'active':''}"><input type="radio" name="cartMode" value="premium" ${calc.mode==='premium'?'checked':''}> <b>سلة مميزة</b><small>رسوم حسب كل مورد.</small></label></div>${calc.issues.length?`<div class="notice error">لم يكتمل حد: ${calc.issues.map(g=>g.vendor.storeName).join('، ')}</div>`:''}<div class="summary-row"><span>المنتجات</span><b>${money(calc.subtotal)}</b></div><div class="summary-row"><span>رسوم السلة المميزة</span><b>${money(calc.premiumFee)}</b></div><div class="summary-row"><span>الشحن</span><b>يحدد بعد اختيار المكان</b></div><div class="summary-row total"><span>قبل الشحن</span><b>${money(calc.subtotal+calc.premiumFee)}</b></div><button class="btn primary block" data-action="checkout" ${calc.issues.length&&calc.mode==='separated'?'disabled':''}>متابعة الطلب</button></aside></div>`:'<div class="empty">السلة فارغة. <a href="#/market">ابدأ التسوق</a></div>'}`}
+function calculateCart(){const mode=localStorage.getItem(CART_MODE_KEY)||'separated',items=getCart().map(i=>{const product=productById(i.productId);if(!product)return null;const t=tierPrice(product,i.qty);return{product,productId:product.id,vendorId:product.vendorId,qty:Number(i.qty),price:t.price,tier:t.tier,subtotal:t.price*Number(i.qty)}}).filter(Boolean);const groups=Object.values(items.reduce((a,i)=>{if(!a[i.vendorId])a[i.vendorId]={vendor:userById(i.vendorId),items:[],subtotal:0};a[i.vendorId].items.push(i);a[i.vendorId].subtotal+=i.subtotal;return a},{}));const subtotal=items.reduce((s,i)=>s+i.subtotal,0),premiumFee=mode==='premium'?groups.reduce((s,g)=>s+g.subtotal*(Number(g.vendor.premiumFee??getState().settings.premiumCartFee)/100),0):0,issues=mode==='separated'?groups.filter(g=>g.subtotal<Number(g.vendor.minOrder||0)):[];return{mode,items,groups,subtotal,premiumFee,issues}}
+function checkoutModal(){const u=currentUser();if(!u||u.role!=='customer'){toast('سجل الدخول كعميل','error');route('/login');return}const vendors=calculateCart().groups.map(g=>g.vendor);const govs=availableGovernorates(vendors);document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop"><div class="modal"><div class="modal-head"><h2>إتمام الطلب</h2><button class="close-btn" data-action="close-modal">×</button></div><form data-form="checkout"><div class="form-grid"><label>المحافظة<select name="governorate" required><option value="">اختر</option>${govs.map(g=>`<option ${u.governorate===g?'selected':''}>${g}</option>`).join('')}</select></label><label>المركز<select name="center" required><option value="">اختر المحافظة</option>${availableCenters(u.governorate,vendors).map(c=>`<option ${u.center===c?'selected':''}>${c}</option>`).join('')}</select></label><label>القسم / الحي<select name="district"><option value="">بدون تحديد</option>${availableDistricts(u.governorate,u.center,vendors).map(d=>`<option ${u.district===d?'selected':''}>${d}</option>`).join('')}</select></label><label>طريقة الدفع<select name="payment">${Object.entries(paymentMethods).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></label><label style="grid-column:1/-1">العنوان<textarea name="address" required>${esc(u.address||'')}</textarea></label></div><div id="shippingPreview" class="notice">اختر المحافظة والمركز لعرض رسوم كل مورد.</div><button class="btn primary block">تأكيد الطلب</button></form></div></div>`)}
 
-function customerView(){
-  if(!requireRole(['customer'])) return '';
-  const u=currentUser(); const state=getState(); const orders=state.orders.filter(o=>o.customerId===u.id); const spent=orders.reduce((s,o)=>s+o.total,0);
-  return dashboardLayout('customer','لوحة العميل',`<div class="kpis"><div class="kpi"><span>عدد الطلبات</span><b>${orders.length}</b></div><div class="kpi"><span>طلبات نشطة</span><b>${orders.filter(o=>!['completed','cancelled'].includes(o.status)).length}</b></div><div class="kpi"><span>إجمالي المشتريات</span><b>${money(spent)}</b></div><div class="kpi"><span>المحافظة</span><b style="font-size:19px">${escapeHtml(u.governorate||'-')}</b></div></div><div class="grid cols-2"><section class="card"><h2>آخر الطلبات</h2>${orders.length?orders.slice(-5).reverse().map(orderMini).join(''):'<div class="empty">لا توجد طلبات بعد.</div>'}</section><section class="card"><h2>بيانات الحساب</h2><form data-form="customer-profile"><div class="form-grid"><label>الاسم<input name="name" value="${escapeHtml(u.name)}" required></label><label>الهاتف<input name="phone" value="${escapeHtml(u.phone)}" required></label><label>البريد اختياري<input name="email" type="email" value="${escapeHtml(u.email||'')}"></label><label>المحافظة<select name="governorate">${governorateOptions(u.governorate,false)}</select></label><label>المركز<input name="city" value="${escapeHtml(u.city||'')}"></label><label>العنوان<input name="address" value="${escapeHtml(u.address||'')}"></label></div><button class="btn primary">حفظ البيانات</button></form></section></div>`);
-}
-function orderMini(o){return `<div class="summary-row"><span>#${o.id.slice(-6)} · <span class="status ${o.status}">${statusLabel(o.status)}</span></span><b>${money(o.total)}</b></div>`;}
+function howView(){return `<section class="page-hero"><h1>كيف تعمل المنصة؟</h1><p>تسجيل، اعتماد، إضافة منتجات، توصيل، طلب، ثم تسوية مالية.</p></section><div class="grid cols-3">${['العميل يسجل ويختار موقعه','المورد يحدد المحافظات والمراكز والأقسام','المورد يضيف صور وأسعار ومخزون','الإدارة تعتمد المورد والمنتج','العميل يطلب حسب نوع السعر','الإدارة والمورد يتابعان الرصيد والعمولة'].map((x,i)=>`<article class="card"><h2>${i+1}</h2><p>${x}</p></article>`).join('')}</div>`}
+function policiesView(){return `<section class="page-hero"><h1>السياسات</h1><p>هذه نسخة تجريبية، ويجب مراجعة السياسات قانونيًا قبل الإطلاق التجاري.</p></section><div class="grid cols-2"><article class="card"><h2>الطلبات</h2><p>الحد الأدنى ورسوم الشحن حسب كل مورد.</p></article><article class="card"><h2>العمولات</h2><p>تحسب نسبة الإدارة من مبيعات كل مورد مع بيان المدفوع والمتبقي.</p></article><article class="card"><h2>الصور</h2><p>ترفع الصور الأصلية بدون ضغط داخل النسخة التجريبية.</p></article><article class="card"><h2>البيانات</h2><p>الحفظ الحالي داخل المتصفح، ويحتاج Supabase للإطلاق متعدد الأجهزة.</p></article></div>`}
+function contactView(){return `<section class="form-card"><h1>تواصل معنا</h1><form data-form="contact"><label>الاسم<input name="name" required></label><label>الهاتف<input name="phone" required></label><label>الرسالة<textarea name="message" required></textarea></label><button class="btn primary">إرسال</button></form></section>`}
+function empty(msg){return `<div class="empty"><h2>${esc(msg)}</h2><a class="btn primary" href="#/">الرئيسية</a></div>`}
+function govOptions(selected=''){return `<option value="">اختر المحافظة</option>${Object.keys(governorates).map(g=>`<option ${selected===g?'selected':''}>${g}</option>`).join('')}`}
+function centerOptions(gov,selected=''){return `<option value="">اختر المركز</option>${(governorates[gov]||[]).map(c=>`<option ${selected===c?'selected':''}>${c}</option>`).join('')}`}
 
-function vendorDashboardView(tab='overview'){
-  if(!requireRole(['vendor'])) return '';
-  const v=currentUser(); if(v.status!=='approved') return dashboardLayout('vendor','لوحة المورد',`<div class="notice warning"><h2>الحساب تحت المراجعة</h2><p>يمكنك تعديل بيانات المتجر، لكن إضافة المنتجات ستكون متاحة بعد موافقة الإدارة.</p></div>${vendorSettingsForm(v)}`);
-  const state=getState(); const products=state.products.filter(p=>p.vendorId===v.id); const orderRows=vendorOrders(v.id); const sales=orderRows.reduce((s,o)=>s+o.vendorSubtotal,0);
-  let content='';
-  if(tab==='products') content=vendorProductsView(v,products);
-  else if(tab==='add-product') content=vendorProductForm();
-  else if(tab==='orders') content=vendorOrdersView(v.id);
-  else if(tab==='settings') content=vendorSettingsForm(v);
-  else content=`<div class="kpis"><div class="kpi"><span>المنتجات</span><b>${products.length}</b></div><div class="kpi"><span>منشور</span><b>${products.filter(p=>p.status==='approved').length}</b></div><div class="kpi"><span>تحت المراجعة</span><b>${products.filter(p=>p.status==='pending').length}</b></div><div class="kpi"><span>المبيعات</span><b>${money(sales)}</b></div></div><div class="grid cols-2"><section class="card"><h2>اختصارات</h2><div class="vendor-actions"><a class="btn primary" href="#/vendor-dashboard/add-product">إضافة منتج</a><a class="btn secondary" href="#/vendor-dashboard/products">إدارة المنتجات</a><a class="btn secondary" href="#/market">مشاهدة السوق</a><a class="btn secondary" href="#/vendor/${v.id}">متجري</a></div></section><section class="card"><h2>حالة المتجر</h2><div class="summary-row"><span>حالة الحساب</span><span class="status approved">معتمد</span></div><div class="summary-row"><span>الحد الأدنى للطلب</span><b>${money(v.minOrder)}</b></div><div class="summary-row"><span>عمولة المنصة</span><b>${v.commission??getState().settings.globalCommission}%</b></div><div class="summary-row"><span>رسوم السلة المميزة</span><b>${v.premiumFee??getState().settings.premiumCartFee}%</b></div></section></div>`;
-  return dashboardLayout('vendor','لوحة المورد',content,tab);
-}
-function vendorProductsView(v,products){
-  return `<div class="section-head"><div><h2>منتجاتي</h2><p>كل تعديل يعيد المنتج للمراجعة.</p></div><a class="btn primary" href="#/vendor-dashboard/add-product">إضافة منتج</a></div>${products.length?`<div class="table-wrap"><table><thead><tr><th>المنتج</th><th>قطاعي</th><th>جملة</th><th>جملة الجملة</th><th>المخزون</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${products.map(p=>`<tr><td><div style="display:flex;gap:10px;align-items:center"><img class="avatar" src="${p.image}"><b>${escapeHtml(productName(p))}</b></div></td><td>${money(p.retail)}</td><td>${money(p.wholesale)}</td><td>${money(p.bulk)}</td><td>${p.stock}</td><td><span class="status ${p.status}">${statusLabel(p.status)}</span></td><td><button class="btn small secondary" data-action="edit-product" data-id="${p.id}">تعديل</button> <button class="btn small danger" data-action="delete-product" data-id="${p.id}">حذف</button></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">لم تضف أي منتج بعد.</div>`}`;
-}
-function vendorProductForm(p=null){
-  const edit=!!p;
-  return `<section class="form-card" style="max-width:none"><h2>${edit?'تعديل المنتج':'إضافة منتج جديد'}</h2><p class="form-help">المنتج سيُرسل لمراجعة الإدارة قبل ظهوره في السوق.</p><form data-form="vendor-product"><input type="hidden" name="id" value="${p?.id||''}"><div class="form-grid"><label>الاسم بالعربي<input name="nameAr" value="${escapeHtml(p?.nameAr||'')}" required></label><label>الاسم بالإنجليزي<input name="nameEn" value="${escapeHtml(p?.nameEn||'')}" required></label><label>القسم<select name="category" required>${categories.map(([c])=>`<option ${p?.category===c?'selected':''}>${c}</option>`).join('')}</select></label><label>العلامة التجارية<input name="brand" value="${escapeHtml(p?.brand||'')}"></label><label>وحدة البيع<input name="unit" value="${escapeHtml(p?.unit||'قطعة')}" required></label><label>مدة التجهيز بالأيام<input type="number" name="prepDays" min="0" value="${p?.prepDays??1}" required></label><label>سعر القطاعي<input type="number" step="0.01" name="retail" min="0" value="${p?.retail??''}" required></label><label>سعر الجملة<input type="number" step="0.01" name="wholesale" min="0" value="${p?.wholesale??''}" required></label><label>سعر جملة الجملة<input type="number" step="0.01" name="bulk" min="0" value="${p?.bulk??''}" required></label><label>حد الجملة<input type="number" name="wholesaleQty" min="2" value="${p?.wholesaleQty??10}" required></label><label>حد جملة الجملة<input type="number" name="bulkQty" min="3" value="${p?.bulkQty??50}" required></label><label>المخزون<input type="number" name="stock" min="0" value="${p?.stock??0}" required></label><label>أقصى كمية للطلب<input type="number" name="maxQty" min="1" value="${p?.maxQty??100}" required></label><label>صورة المنتج<input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp"><small class="form-help">حتى 1.5 ميجابايت في النسخة التجريبية</small></label><label style="grid-column:1/-1">الوصف<textarea name="description" required>${escapeHtml(p?.description||'')}</textarea></label></div><input type="hidden" name="existingImage" value="${p?.image||''}"><button class="btn primary">${edit?'حفظ وإعادة الإرسال للمراجعة':'حفظ وإرسال للمراجعة'}</button></form></section>`;
-}
-function vendorOrders(vendorId){
-  return getState().orders.map(o=>{const items=o.items.filter(i=>productById(i.productId)?.vendorId===vendorId);return items.length?{...o,vendorItems:items,vendorSubtotal:items.reduce((s,i)=>s+i.price*i.qty,0)}:null}).filter(Boolean);
-}
-function vendorOrdersView(vendorId){
-  const rows=vendorOrders(vendorId);
-  return `<h2>طلبات متجري</h2>${rows.length?`<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الأصناف</th><th>القيمة</th><th>الحالة</th><th>تحديث</th></tr></thead><tbody>${rows.map(o=>`<tr><td>#${o.id.slice(-6)}</td><td>${escapeHtml(userById(o.customerId)?.name||'')}</td><td>${o.vendorItems.length}</td><td>${money(o.vendorSubtotal)}</td><td><span class="status ${o.status}">${statusLabel(o.status)}</span></td><td><select data-order-status="${o.id}"><option value="confirmed" ${o.status==='confirmed'?'selected':''}>مؤكد</option><option value="processing" ${o.status==='processing'?'selected':''}>جاري التجهيز</option><option value="shipped" ${o.status==='shipped'?'selected':''}>تم الشحن</option><option value="completed" ${o.status==='completed'?'selected':''}>مكتمل</option></select></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">لا توجد طلبات لمتجرك حتى الآن.</div>`}`;
-}
-function vendorSettingsForm(v){
-  return `<section class="form-card" style="max-width:none"><h2>إعدادات المتجر</h2><form data-form="vendor-settings"><div class="form-grid"><label>اسم المتجر<input name="storeName" value="${escapeHtml(v.storeName||'')}" required></label><label>اسم المسؤول<input name="name" value="${escapeHtml(v.name||'')}" required></label><label>الهاتف<input name="phone" value="${escapeHtml(v.phone||'')}" required></label><label>البريد اختياري<input name="email" type="email" value="${escapeHtml(v.email||'')}"></label><label>المحافظة<select name="governorate">${governorateOptions(v.governorate,false)}</select></label><label>المركز<input name="city" value="${escapeHtml(v.city||'')}"></label><label>الحد الأدنى للطلب<input name="minOrder" type="number" min="0" value="${v.minOrder||0}"></label><label>نوع النشاط<input name="businessType" value="${escapeHtml(v.businessType||'')}"></label><label>شعار المتجر<input name="logoFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label>صورة الغلاف<input name="coverFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label style="grid-column:1/-1">وصف المتجر<textarea name="description">${escapeHtml(v.description||'')}</textarea></label></div><button class="btn primary">حفظ بيانات المتجر</button></form></section>`;
-}
+function render(){const p=parts(),root=p[0]||'';let html='';if(!root)html=homeView();else if(root==='market')html=marketView();else if(root==='product')html=productView(p[1]);else if(root==='vendors')html=vendorsView();else if(root==='vendor')html=vendorStoreView(p[1]);else if(root==='login')html=authView('login');else if(root==='register'&&p[1]==='vendor')html=authView('vendor');else if(root==='register')html=authView('customer');else if(root==='forgot-password')html=forgotView();else if(root==='customer')html=customerView(p[1]||'overview');else if(root==='vendor-dashboard')html=vendorDashboardView(p[1]||'overview');else if(root==='admin')html=adminView(p[1]||'overview');else if(root==='cart')html=cartView();else if(root==='how')html=howView();else if(root==='policies')html=policiesView();else if(root==='contact')html=contactView();else html=empty('الصفحة غير موجودة');shell(html)}
 
-function adminView(tab='overview'){
-  if(!requireRole(['admin','staff'])) return '';
-  const state=getState(); const pendingVendors=state.users.filter(u=>u.role==='vendor'&&u.status==='pending'); const pendingProducts=state.products.filter(p=>p.status==='pending');
-  let content='';
-  if(tab==='vendors') content=adminVendorsView();
-  else if(tab==='products') content=adminProductsView();
-  else if(tab==='orders') content=adminOrdersView();
-  else if(tab==='settings') content=adminSettingsView();
-  else if(tab==='team') content=adminTeamView();
-  else content=`<div class="kpis"><div class="kpi"><span>موردون منتظرون</span><b>${pendingVendors.length}</b></div><div class="kpi"><span>منتجات للمراجعة</span><b>${pendingProducts.length}</b></div><div class="kpi"><span>الطلبات</span><b>${state.orders.length}</b></div><div class="kpi"><span>إجمالي المبيعات</span><b>${money(state.orders.reduce((s,o)=>s+o.total,0))}</b></div></div><div class="grid cols-2"><section class="card"><h2>الموافقات المطلوبة</h2><div class="summary-row"><span>طلبات الموردين</span><a href="#/admin/vendors">${pendingVendors.length}</a></div><div class="summary-row"><span>المنتجات</span><a href="#/admin/products">${pendingProducts.length}</a></div></section><section class="card"><h2>اختصارات الإدارة</h2><div class="vendor-actions"><a class="btn primary" href="#/admin/vendors">إدارة الموردين</a><a class="btn secondary" href="#/admin/products">مراجعة المنتجات</a><a class="btn secondary" href="#/admin/settings">العمولات والشحن</a><a class="btn secondary" href="#/admin/team">فريق الإدارة</a></div></section></div>`;
-  return dashboardLayout('admin','بوابة الإدارة',content,tab);
-}
-function adminVendorsView(){
-  const vendors=getState().users.filter(u=>u.role==='vendor');
-  return `<h2>إدارة الموردين</h2><div class="table-wrap"><table><thead><tr><th>المورد</th><th>الموقع</th><th>الحد الأدنى</th><th>العمولة</th><th>السلة المميزة</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${vendors.map(v=>`<tr><td><b>${escapeHtml(v.storeName||v.name)}</b><br><small>${escapeHtml(v.phone)}</small></td><td>${escapeHtml(v.governorate||'-')} / ${escapeHtml(v.city||'-')}</td><td><input style="width:110px" type="number" value="${v.minOrder||0}" data-vendor-min="${v.id}"></td><td><input style="width:80px" type="number" step="0.1" value="${v.commission??getState().settings.globalCommission}" data-vendor-commission="${v.id}">%</td><td><input style="width:80px" type="number" step="0.1" value="${v.premiumFee??getState().settings.premiumCartFee}" data-vendor-premium="${v.id}">%</td><td><span class="status ${v.status}">${statusLabel(v.status)}</span></td><td>${v.status!=='approved'?`<button class="btn small primary" data-action="vendor-status" data-id="${v.id}" data-status="approved">قبول</button>`:''} ${v.status!=='rejected'?`<button class="btn small danger" data-action="vendor-status" data-id="${v.id}" data-status="rejected">رفض</button>`:''} <button class="btn small secondary" data-action="save-vendor-rules" data-id="${v.id}">حفظ</button></td></tr>`).join('')}</tbody></table></div>`;
-}
-function adminProductsView(){
-  const products=getState().products;
-  return `<h2>مراجعة المنتجات</h2><div class="table-wrap"><table><thead><tr><th>المنتج</th><th>المورد</th><th>الأسعار</th><th>المخزون</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${products.map(p=>`<tr><td><div style="display:flex;gap:10px;align-items:center"><img class="avatar" src="${p.image}"><b>${escapeHtml(p.nameAr)}</b></div></td><td>${escapeHtml(userById(p.vendorId)?.storeName||'')}</td><td>${money(p.retail)} / ${money(p.wholesale)} / ${money(p.bulk)}</td><td>${p.stock}</td><td><span class="status ${p.status}">${statusLabel(p.status)}</span></td><td>${p.status!=='approved'?`<button class="btn small primary" data-action="product-status" data-id="${p.id}" data-status="approved">نشر</button>`:''} ${p.status!=='rejected'?`<button class="btn small danger" data-action="product-status" data-id="${p.id}" data-status="rejected">رفض</button>`:''}</td></tr>`).join('')}</tbody></table></div>`;
-}
-function adminOrdersView(){
-  const orders=getState().orders;
-  return `<h2>إدارة الطلبات</h2>${orders.length?`<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>المحافظة</th><th>الدفع</th><th>الإجمالي</th><th>الحالة</th></tr></thead><tbody>${orders.map(o=>`<tr><td>#${o.id.slice(-6)}<br><small>${dateText(o.createdAt)}</small></td><td>${escapeHtml(userById(o.customerId)?.name||'')}</td><td>${escapeHtml(o.governorate)} / ${escapeHtml(o.city)}</td><td>${paymentLabel(o.payment)}</td><td>${money(o.total)}</td><td><select data-admin-order-status="${o.id}">${['new','confirmed','processing','shipped','completed','cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">لا توجد طلبات حتى الآن.</div>`}`;
-}
-function adminSettingsView(){
-  const s=getState().settings;
-  return `<section class="form-card" style="max-width:none"><h2>إعدادات العمولات والسلة والشحن</h2><form data-form="admin-settings"><div class="form-grid"><label>العمولة العامة للمنصة %<input type="number" step="0.1" min="0" max="100" name="globalCommission" value="${s.globalCommission}"></label><label>رسوم السلة المميزة %<input type="number" step="0.1" min="0" max="100" name="premiumCartFee" value="${s.premiumCartFee}"></label><label>رسوم الشحن الافتراضية<input type="number" step="0.01" min="0" name="defaultShipping" value="${s.defaultShipping}"></label><label>حد الشحن المجاني<input type="number" step="0.01" min="0" name="freeShippingThreshold" value="${s.freeShippingThreshold}"></label></div><button class="btn primary">حفظ الإعدادات</button></form><hr style="border:0;border-top:1px solid var(--line);margin:25px 0"><button class="btn danger" data-action="reset-demo">إعادة بيانات النسخة التجريبية</button></section>`;
-}
-function adminTeamView(){
-  const state=getState(); const staff=state.users.filter(u=>u.role==='staff');
-  return `<div class="grid cols-2"><section class="form-card" style="margin:0"><h2>إضافة موظف إدارة</h2><form data-form="admin-team"><label>الاسم<input name="name" required></label><label>رقم الهاتف<input name="phone" required></label><label>البريد اختياري<input name="email" type="email"></label><label>كلمة المرور<input name="password" type="password" minlength="8" required></label><label>الدور<select name="staffRole"><option>مدير العمليات</option><option>مسؤول الموردين</option><option>مسؤول المنتجات</option><option>مسؤول الطلبات</option><option>المسؤول المالي</option><option>خدمة العملاء</option><option>قراءة فقط</option></select></label><button class="btn primary">إضافة الموظف</button></form></section><section class="card"><h2>فريق الإدارة</h2>${staff.length?staff.map(s=>`<div class="summary-row"><span><b>${escapeHtml(s.name)}</b><br><small>${escapeHtml(s.staffRole||'موظف')}</small></span><span>${escapeHtml(s.phone)}</span></div>`).join(''):'<div class="empty">لا يوجد موظفون إضافيون.</div>'}</section></div>`;
-}
+async function imageToData(file){if(!file||!file.size)return'';if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('الصورة يجب أن تكون JPG أو PNG أو WebP');if(file.size>5*1024*1024)throw new Error('حجم الصورة أكبر من 5 ميجابايت');const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const dim=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve({w:im.naturalWidth,h:im.naturalHeight});im.onerror=reject;im.src=data});if(dim.w<600||dim.h<600)throw new Error('الصورة صغيرة؛ استخدم صورة 600×600 بكسل على الأقل');return data}
+function addToCart(id,qty){const p=productById(id);qty=Math.max(1,Math.min(Number(qty)||1,p.stock,p.maxQty));const c=getCart(),i=c.find(x=>x.productId===id);if(i)i.qty=Math.min(i.qty+qty,p.stock,p.maxQty);else c.push({productId:id,qty});saveCart(c);toast('تمت الإضافة للسلة')}
+function collectCoverage(){return [...document.querySelectorAll('[data-coverage-row]')].map(r=>({governorate:r.querySelector('[data-field="governorate"]').value,center:r.querySelector('[data-field="center"]').value,district:r.querySelector('[data-field="district"]').value,fee:Number(r.querySelector('[data-field="fee"]').value)||0,eta:r.querySelector('[data-field="eta"]').value.trim()})).filter(a=>a.governorate&&a.center)}
 
-function dashboardLayout(type,title,content,tab='overview'){
-  const menus={
-    customer:[['overview','لوحة الحساب','/customer'],['orders','طلباتي','/customer/orders'],['profile','الملف الشخصي','/customer']],
-    vendor:[['overview','الرئيسية','/vendor-dashboard'],['products','المنتجات','/vendor-dashboard/products'],['add-product','إضافة منتج','/vendor-dashboard/add-product'],['orders','الطلبات','/vendor-dashboard/orders'],['settings','إعدادات المتجر','/vendor-dashboard/settings']],
-    admin:[['overview','نظرة عامة','/admin'],['vendors','الموردون','/admin/vendors'],['products','المنتجات','/admin/products'],['orders','الطلبات','/admin/orders'],['settings','العمولات والشحن','/admin/settings'],['team','فريق الإدارة','/admin/team']]
-  };
-  return `<section class="page-hero"><h1>${title}</h1><p>${escapeHtml(currentUser()?.name||'')}</p></section><div class="dashboard"><aside class="sidebar"><h3>${title}</h3>${menus[type].map(([key,label,path])=>`<a class="${tab===key?'active':''}" href="#${path}">${label}</a>`).join('')}<a href="#/market">مشاهدة السوق</a><a href="#/" data-action="logout">تسجيل الخروج</a></aside><div class="dash-content">${content}</div></div>`;
-}
+async function handleSubmit(e){const f=e.target.closest('form');if(!f)return;e.preventDefault();const type=f.dataset.form,btn=f.querySelector('button[type="submit"],button:not([type])'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='جاري الحفظ...'}try{const fd=new FormData(f),s=getState();if(type==='search')route(`/market?q=${encodeURIComponent(fd.get('q'))}`);if(type==='market-filter'||type==='vendors-filter'){const qs=new URLSearchParams();for(const[k,v]of fd.entries())if(v)qs.set(k,v);route(`/${type==='market-filter'?'market':'vendors'}?${qs}`)}if(type==='login'){const id=String(fd.get('identifier')).trim(),u=s.users.find(x=>x.phone===phone(id)||x.email?.toLowerCase()===id.toLowerCase());if(!u||u.password!==fd.get('password'))toast('بيانات الدخول غير صحيحة','error');else{setSession(u.id);toast('تم تسجيل الدخول');route(dashboardPath(u))}}if(type==='register'){const role=f.dataset.role,ph=phone(fd.get('phone')),email=String(fd.get('email')||'').trim();if(!validPhone(ph))toast('رقم الهاتف غير صحيح','error');else if(!validEmail(email))toast('البريد غير صحيح','error');else if(s.users.some(u=>u.phone===ph))toast('رقم الهاتف مستخدم','error');else{const u={id:uid('u'),role,name:fd.get('name').trim(),phone:ph,email,password:fd.get('password'),status:role==='vendor'?'pending':'approved'};if(role==='vendor')Object.assign(u,{storeName:fd.get('storeName'),businessType:fd.get('businessType'),minOrder:Number(fd.get('minOrder')),description:fd.get('description'),commission:s.settings.globalCommission,premiumFee:s.settings.premiumCartFee,logo:asset('vendor-kheir-logo.svg'),cover:asset('vendor-kheir-cover.svg'),deliveryAreas:[]});else Object.assign(u,{governorate:fd.get('governorate'),center:fd.get('center'),address:fd.get('address')});s.users.push(u);saveState(s);setSession(u.id);route(dashboardPath(u));toast('تم إنشاء الحساب')}}if(type==='forgot'){const u=s.users.find(x=>x.phone===phone(fd.get('phone')));if(!u)toast('الرقم غير موجود','error');else{u.password=fd.get('password');saveState(s);toast('تم تغيير كلمة المرور');route('/login')}}if(type==='customer-profile'){const u=s.users.find(x=>x.id===currentUser().id);Object.assign(u,{name:fd.get('name'),phone:phone(fd.get('phone')),email:fd.get('email'),governorate:fd.get('governorate'),center:fd.get('center'),district:fd.get('district'),address:fd.get('address')});saveState(s);toast('تم حفظ البيانات');render()}if(type==='vendor-product'){const v=currentUser();const retail=Number(fd.get('retail')),wholesale=Number(fd.get('wholesale')),bulk=Number(fd.get('bulk')),wq=Number(fd.get('wholesaleQty')),bq=Number(fd.get('bulkQty'));if(!(retail>=wholesale&&wholesale>=bulk))throw new Error('يجب أن يكون سعر القطاعي أكبر أو يساوي الجملة، والجملة أكبر أو تساوي جملة الجملة');if(!(bq>wq))throw new Error('حد جملة الجملة يجب أن يكون أكبر من حد الجملة');let image=fd.get('existingImage')||asset('product-rice.svg');const file=fd.get('imageFile');if(file&&file.size)image=await imageToData(file);let p=s.products.find(x=>x.id===fd.get('id')&&x.vendorId===v.id);const data={vendorId:v.id,nameAr:fd.get('nameAr'),nameEn:fd.get('nameAr'),category:fd.get('category'),brand:fd.get('brand'),unit:fd.get('unit'),retail,wholesale,bulk,wholesaleQty:wq,bulkQty:bq,stock:Number(fd.get('stock')),maxQty:Number(fd.get('maxQty')),prepDays:Number(fd.get('prepDays')),description:fd.get('description'),image,status:'pending'};if(p)Object.assign(p,data);else s.products.push({id:uid('p'),...data,createdAt:Date.now()});saveState(s);toast('تم حفظ المنتج وإرساله للمراجعة');route('/vendor-dashboard/products')}if(type==='vendor-settings'){const v=s.users.find(x=>x.id===currentUser().id);let logo=v.logo,cover=v.cover;const lf=fd.get('logoFile'),cf=fd.get('coverFile');if(lf&&lf.size)logo=await imageToData(lf);if(cf&&cf.size)cover=await imageToData(cf);Object.assign(v,{storeName:fd.get('storeName'),name:fd.get('name'),phone:phone(fd.get('phone')),email:fd.get('email'),minOrder:Number(fd.get('minOrder')),businessType:fd.get('businessType'),description:fd.get('description'),logo,cover,deliveryAreas:collectCoverage()});saveState(s);toast('تم حفظ بيانات المتجر والتوصيل');render()}if(type==='vendor-commission-payment'){const amount=Number(fd.get('amount')),v=currentUser(),fin=vendorFinancials(v.id);if(amount<=0||amount>fin.outstanding)throw new Error('المبلغ يجب أن يكون أكبر من صفر ولا يتجاوز المتبقي');s.financePayments.push({id:uid('pay'),vendorId:v.id,amount,method:fd.get('method'),reference:fd.get('reference'),note:fd.get('note'),status:'pending',createdAt:Date.now()});saveState(s);toast('تم إرسال الدفعة للمراجعة');render()}if(type==='admin-settings'){Object.assign(s.settings,{globalCommission:Number(fd.get('globalCommission')),premiumCartFee:Number(fd.get('premiumCartFee')),freeShippingThreshold:Number(fd.get('freeShippingThreshold'))});saveState(s);toast('تم حفظ الإعدادات')}if(type==='checkout'){createOrderFromCheckout(f)}if(type==='contact'){toast('تم استلام الرسالة');f.reset()}}catch(err){toast(err.message||'حدث خطأ','error')}finally{if(btn&&document.body.contains(btn)){btn.disabled=false;btn.textContent=old}}}
 
-function cartView(){
-  const cart=getCart(); const state=getState(); const mode=localStorage.getItem('tager-cart-mode')||'separated';
-  const items=cart.map(i=>{const p=productById(i.productId);if(!p)return null;const tier=tierPrice(p,i.qty);return {...i,p,tier,subtotal:tier.price*i.qty,vendor:userById(p.vendorId)}}).filter(Boolean);
-  const groups=Object.values(items.reduce((acc,i)=>{const id=i.p.vendorId;acc[id]??={vendor:i.vendor,items:[],subtotal:0};acc[id].items.push(i);acc[id].subtotal+=i.subtotal;return acc},{}));
-  const subtotal=items.reduce((s,i)=>s+i.subtotal,0); const premiumFee=mode==='premium'?groups.reduce((s,g)=>s+g.subtotal*((g.vendor?.premiumFee??state.settings.premiumCartFee)/100),0):0;
-  const shipping=subtotal>=state.settings.freeShippingThreshold?0:(items.length?state.settings.defaultShipping:0); const total=subtotal+premiumFee+shipping;
-  const issues=mode==='separated'?groups.filter(g=>g.subtotal<Number(g.vendor?.minOrder||0)):[];
-  return `<section class="page-hero"><h1>سلة المشتريات</h1><p>اختر سلة الموردين المنفصلة أو السلة المميزة المختلطة.</p></section>${items.length?`<div class="cart-layout"><div class="cart-groups">${groups.map(g=>`<section class="card"><div class="section-head"><div><h3>${escapeHtml(g.vendor?.storeName||'مورد')}</h3><p>الحد الأدنى: ${money(g.vendor?.minOrder||0)} — إجمالي المورد: ${money(g.subtotal)}</p></div><span class="status ${g.subtotal>=Number(g.vendor?.minOrder||0)?'approved':'pending'}">${g.subtotal>=Number(g.vendor?.minOrder||0)?'مكتمل':'لم يكتمل الحد'}</span></div>${g.items.map(i=>`<div class="cart-item"><img src="${i.p.image}"><div><b>${escapeHtml(productName(i.p))}</b><br><small>${tierLabel(i.tier.tier)} · ${money(i.tier.price)} للوحدة</small></div><input type="number" min="1" max="${i.p.maxQty}" value="${i.qty}" data-cart-qty="${i.p.id}"><div class="item-price"><b>${money(i.subtotal)}</b></div><button class="btn small danger" data-action="remove-cart" data-id="${i.p.id}">حذف</button></div>`).join('')}</section>`).join('')}</div><aside class="card cart-summary"><h2>ملخص الطلب</h2><div class="choice-grid"><label class="choice-card ${mode==='separated'?'active':''}"><input type="radio" name="cartMode" value="separated" ${mode==='separated'?'checked':''}> <b>سلة الموردين المنفصلة</b><small>تحقيق الحد الأدنى لكل مورد.</small></label><label class="choice-card ${mode==='premium'?'active':''}"><input type="radio" name="cartMode" value="premium" ${mode==='premium'?'checked':''}> <b>السلة المميزة</b><small>تجمع كل الموردين برسوم خدمة.</small></label></div>${issues.length?`<div class="notice error">لم يكتمل الحد الأدنى لدى: ${issues.map(g=>g.vendor.storeName).join('، ')}. اختر السلة المميزة أو زد الكميات.</div>`:''}<div class="summary-row"><span>قيمة المنتجات</span><b>${money(subtotal)}</b></div><div class="summary-row"><span>رسوم السلة المميزة</span><b>${money(premiumFee)}</b></div><div class="summary-row"><span>الشحن</span><b>${shipping?money(shipping):'مجاني'}</b></div><div class="summary-row total"><span>الإجمالي</span><b>${money(total)}</b></div><button class="btn primary block" data-action="checkout" ${issues.length&&mode==='separated'?'disabled':''}>متابعة إتمام الطلب</button></aside></div>`:`<div class="empty"><h2>السلة فارغة</h2><a class="btn primary" href="#/market">ابدأ التسوق</a></div>`}`;
-}
-function checkoutModal(){
-  const user=currentUser(); if(!user){toast('سجّل الدخول كعميل لإتمام الطلب','error');route('/login');return}
-  if(user.role!=='customer'){toast('إتمام الطلب متاح لحساب العميل فقط','error');return}
-  const mode=localStorage.getItem('tager-cart-mode')||'separated';
-  document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop" id="checkoutModal"><div class="modal"><div class="modal-head"><h2>إتمام الطلب</h2><button class="close-btn" data-action="close-modal">×</button></div><form data-form="checkout"><div class="form-grid"><label>المحافظة<select name="governorate" required>${governorateOptions(user.governorate,false)}</select></label><label>المركز / المدينة<input name="city" value="${escapeHtml(user.city||'')}" required></label><label style="grid-column:1/-1">العنوان التفصيلي<textarea name="address" required>${escapeHtml(user.address||'')}</textarea></label><label>طريقة الدفع<select name="payment"><option value="cod">الدفع عند الاستلام</option><option value="bank">تحويل بنكي</option><option value="instapay">InstaPay</option><option value="wallet">محفظة إلكترونية</option><option value="card">بطاقة بنكية (تجريبي)</option></select></label><label>نوع الفاتورة<select name="invoice"><option value="personal">فردية</option><option value="company">شركة</option></select></label></div><input type="hidden" name="mode" value="${mode}"><div class="notice">هذه نسخة اختبار؛ لن يتم تحصيل أموال حقيقية.</div><button class="btn primary block">تأكيد وإنشاء الطلب</button></form></div></div>`);
-}
+function createOrderFromCheckout(form){const u=currentUser(),fd=new FormData(form),gov=fd.get('governorate'),center=fd.get('center'),district=fd.get('district'),calc=calculateCart();let shipping=0;const missing=[];for(const g of calc.groups){const a=coverageMatch(g.vendor,gov,center,district);if(!a)missing.push(g.vendor.storeName);else shipping+=Number(a.fee||0)}if(missing.length)throw new Error(`الموقع غير متاح للتوصيل لدى: ${missing.join('، ')}`);const s=getState(),order={id:uid('ord'),customerId:u.id,status:'new',createdAt:Date.now(),payment:fd.get('payment'),governorate:gov,center,district,address:fd.get('address'),items:calc.items.map(i=>({productId:i.productId,vendorId:i.vendorId,qty:i.qty,price:i.price,tier:i.tier})),shipping,premiumFee:calc.premiumFee,total:calc.subtotal+calc.premiumFee+shipping,cartMode:calc.mode};s.orders.push(order);order.items.forEach(i=>{const p=s.products.find(x=>x.id===i.productId);if(p)p.stock=Math.max(0,p.stock-i.qty)});saveState(s);saveCart([]);document.querySelector('.modal-backdrop')?.remove();toast('تم إنشاء الطلب');route('/customer/orders')}
 
-function howView(){return `<section class="page-hero"><h1>كيف تعمل منصة تاجر؟</h1><p>رحلة واضحة للمشتري والمورد والإدارة.</p></section><div class="grid cols-3"><article class="card"><h2>1. إنشاء حساب</h2><p>العميل أو المورد يسجل برقم الهاتف، والبريد اختياري.</p></article><article class="card"><h2>2. اعتماد المورد</h2><p>الإدارة تراجع بيانات المورد وتحدد العمولة والحد الأدنى.</p></article><article class="card"><h2>3. إضافة المنتجات</h2><p>المورد يضيف الصور والأسعار والمخزون، ثم تنتظر المنتجات المراجعة.</p></article><article class="card"><h2>4. التسوق</h2><p>العميل يبحث ويختار قطاعي أو جملة أو جملة الجملة حسب الكمية.</p></article><article class="card"><h2>5. اختيار السلة</h2><p>سلة منفصلة لكل مورد أو سلة مميزة تجمع الأصناف برسوم تحددها الإدارة.</p></article><article class="card"><h2>6. متابعة الطلب</h2><p>العميل والمورد والإدارة يتابعون الحالة من لوحاتهم.</p></article></div>`;}
-function policiesView(){return `<section class="page-hero"><h1>الشروط والسياسات</h1><p>محتوى تجريبي يحتاج مراجعة قانونية قبل الإطلاق التجاري.</p></section><div class="grid cols-2"><article class="card"><h2>سياسة الطلب</h2><p>تحدد المنصة حدود الكميات والأسعار والشحن وفق بيانات كل مورد.</p></article><article class="card"><h2>الاسترجاع</h2><p>يمكن طلب الاسترجاع وفق حالة المنتج وسياسة المورد والمنصة.</p></article><article class="card"><h2>الخصوصية</h2><p>في النسخة التجريبية تحفظ البيانات داخل المتصفح. قبل الإطلاق تُنقل إلى قاعدة بيانات مؤمنة.</p></article><article class="card"><h2>الدفع</h2><p>طرق الدفع الظاهرة تجريبية ولا تنفذ خصمًا حقيقيًا حتى ربط بوابة دفع.</p></article></div>`;}
-function contactView(){return `<section class="form-card"><h1>تواصل معنا</h1><p>استخدم النموذج لإرسال استفسار تجريبي.</p><form data-form="contact"><label>الاسم<input name="name" required></label><label>الهاتف<input name="phone" required></label><label>الرسالة<textarea name="message" required></textarea></label><button class="btn primary">إرسال</button></form></section>`;}
-function notFound(msg='الصفحة غير موجودة'){return `<div class="empty"><h1>${msg}</h1><a class="btn primary" href="#/">العودة للرئيسية</a></div>`;}
+function handleClick(e){const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;if(a==='menu')document.getElementById('mainNav')?.classList.toggle('open');if(a==='logout'){logout();route('/');toast('تم تسجيل الخروج')}if(a==='add-cart')addToCart(el.dataset.id,document.querySelector(`[data-qty="${el.dataset.id}"]`)?.value||1);if(a==='add-cart-detail')addToCart(el.dataset.id,document.getElementById('detailQty')?.value||1);if(a==='remove-cart'){saveCart(getCart().filter(i=>i.productId!==el.dataset.id));render()}if(a==='checkout')checkoutModal();if(a==='close-modal')el.closest('.modal-backdrop')?.remove();if(a==='add-coverage')document.getElementById('coverageEditor')?.insertAdjacentHTML('beforeend',coverageRow());if(a==='remove-coverage')el.closest('[data-coverage-row]')?.remove();if(a==='edit-product'){const p=productById(el.dataset.id);document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop"><div class="modal"><div class="modal-head"><h2>تعديل المنتج</h2><button class="close-btn" data-action="close-modal">×</button></div>${vendorProductForm(p)}</div></div>`)}if(a==='vendor-status'){const s=getState(),v=s.users.find(x=>x.id===el.dataset.id);v.status=el.dataset.status;saveState(s);render()}if(a==='product-status'){const s=getState(),p=s.products.find(x=>x.id===el.dataset.id);p.status=el.dataset.status;saveState(s);render()}if(a==='save-vendor'){const s=getState(),v=s.users.find(x=>x.id===el.dataset.id);v.minOrder=Number(document.querySelector(`[data-min="${v.id}"]`).value);v.commission=Number(document.querySelector(`[data-commission="${v.id}"]`).value);saveState(s);toast('تم حفظ بيانات المورد');render()}if(a==='payment-status'){const s=getState(),p=s.financePayments.find(x=>x.id===el.dataset.id);p.status=el.dataset.status;p.approvedAt=Date.now();saveState(s);toast('تم تحديث الدفعة');render()}}
+function handleChange(e){const el=e.target;if(el.name==='cartMode'){localStorage.setItem(CART_MODE_KEY,el.value);render()}if(el.dataset.cartQty){const c=getCart(),i=c.find(x=>x.productId===el.dataset.cartQty),p=productById(el.dataset.cartQty);i.qty=Math.max(1,Math.min(Number(el.value)||1,p.stock,p.maxQty));saveCart(c);render()}if(el.dataset.orderStatus){const s=getState(),o=s.orders.find(x=>x.id===el.dataset.orderStatus);o.status=el.value;saveState(s);toast('تم تحديث حالة الطلب');render()}if(el.name==='governorate'){const f=el.form,center=f?.querySelector('[name="center"]'),district=f?.querySelector('[name="district"]');if(center){let list=governorates[el.value]||[];if(f.dataset.form==='market-filter'||f.dataset.form==='vendors-filter')list=availableCenters(el.value);if(f.dataset.form==='checkout')list=availableCenters(el.value,calculateCart().groups.map(g=>g.vendor));center.innerHTML=`<option value="">اختر المركز</option>${list.map(c=>`<option>${c}</option>`).join('')}`}if(district)district.innerHTML='<option value="">اختر المركز أولًا</option>'}if(el.name==='center'){const f=el.form,d=f?.querySelector('[name="district"]');if(d){let list=districts[el.value]||[];if(f.dataset.form==='market-filter'||f.dataset.form==='vendors-filter')list=availableDistricts(f.querySelector('[name="governorate"]')?.value,el.value);if(f.dataset.form==='checkout')list=availableDistricts(f.querySelector('[name="governorate"]')?.value,el.value,calculateCart().groups.map(g=>g.vendor));d.innerHTML=`<option value="">بدون تحديد</option>${list.map(x=>`<option>${x}</option>`).join('')}`}}if(el.dataset.field==='governorate'){const row=el.closest('[data-coverage-row]'),c=row.querySelector('[data-field="center"]'),d=row.querySelector('[data-field="district"]');c.innerHTML=`<option value="">اختر</option>${(governorates[el.value]||[]).map(x=>`<option>${x}</option>`).join('')}`;d.innerHTML='<option value="">بدون تحديد</option>'}if(el.dataset.field==='center'){const row=el.closest('[data-coverage-row]'),d=row.querySelector('[data-field="district"]');d.innerHTML=`<option value="">بدون تحديد</option>${(districts[el.value]||[]).map(x=>`<option>${x}</option>`).join('')}`}if(el.form?.dataset.form==='checkout'&&['governorate','center','district'].includes(el.name)){const fd=new FormData(el.form),gov=fd.get('governorate'),center=fd.get('center'),district=fd.get('district'),calc=calculateCart();let html='',total=0;for(const g of calc.groups){const a=coverageMatch(g.vendor,gov,center,district);html+=`<div class="summary-row"><span>${esc(g.vendor.storeName)}</span><b>${a?money(a.fee):'غير متاح'}</b></div>`;if(a)total+=Number(a.fee||0)}document.getElementById('shippingPreview').innerHTML=html+`<div class="summary-row total"><span>إجمالي الشحن</span><b>${money(total)}</b></div>`}}
 
-function governorateOptions(selected='',allowAll=false){return `${allowAll?'<option value="">كل المحافظات</option>':'<option value="">اختر المحافظة</option>'}${Object.keys(governorates).map(g=>`<option value="${g}" ${selected===g?'selected':''}>${g}</option>`).join('')}`;}
-function statusLabel(s){return ({pending:'تحت المراجعة',approved:'معتمد',rejected:'مرفوض',new:'جديد',confirmed:'مؤكد',processing:'جاري التجهيز',shipped:'تم الشحن',completed:'مكتمل',cancelled:'ملغي'})[s]||s;}
-function paymentLabel(p){return ({cod:'الدفع عند الاستلام',bank:'تحويل بنكي',instapay:'InstaPay',wallet:'محفظة إلكترونية',card:'بطاقة بنكية'})[p]||p;}
-
-function render(){
-  document.documentElement.lang=getLang();document.documentElement.dir=getLang()==='ar'?'rtl':'ltr';document.body.classList.toggle('ltr',getLang()==='en');
-  const parts=routeParts(); const root=parts[0]||''; let html='';
-  if(!root) html=homeView();
-  else if(root==='market') html=marketView();
-  else if(root==='product') html=productView(parts[1]);
-  else if(root==='vendors') html=vendorsView();
-  else if(root==='vendor'&&parts[1]) html=vendorStoreView(parts[1]);
-  else if(root==='login') html=authView('login');
-  else if(root==='register'&&parts[1]==='customer') html=authView('customer');
-  else if(root==='register'&&parts[1]==='vendor') html=authView('vendor');
-  else if(root==='forgot-password') html=forgotPasswordView();
-  else if(root==='customer') html=customerView();
-  else if(root==='vendor-dashboard') html=vendorDashboardView(parts[1]||'overview');
-  else if(root==='admin') html=adminView(parts[1]||'overview');
-  else if(root==='cart') html=cartView();
-  else if(root==='how') html=howView();
-  else if(root==='policies') html=policiesView();
-  else if(root==='contact') html=contactView();
-  else html=notFound();
-  shell(html);
-  window.scrollTo({top:0,behavior:'instant'});
-}
-
-async function fileToData(file){
-  if(!file) return '';
-  if(file.size>1.5*1024*1024) throw new Error('حجم الصورة أكبر من 1.5 ميجابايت');
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type)) throw new Error('نوع الصورة غير مدعوم');
-  return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
-}
-
-function addToCart(productId,qty){
-  const p=productById(productId); qty=Math.max(1,Math.min(Number(qty)||1,p.maxQty,p.stock));
-  const cart=getCart(); const existing=cart.find(i=>i.productId===productId); if(existing) existing.qty=Math.min(existing.qty+qty,p.maxQty,p.stock); else cart.push({productId,qty}); saveCart(cart); toast('تمت إضافة المنتج إلى السلة');
-}
-
-function doLogin(form){
-  const fd=new FormData(form); const identifier=fd.get('identifier').trim().toLowerCase(); const password=fd.get('password');
-  const state=getState(); const phone=normalizePhone(identifier); const user=state.users.find(u=>(u.phone===phone||String(u.email||'').toLowerCase()===identifier)&&u.password===password);
-  if(!user) return toast('بيانات الدخول غير صحيحة','error');
-  if(user.status==='rejected') return toast('الحساب مرفوض أو موقوف','error');
-  setSession(user.id);toast('تم تسجيل الدخول');route(dashboardPath(user));
-}
-function doRegister(form){
-  const fd=new FormData(form); const role=form.dataset.role; const phone=normalizePhone(fd.get('phone')); const email=(fd.get('email')||'').trim().toLowerCase();
-  if(!validPhone(phone)) return toast('أدخل رقم هاتف مصري صحيح','error'); if(!validEmail(email)) return toast('البريد الإلكتروني غير صحيح','error');
-  const state=getState(); if(state.users.some(u=>u.phone===phone)) return toast('رقم الهاتف مستخدم بالفعل','error'); if(email&&state.users.some(u=>(u.email||'').toLowerCase()===email)) return toast('البريد مستخدم بالفعل','error');
-  const user={id:uid('u'),role,name:fd.get('name').trim(),phone,email,password:fd.get('password'),status:role==='vendor'?'pending':'approved',governorate:fd.get('governorate'),city:fd.get('city'),createdAt:Date.now()};
-  if(role==='vendor') Object.assign(user,{storeName:fd.get('storeName').trim(),businessType:fd.get('businessType').trim(),minOrder:Number(fd.get('minOrder'))||0,commission:state.settings.globalCommission,premiumFee:state.settings.premiumCartFee,description:fd.get('description').trim(),verified:false,logo:svgData('🏪'),cover:svgData('📦','#07543d','#d9a441')}); else user.address=fd.get('address').trim();
-  state.users.push(user);saveState(state);setSession(user.id);toast(role==='vendor'?'تم التسجيل، حسابك تحت مراجعة الإدارة':'تم إنشاء حساب العميل');route(dashboardPath(user));
-}
-
-async function saveVendorProduct(form){
-  const v=currentUser(); if(!v||v.role!=='vendor'||v.status!=='approved') return toast('يجب اعتماد حساب المورد أولًا','error');
-  const fd=new FormData(form); const retail=Number(fd.get('retail')),wholesale=Number(fd.get('wholesale')),bulk=Number(fd.get('bulk')); const wq=Number(fd.get('wholesaleQty')),bq=Number(fd.get('bulkQty'));
-  if(!(retail>=wholesale&&wholesale>=bulk)) return toast('يجب أن يكون سعر القطاعي أكبر أو يساوي الجملة، والجملة أكبر أو تساوي جملة الجملة','error');
-  if(!(bq>wq)) return toast('حد جملة الجملة يجب أن يكون أكبر من حد الجملة','error');
-  let image=fd.get('existingImage')||svgData('📦'); try{const f=fd.get('imageFile');if(f&&f.size) image=await fileToData(f)}catch(e){return toast(e.message,'error')}
-  const state=getState(); let p=state.products.find(x=>x.id===fd.get('id')&&x.vendorId===v.id);
-  const data={vendorId:v.id,nameAr:fd.get('nameAr').trim(),nameEn:fd.get('nameEn').trim(),category:fd.get('category'),brand:fd.get('brand').trim(),unit:fd.get('unit').trim(),prepDays:Number(fd.get('prepDays')),retail,wholesale,bulk,wholesaleQty:wq,bulkQty:bq,stock:Number(fd.get('stock')),maxQty:Number(fd.get('maxQty')),description:fd.get('description').trim(),image,status:'pending',updatedAt:Date.now()};
-  if(p) Object.assign(p,data); else state.products.push({id:uid('p'),...data,createdAt:Date.now()}); saveState(state);toast('تم حفظ المنتج وإرساله للمراجعة');route('/vendor-dashboard/products');
-}
-
-function calculateCart(){
-  const state=getState(); const mode=localStorage.getItem('tager-cart-mode')||'separated';
-  const items=getCart().map(i=>{const p=productById(i.productId);if(!p)return null;const tier=tierPrice(p,i.qty);return {productId:p.id,qty:i.qty,price:tier.price,tier:tier.tier,vendorId:p.vendorId}}).filter(Boolean);
-  const subtotal=items.reduce((s,i)=>s+i.price*i.qty,0); const vendors=[...new Set(items.map(i=>i.vendorId))].map(id=>userById(id));
-  const premiumFee=mode==='premium'?vendors.reduce((s,v)=>{const vs=items.filter(i=>i.vendorId===v.id).reduce((a,i)=>a+i.price*i.qty,0);return s+vs*((v.premiumFee??state.settings.premiumCartFee)/100)},0):0;
-  const shipping=subtotal>=state.settings.freeShippingThreshold?0:(items.length?state.settings.defaultShipping:0);
-  return {items,subtotal,premiumFee,shipping,total:subtotal+premiumFee+shipping,mode};
-}
-
-function createOrder(form){
-  const user=currentUser(); if(!user||user.role!=='customer') return toast('سجّل الدخول كعميل','error');
-  const calc=calculateCart(); if(!calc.items.length) return toast('السلة فارغة','error');
-  const fd=new FormData(form); const state=getState(); const order={id:uid('ord'),customerId:user.id,items:calc.items,subtotal:calc.subtotal,premiumFee:calc.premiumFee,shipping:calc.shipping,total:calc.total,cartMode:calc.mode,governorate:fd.get('governorate'),city:fd.get('city'),address:fd.get('address').trim(),payment:fd.get('payment'),invoice:fd.get('invoice'),status:'new',createdAt:Date.now(),timeline:[{status:'new',at:Date.now()}]};
-  state.orders.push(order); for(const item of calc.items){const p=state.products.find(x=>x.id===item.productId);if(p)p.stock=Math.max(0,p.stock-item.qty)} saveState(state);saveCart([]);document.getElementById('checkoutModal')?.remove();toast('تم إنشاء الطلب بنجاح');route('/customer');
-}
-
-function editProductModal(id){
-  const p=productById(id); if(!p)return; document.body.insertAdjacentHTML('beforeend',`<div class="modal-backdrop" id="editModal"><div class="modal"><div class="modal-head"><h2>تعديل المنتج</h2><button class="close-btn" data-action="close-modal">×</button></div>${vendorProductForm(p)}</div></div>`);
-}
-
-function handleClick(e){
-  const el=e.target.closest('[data-action]'); if(!el)return; const action=el.dataset.action;
-  if(action==='toggle-menu') document.getElementById('mainNav')?.classList.toggle('open');
-  if(action==='toggle-lang') setLang(getLang()==='ar'?'en':'ar');
-  if(action==='logout'){e.preventDefault();clearSession();toast('تم تسجيل الخروج');route('/')}
-  if(action==='add-cart'){const id=el.dataset.product;const q=document.querySelector(`[data-qty-for="${id}"]`);addToCart(id,q?.value||1)}
-  if(action==='add-cart-detail') addToCart(el.dataset.product,document.getElementById('productQty')?.value||1);
-  if(action==='remove-cart'){saveCart(getCart().filter(i=>i.productId!==el.dataset.id));render()}
-  if(action==='checkout') checkoutModal();
-  if(action==='close-modal') el.closest('.modal-backdrop')?.remove();
-  if(action==='edit-product') editProductModal(el.dataset.id);
-  if(action==='delete-product'){if(confirm('حذف المنتج؟')){const state=getState();state.products=state.products.filter(p=>p.id!==el.dataset.id);saveState(state);render()}}
-  if(action==='vendor-status'){const state=getState();const u=state.users.find(x=>x.id===el.dataset.id);if(u){u.status=el.dataset.status;saveState(state);toast('تم تحديث حالة المورد');render()}}
-  if(action==='product-status'){const state=getState();const p=state.products.find(x=>x.id===el.dataset.id);if(p){p.status=el.dataset.status;saveState(state);toast('تم تحديث حالة المنتج');render()}}
-  if(action==='save-vendor-rules'){const state=getState();const v=state.users.find(x=>x.id===el.dataset.id);if(v){v.minOrder=Number(document.querySelector(`[data-vendor-min="${v.id}"]`).value);v.commission=Number(document.querySelector(`[data-vendor-commission="${v.id}"]`).value);v.premiumFee=Number(document.querySelector(`[data-vendor-premium="${v.id}"]`).value);saveState(state);toast('تم حفظ إعدادات المورد')}}
-  if(action==='reset-demo'){if(confirm('سيتم حذف كل التعديلات والطلبات التجريبية. متابعة؟')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CART_KEY);clearSession();toast('تمت إعادة النسخة');route('/')}}
-}
-
-async function handleSubmit(e){
-  const form=e.target.closest('form'); if(!form)return; e.preventDefault(); const type=form.dataset.form; const btn=form.querySelector('button[type="submit"],button:not([type])'); const original=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='جاري الحفظ...'}
-  try{
-    if(type==='hero-search'){const q=new FormData(form).get('q');route(`/market?q=${encodeURIComponent(q)}`)}
-    if(type==='market-filter'){const fd=new FormData(form);const qs=new URLSearchParams();for(const [k,v] of fd.entries())if(v)qs.set(k,v);route(`/market?${qs}`)}
-    if(type==='vendors-filter'){const fd=new FormData(form);const qs=new URLSearchParams();for(const [k,v] of fd.entries())if(v)qs.set(k,v);route(`/vendors?${qs}`)}
-    if(type==='login') doLogin(form);
-    if(type==='register') doRegister(form);
-    if(type==='forgot'){const fd=new FormData(form);const phone=normalizePhone(fd.get('phone'));const state=getState();const u=state.users.find(x=>x.phone===phone);if(!u)toast('رقم الهاتف غير موجود','error');else{u.password=fd.get('password');saveState(state);toast('تم تغيير كلمة المرور');route('/login')}}
-    if(type==='customer-profile'){const fd=new FormData(form);const state=getState();const u=state.users.find(x=>x.id===currentUser().id);const phone=normalizePhone(fd.get('phone'));if(!validPhone(phone))toast('رقم الهاتف غير صحيح','error');else if(state.users.some(x=>x.id!==u.id&&x.phone===phone))toast('رقم الهاتف مستخدم','error');else{Object.assign(u,{name:fd.get('name'),phone,email:fd.get('email'),governorate:fd.get('governorate'),city:fd.get('city'),address:fd.get('address')});saveState(state);toast('تم حفظ البيانات');render()}}
-    if(type==='vendor-product') await saveVendorProduct(form);
-    if(type==='vendor-settings'){const fd=new FormData(form);const state=getState();const v=state.users.find(x=>x.id===currentUser().id);let logo=v.logo,cover=v.cover;try{const lf=fd.get('logoFile'),cf=fd.get('coverFile');if(lf&&lf.size)logo=await fileToData(lf);if(cf&&cf.size)cover=await fileToData(cf)}catch(err){return toast(err.message,'error')}Object.assign(v,{storeName:fd.get('storeName'),name:fd.get('name'),phone:normalizePhone(fd.get('phone')),email:fd.get('email'),governorate:fd.get('governorate'),city:fd.get('city'),minOrder:Number(fd.get('minOrder')),businessType:fd.get('businessType'),description:fd.get('description'),logo,cover});saveState(state);toast('تم حفظ بيانات المتجر');render()}
-    if(type==='admin-settings'){const fd=new FormData(form);const state=getState();Object.assign(state.settings,{globalCommission:Number(fd.get('globalCommission')),premiumCartFee:Number(fd.get('premiumCartFee')),defaultShipping:Number(fd.get('defaultShipping')),freeShippingThreshold:Number(fd.get('freeShippingThreshold'))});saveState(state);toast('تم حفظ الإعدادات')}
-    if(type==='admin-team'){const fd=new FormData(form);const state=getState();const phone=normalizePhone(fd.get('phone'));if(!validPhone(phone))toast('رقم الهاتف غير صحيح','error');else if(state.users.some(x=>x.phone===phone))toast('رقم الهاتف مستخدم','error');else{state.users.push({id:uid('u'),role:'staff',name:fd.get('name'),phone,email:fd.get('email'),password:fd.get('password'),staffRole:fd.get('staffRole'),status:'approved',createdAt:Date.now()});saveState(state);toast('تم إضافة موظف الإدارة');render()}}
-    if(type==='checkout') createOrder(form);
-    if(type==='contact'){toast('تم استلام رسالتك التجريبية');form.reset()}
-  } finally {if(btn&&document.body.contains(btn)){btn.disabled=false;btn.textContent=original}}
-}
-
-function handleChange(e){
-  const el=e.target;
-  if(el.name==='governorate'){
-    const city=el.form?.querySelector('[name="city"]'); if(city&&city.tagName==='SELECT') city.innerHTML=`<option value="">اختر المركز</option>${(governorates[el.value]||[]).map(c=>`<option>${c}</option>`).join('')}`;
-  }
-  if(el.name==='cartMode'){localStorage.setItem('tager-cart-mode',el.value);render()}
-  if(el.dataset.cartQty){const cart=getCart();const item=cart.find(i=>i.productId===el.dataset.cartQty);const p=productById(el.dataset.cartQty);if(item){item.qty=Math.max(1,Math.min(Number(el.value)||1,p.maxQty,p.stock));saveCart(cart);render()}}
-  if(el.dataset.orderStatus||el.dataset.adminOrderStatus){const id=el.dataset.orderStatus||el.dataset.adminOrderStatus;const state=getState();const o=state.orders.find(x=>x.id===id);if(o){o.status=el.value;o.timeline.push({status:el.value,at:Date.now()});saveState(state);toast('تم تحديث حالة الطلب');render()}}
-}
-
-document.addEventListener('click',handleClick);
-document.addEventListener('submit',handleSubmit);
-document.addEventListener('change',handleChange);
-window.addEventListener('hashchange',render);
-window.addEventListener('DOMContentLoaded',()=>{getState();if(!location.hash)location.hash='#/';render()});
+document.addEventListener('submit',handleSubmit);document.addEventListener('click',handleClick);document.addEventListener('change',handleChange);window.addEventListener('hashchange',render);window.addEventListener('DOMContentLoaded',()=>{getState();if(!location.hash)location.hash='#/';render()});

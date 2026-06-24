@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F2FAFD"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+<rect width="800" height="600" rx="36" fill="url(#g)"/>
+<circle cx="400" cy="305" r="240" fill="#fff" opacity=".55"/>
+<ellipse cx="400" cy="350" rx="210" ry="120" fill="#BFD8E3"/><ellipse cx="400" cy="320" rx="200" ry="90" fill="#EAF3F7"/><path d="M290 320h220" stroke="#07543d" stroke-width="18" stroke-linecap="round"/><path d="M355 275l90 90" stroke="#D9A441" stroke-width="18" stroke-linecap="round"/>
+<text x="400" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#07543d">تونة قطع</text>
+<text x="400" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#A9C9D8">TUNA</text>
+</svg>
