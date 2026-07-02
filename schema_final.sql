@@ -1,20 +1,7 @@
--- Tager Final Production Candidate Schema
--- Run this in Supabase SQL Editor.
--- It is idempotent and safe to run more than once.
-
 create extension if not exists pgcrypto;
 
--- Remove old demo rows from previous test builds only.
-do $$
-begin
-  delete from commission_payments where vendor_id in (select id from users where phone in ('01000000000','01111111111','01222222222'));
-  delete from order_items where order_id in (select id from orders where customer_id in (select id from users where phone in ('01000000000','01111111111','01222222222')));
-  delete from orders where customer_id in (select id from users where phone in ('01000000000','01111111111','01222222222'));
-  delete from products where vendor_id in (select id from users where phone in ('01000000000','01111111111','01222222222'));
-  delete from vendors where user_id in (select id from users where phone in ('01000000000','01111111111','01222222222'));
-  delete from users where phone in ('01000000000','01111111111','01222222222');
-exception when undefined_table then null;
-end $$;
+-- Tager final production schema. It creates empty production tables only.
+-- No demo vendors/products/customers are inserted.
 
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
@@ -26,12 +13,24 @@ create table if not exists users (
   password_hash text not null,
   governorate text,
   district text,
+  area text,
   address text,
   permissions jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
-alter table users add column if not exists permissions jsonb not null default '{}'::jsonb;
+create table if not exists customer_addresses (
+  id uuid primary key default gen_random_uuid(),
+  customer_id uuid not null references users(id) on delete cascade,
+  label text not null default 'العنوان الرئيسي',
+  governorate text not null,
+  district text not null,
+  area text not null,
+  address text not null,
+  landmark text,
+  is_default boolean not null default false,
+  created_at timestamptz not null default now()
+);
 
 create table if not exists vendors (
   user_id uuid primary key references users(id) on delete cascade,
@@ -42,6 +41,7 @@ create table if not exists vendors (
   cover_url text,
   governorate text,
   district text,
+  area text,
   description text,
   min_order numeric not null default 0,
   commission_percent numeric not null default 10,
@@ -49,6 +49,19 @@ create table if not exists vendors (
   delivery_zones jsonb not null default '[]'::jsonb,
   bank_name text,
   iban text,
+  wallet_number text,
+  instapay_handle text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists vendor_documents (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references users(id) on delete cascade,
+  document_type text not null,
+  document_number text,
+  file_url text,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  notes text,
   created_at timestamptz not null default now()
 );
 
@@ -93,7 +106,7 @@ create table if not exists products (
 create table if not exists orders (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid not null references users(id),
-  cart_type text not null default 'separate',
+  cart_type text not null default 'separate' check (cart_type in ('separate','premium')),
   governorate text,
   district text,
   area text,
@@ -101,19 +114,14 @@ create table if not exists orders (
   shipping_fee numeric not null default 0,
   premium_fee numeric not null default 0,
   payment_method text,
-  payment_status text not null default 'pending',
+  payment_status text not null default 'pending' check (payment_status in ('pending','paid','failed','review')),
   total numeric not null default 0,
   platform_commission numeric not null default 0,
   vendor_net numeric not null default 0,
-  status text not null default 'new',
+  status text not null default 'new' check (status in ('new','confirmed','preparing','shipped','delivered','cancelled')),
   delivery_status text not null default 'pending',
   created_at timestamptz not null default now()
 );
-
-alter table orders add column if not exists area text;
-alter table orders add column if not exists address text;
-alter table orders add column if not exists premium_fee numeric not null default 0;
-alter table orders add column if not exists delivery_status text not null default 'pending';
 
 create table if not exists order_items (
   id uuid primary key default gen_random_uuid(),
@@ -139,7 +147,18 @@ create table if not exists shipments (
   area text,
   delivery_fee numeric not null default 0,
   eta_days int not null default 2,
+  assigned_to text,
   tracking_notes text,
+  delivered_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists delivery_events (
+  id uuid primary key default gen_random_uuid(),
+  shipment_id uuid not null references shipments(id) on delete cascade,
+  status text not null,
+  notes text,
+  created_by uuid references users(id),
   created_at timestamptz not null default now()
 );
 
@@ -154,6 +173,43 @@ create table if not exists commission_payments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists vendor_settlements (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references users(id),
+  period_from date,
+  period_to date,
+  gross_sales numeric not null default 0,
+  commission_due numeric not null default 0,
+  commission_paid numeric not null default 0,
+  remaining numeric not null default 0,
+  vendor_net numeric not null default 0,
+  status text not null default 'open' check (status in ('open','closed','cancelled')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists invoices (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid references orders(id) on delete set null,
+  vendor_id uuid references users(id) on delete set null,
+  customer_id uuid references users(id) on delete set null,
+  invoice_type text not null check (invoice_type in ('customer_order','vendor_commission','vendor_settlement','delivery_fee')),
+  amount numeric not null default 0,
+  status text not null default 'open' check (status in ('open','paid','cancelled')),
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references users(id) on delete set null,
+  action text not null,
+  entity_type text,
+  entity_id text,
+  before_data jsonb,
+  after_data jsonb,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists platform_settings (
   key text primary key,
   value jsonb not null default '{}'::jsonb,
@@ -161,32 +217,8 @@ create table if not exists platform_settings (
 );
 
 insert into platform_settings(key,value) values
-('general', '{"default_commission_percent":10,"default_premium_cart_percent":1.5,"currency":"EGP"}'::jsonb)
+('general', '{"default_commission_percent":10,"default_premium_cart_percent":1.5,"currency":"EGP","require_vendor_delivery_zone":true,"min_image_width":600,"min_image_height":600}'::jsonb)
 on conflict (key) do nothing;
-
-create index if not exists idx_products_vendor on products(vendor_id);
-create index if not exists idx_products_status on products(status);
-create index if not exists idx_zones_vendor on vendor_delivery_zones(vendor_id);
-create index if not exists idx_zones_place on vendor_delivery_zones(governorate,district,area);
-create index if not exists idx_orders_customer on orders(customer_id);
-create index if not exists idx_items_vendor on order_items(vendor_id);
-create index if not exists idx_payments_vendor on commission_payments(vendor_id);
-
-create or replace view vendor_finance_summary as
-select
-  u.id as vendor_id,
-  u.name as vendor_user_name,
-  v.store_name,
-  coalesce(sum(oi.subtotal),0) as gross_sales,
-  coalesce(sum(oi.commission_amount),0) as commission_due,
-  coalesce(sum(oi.vendor_net),0) as vendor_net,
-  coalesce((select sum(cp.amount) from commission_payments cp where cp.vendor_id=u.id and cp.status='approved'),0) as commission_paid,
-  coalesce(sum(oi.commission_amount),0) - coalesce((select sum(cp.amount) from commission_payments cp where cp.vendor_id=u.id and cp.status='approved'),0) as commission_remaining
-from users u
-left join vendors v on v.user_id = u.id
-left join order_items oi on oi.vendor_id = u.id
-where u.role='vendor'
-group by u.id,u.name,v.store_name;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('product-images','product-images',true,5242880,array['image/jpeg','image/png','image/webp'])
@@ -195,3 +227,12 @@ on conflict (id) do nothing;
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('vendor-images','vendor-images',true,5242880,array['image/jpeg','image/png','image/webp'])
 on conflict (id) do nothing;
+
+create index if not exists idx_users_phone on users(phone);
+create index if not exists idx_products_vendor on products(vendor_id);
+create index if not exists idx_products_status on products(status);
+create index if not exists idx_zones_vendor on vendor_delivery_zones(vendor_id);
+create index if not exists idx_zones_place on vendor_delivery_zones(governorate,district,area);
+create index if not exists idx_orders_customer on orders(customer_id);
+create index if not exists idx_order_items_vendor on order_items(vendor_id);
+create index if not exists idx_shipments_vendor on shipments(vendor_id);

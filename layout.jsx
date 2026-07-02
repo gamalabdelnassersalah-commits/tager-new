@@ -1,14 +1,8 @@
 import './globals.css';
-
 export const metadata = {
-  title: 'Tager | Trade Supply Connect',
-  description: 'منصة تاجر لإدارة الموردين والطلبات والعمولات والتوصيل'
+  title: 'Tager Marketplace',
+  description: 'منصة تاجر للجملة والقطاعي وجملة الجملة'
 };
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="ar" dir="rtl">
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }){
+  return <html lang="ar" dir="rtl"><body>{children}</body></html>;
 }

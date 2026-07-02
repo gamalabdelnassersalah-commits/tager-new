@@ -1,2 +1,2 @@
-import TagerApp from '@/components/TagerApp';
-export default function SetupPage() { return <TagerApp initialRoute="setup" />; }
+import TagerPlatform from '@/components/TagerPlatform';
+export default function Page(){ return <TagerPlatform view="vendorRegister"/>; }
