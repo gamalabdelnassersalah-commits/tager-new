@@ -1,17 +1,10 @@
 {
-  "name": "tager-final-production-v5",
-  "version": "5.0.0",
+  "name": "tager-static-production-v7",
+  "version": "7.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "next": "^14.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {}
+    "build": "node build-static.mjs",
+    "start": "npx serve ."
+  }
 }
