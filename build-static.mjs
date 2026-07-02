@@ -17,7 +17,11 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const config = `window.TAGER_SUPABASE_URL=${JSON.stringify(url)};\nwindow.TAGER_SUPABASE_ANON_KEY=${JSON.stringify(key)};\nwindow.TAGER_BUILD_TIME=${JSON.stringify(new Date().toISOString())};\n`;
+const config = `window.TAGER_SUPABASE_URL=${JSON.stringify(url)};
+window.TAGER_SUPABASE_ANON_KEY=${JSON.stringify(key)};
+window.TAGER_BUILD_TIME=${JSON.stringify(new Date().toISOString())};
+window.TAGER_VERSION='V10 Professional UI';
+`;
 fs.writeFileSync(path.join(outDir, 'config.js'), config);
 
 const copyFiles = [
@@ -49,7 +53,7 @@ if (!fs.existsSync(path.join(outDir, 'index.html'))) {
   process.exit(1);
 }
 
-console.log('Tager V9 static build OK - output directory public created');
+console.log('Tager V10 professional UI build OK - output directory public created');
 console.log('Supabase URL:', url ? 'loaded' : 'missing');
 console.log('Supabase key:', key ? 'loaded' : 'missing');
 console.log('Output Directory: public');

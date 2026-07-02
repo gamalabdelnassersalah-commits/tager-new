@@ -1,19 +1,11 @@
-# Tager Final Production V7 — Static Overwrite Safe
+# Tager V10 Professional UI
 
-هذه النسخة مصممة لحل خطأ Vercel:
+نسخة تصميم احترافي ثابتة على Vercel، تعمل بدون Next.js ومرتبطة بمتغيرات Supabase الموجودة في Vercel.
 
-`Couldn't find any pages or app directory`
-
-النسخة لا تستخدم Next.js في البناء، لذلك لن يبحث Vercel عن مجلد `app` أو `pages`. المنصة تعمل كصفحة إنتاج ثابتة مرتبطة بمتغيرات Supabase في Vercel.
-
-## الاستخدام
+## طريقة الرفع
 1. فك الضغط.
-2. ارفع كل الملفات الموجودة داخل المجلد إلى GitHub فوق الملفات القديمة.
+2. ارفع كل محتويات المجلد على GitHub فوق الملفات الحالية.
 3. وافق على الاستبدال.
 4. Commit changes.
-5. في Supabase شغل `schema_final.sql`.
-6. انتظر Vercel Deploy.
-7. افتح `/setup` لإنشاء أول حساب إدارة حقيقي.
-
-## مهم
-لا يوجد موردون تجريبيون ولا منتجات تجريبية.
+5. انتظر Vercel حتى يظهر Ready.
+6. افتح /setup.
