@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF8FC"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
-<rect width="800" height="600" rx="36" fill="url(#g)"/>
-<circle cx="400" cy="305" r="240" fill="#fff" opacity=".55"/>
-<rect x="205" y="200" width="390" height="245" rx="42" fill="#F2DDEB"/><circle cx="310" cy="322" r="68" fill="#fff"/><circle cx="490" cy="322" r="68" fill="#fff"/><circle cx="310" cy="322" r="28" fill="#DDB4D2"/><circle cx="490" cy="322" r="28" fill="#DDB4D2"/>
-<text x="400" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#07543d">مناديل مطبخ</text>
-<text x="400" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#F6E9F2">TISSUE</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>

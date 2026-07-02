@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#EDF9FF"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
-<rect width="800" height="600" rx="36" fill="url(#g)"/>
-<circle cx="400" cy="305" r="240" fill="#fff" opacity=".55"/>
-<path d="M340 125h120v70l35 55v245H305V250l35-55z" fill="#7DD3FC"/><rect x="350" y="95" width="100" height="45" rx="15" fill="#07543d"/><rect x="325" y="285" width="150" height="100" rx="28" fill="#fff" opacity=".88"/>
-<text x="400" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#07543d">مياه معدنية</text>
-<text x="400" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#7DD3FC">WATER</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>

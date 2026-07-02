@@ -1,6 +1,1 @@
-import { createClient } from '@supabase/supabase-js';
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-export const isSupabaseConfigured = Boolean(url && key);
-export const supabase = isSupabaseConfigured ? createClient(url, key) : null;
+// Tager V7 static production uses index.html. This file is intentionally safe.

@@ -1,34 +1,4 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tager | Trade Supply Connect</title>
-  <meta name="description" content="منصة تاجر لتجارة الجملة والقطاعي وربط الموردين والعملاء وتتبع الطلبات والعمولات." />
-  <link rel="icon" href="/tager-logo.png" />
-  <style>
-    :root{--green:#005a4f;--dark:#003b32;--orange:#f47414;--gold:#e4a531;--muted:#60706b;--bg:#f4f8f6;--card:#fff;--line:#dce8e3;--danger:#b42318;--ok:#067647;--warn:#b54708}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,Tahoma,sans-serif;color:#102a24}a{text-decoration:none;color:inherit}button,input,select,textarea{font-family:inherit}button{cursor:pointer;border:0;border-radius:14px;padding:12px 18px;font-weight:800}.btn{background:var(--green);color:#fff}.btn2{background:var(--gold);color:#1d1d1d}.btn3{background:#fff;color:var(--green);border:1px solid var(--line)}.danger{background:var(--danger);color:#fff}.ok{background:var(--ok);color:#fff}.warn{background:var(--warn);color:#fff}.top{background:#fff3cd;text-align:center;padding:10px;color:#7a4c00;font-size:14px}.bar{background:var(--dark);color:#fff;padding:13px 8%;display:flex;justify-content:space-between;gap:20px;font-weight:700}.nav{background:#fff;display:flex;align-items:center;gap:25px;padding:18px 8%;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}.brand{margin-inline-start:auto;display:flex;align-items:center;gap:12px;font-weight:900;font-size:31px;color:var(--green)}.brand img{width:66px;height:52px;object-fit:contain}.links{display:flex;gap:22px;font-weight:900;align-items:center}.spacer{flex:1}.pill{background:#f6fbf9;border:1px solid var(--line);padding:10px 14px;border-radius:14px;font-weight:900}.wrap{width:min(1240px,92%);margin:auto}.hero{margin:30px auto;background:linear-gradient(135deg,#00533f,#087351);border-radius:28px;color:#fff;padding:55px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px}.hero h1{font-size:64px;line-height:1.12;margin:20px 0}.hero p{font-size:22px;line-height:1.7}.stats{display:grid;gap:16px}.stat{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:18px;padding:22px;font-weight:900}.stat strong{font-size:42px;display:block}.search{display:flex;gap:12px;margin:25px 0}.search input{flex:1;padding:18px;border-radius:16px;border:0;font-size:17px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:24px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 8px 25px rgba(0,0,0,.04)}.card h3{margin:0 0 12px;color:var(--green)}.muted{color:var(--muted)}.form{display:grid;gap:14px}.field{display:grid;gap:7px}.field label{font-weight:900}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;font-size:15px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.table{width:100%;border-collapse:collapse;background:#fff;border-radius:18px;overflow:hidden}.table th,.table td{border-bottom:1px solid var(--line);padding:12px;text-align:right;vertical-align:top}.table th{background:#eef6f2;color:var(--green)}.badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-weight:900;background:#eef6f2;color:var(--green);font-size:12px}.badge.pending{background:#fff4e5;color:#9a5b00}.badge.rejected{background:#ffe8e6;color:#b42318}.badge.approved{background:#e8fff2;color:#067647}.product{display:grid;grid-template-rows:170px auto;overflow:hidden;padding:0}.product img{width:100%;height:170px;object-fit:cover;background:#eff4f1}.product .pbody{padding:16px}.price{font-size:22px;color:var(--green);font-weight:900}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.tab{background:#fff;border:1px solid var(--line);color:var(--green)}.tab.active{background:var(--green);color:#fff}.notice{padding:14px;border-radius:14px;border:1px solid var(--line);background:#fff}.notice.error{background:#fff1f0;border-color:#ffccc7;color:#a8071a}.notice.ok{background:#f6ffed;border-color:#b7eb8f;color:#135200}.footer{margin-top:45px;background:#082f2a;color:#d8f0e9;padding:32px 8%;display:grid;gap:10px}.hidden{display:none!important}.empty{padding:40px;text-align:center;border:1px dashed var(--line);border-radius:18px;background:#fff}.mobile-menu{display:none}@media(max-width:850px){.nav{padding:12px 4%;flex-wrap:wrap}.links{display:none}.mobile-menu{display:block}.hero{grid-template-columns:1fr;padding:28px}.hero h1{font-size:38px}.bar{padding:10px 4%;font-size:13px}.brand{font-size:24px}.search{flex-direction:column}.table{font-size:13px}.wrap{width:95%}}
-  </style>
-  <script src="/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <div class="top">نسخة إنتاج نهائية ثابتة على Vercel — مرتبطة بقاعدة Supabase — بدون بيانات تجريبية.</div>
-  <div class="bar"><span>الدعم: 01000000000</span><span>قطاعي وجملة وجملة الجملة</span></div>
-  <nav class="nav">
-    <a class="brand" href="/"><img src="/tager-logo.png" onerror="this.style.display='none'" /><span>Tager</span><small style="color:var(--orange);font-size:16px">تاجر</small></a>
-    <div class="links">
-      <a href="/">الرئيسية</a><a href="/market">المنتجات</a><a href="/vendors">الموردون</a><a href="/how">كيف تعمل؟</a><a href="/support">الدعم</a>
-    </div>
-    <div class="spacer"></div>
-    <a class="pill" href="/cart">السلة <span id="cartCount">0</span></a>
-    <a class="btn" href="/login" id="loginBtn">دخول</a>
-    <button class="mobile-menu btn3" onclick="alert('القائمة: الرئيسية، المنتجات، الموردون، السلة، دخول')">☰</button>
-  </nav>
-  <main id="app"><section class="wrap" style="padding:40px 0"><div class="card"><h1>جاري تحميل منصة Tager...</h1><p>إذا استمرت هذه الرسالة، اضغط Ctrl + F5.</p></div></section></main>
-  <footer class="footer"><strong>Tager — Trade • Supply • Connect</strong><span>منصة لإدارة الموردين، مناطق التوصيل، الطلبات، التوصيلات، العمولات والقوائم المالية.</span></footer>
-<script>
+
 const SUPABASE_URL = window.TAGER_SUPABASE_URL || '';
 const SUPABASE_KEY = window.TAGER_SUPABASE_ANON_KEY || '';
 let db = null;
@@ -119,9 +89,4 @@ function support(){app().innerHTML=layout('الدعم',`<div class="card"><h3>ت
 function policies(){app().innerHTML=layout('السياسات',`<div class="card"><h3>سياسة الاستخدام</h3><p>الطلبات مرتبطة بتغطية المورد لمكان العميل. يتم اعتماد الموردين والمنتجات والدفعات من لوحة الإدارة.</p></div>`)}
 function logout(){localStorage.removeItem('tager_user_id');localStorage.removeItem('tager_role');localStorage.removeItem('tager_name');setRoute('/login')}
 function route(){ updateCart(); const p=location.pathname; if(uid()) $('#loginBtn').textContent=userName()||'حسابي'; if(p==='/setup') return setup(); if(p==='/login') return login(); if(p==='/register/customer') return register('customer'); if(p==='/register/vendor') return register('vendor'); if(p==='/market') return market(); if(p==='/vendors') return vendorsPage(); if(p==='/cart') return cartPage(); if(p==='/customer') return customer(); if(p==='/vendor') return vendor(); if(p==='/admin') return admin(); if(p==='/how') return how(); if(p==='/support') return support(); if(p==='/policies') return policies(); return home(); }
-window.onerror=function(message,source,lineno,colno,error){try{document.getElementById('app').innerHTML=layout('حدث خطأ في التحميل', msg(String(message||error),'error')+'<div class="card"><b>الحل السريع:</b> اضغط Ctrl + F5 أو أعد رفع ملف V8 كامل.</div>')}catch(e){document.body.innerHTML='<h1 style="font-family:Arial;text-align:center;margin-top:50px">Tager loading error</h1><p style="text-align:center">'+String(message)+'</p>'}};
-window.onunhandledrejection=function(e){try{document.getElementById('app').innerHTML=layout('حدث خطأ في الاتصال', msg(String(e.reason?.message||e.reason||'خطأ غير معروف'),'error'))}catch(_){}};
-window.onpopstate=route; document.addEventListener('click',e=>{const a=e.target.closest('a'); if(a&&a.getAttribute('href')?.startsWith('/')){e.preventDefault(); setRoute(a.getAttribute('href'))}}); try{route();}catch(e){console.error(e);document.getElementById('app').innerHTML=layout('حدث خطأ في فتح الصفحة', msg(e.message||String(e),'error'))}
-</script>
-</body>
-</html>
+window.onpopstate=route; document.addEventListener('click',e=>{const a=e.target.closest('a'); if(a&&a.getAttribute('href')?.startsWith('/')){e.preventDefault(); setRoute(a.getAttribute('href'))}}); route();

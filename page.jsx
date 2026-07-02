@@ -1,2 +1,1 @@
-import TagerPlatform from '@/components/TagerPlatform';
-export default function Page(){ return <TagerPlatform view="vendorRegister"/>; }
+// Tager V7 static production uses index.html. This file is intentionally safe.
