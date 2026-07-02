@@ -1,18 +1,14 @@
-# إصلاح Build في Vercel
+# Tager V9 Output Directory Fix
 
-ارفع هذه الملفات الثلاثة في جذر GitHub repo لاستبدال package.json القديم الذي كان يشغل Next.js.
+هذا الإصلاح يعالج خطأ Vercel:
 
-بعد الرفع يجب أن يظهر في Vercel:
+No Output Directory named "public" found after the Build completed.
 
-```text
-> tager-static-production-v7@7.0.0 build
-> node build-static.mjs
-Tager static build ready. No Next.js build is used.
-```
+يرفع فقط هذه الملفات فوق الموجود:
+- package.json
+- build-static.mjs
+- vercel.json
+- README_FIX_AR.md
 
-ولا يجب أن يظهر:
-
-```text
-next build
-Couldn't find any pages or app directory
-```
+بعد الرفع يجب أن يظهر في Vercel Logs:
+Tager V9 static build OK - output directory public created

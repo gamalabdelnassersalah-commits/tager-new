@@ -1,11 +1,11 @@
 {
-  "name": "tager-static-production-v8-white-screen-fix",
-  "version": "8.0.0",
+  "name": "tager-static-production-v9-output-fix",
+  "version": "9.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build-static.mjs",
-    "start": "npx serve ."
+    "start": "npx serve public"
   },
   "dependencies": {},
   "devDependencies": {}
