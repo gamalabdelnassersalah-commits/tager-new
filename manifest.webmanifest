@@ -1,5 +1,5 @@
 {
-  "name": "Tager V26",
+  "name": "Tager",
   "short_name": "Tager",
   "start_url": "/",
   "display": "standalone",
@@ -8,6 +8,10 @@
   "dir": "rtl",
   "lang": "ar",
   "icons": [
-    {"src": "/assets/favicon-128.png", "sizes": "128x128", "type": "image/png"}
+    {
+      "src": "/assets/favicon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
   ]
 }
