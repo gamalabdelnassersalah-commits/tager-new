@@ -22,6 +22,6 @@ const env = {
 fs.writeFileSync(path.join(out, 'env.js'), `window.TAGER_ENV=${JSON.stringify(env)};
 `);
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
-console.log('Tager enterprise production release V23 completed - public output ready');
+console.log('Tager enterprise production release V24 completed - public output ready');
 console.log('Supabase URL:', env.SUPABASE_URL ? 'loaded' : 'missing');
 console.log('Supabase key:', env.SUPABASE_ANON_KEY ? 'loaded' : 'missing');

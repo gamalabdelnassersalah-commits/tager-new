@@ -1,6 +1,6 @@
 {
-  "name": "tager-v23-enterprise-production-platform",
-  "version": "23.0.0",
+  "name": "tager-v24-enterprise-full-audit-platform",
+  "version": "24.0.0",
   "private": true,
   "scripts": {
     "build": "node build-static.mjs",
