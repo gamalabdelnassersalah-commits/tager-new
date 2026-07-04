@@ -1,13 +1,12 @@
 {
-  "name": "tager-complete-platform",
+  "name": "tager-platform",
   "private": true,
-  "type": "module",
   "scripts": {
+    "start": "npx serve .",
     "build": "node build-static.mjs",
-    "start": "npx serve public",
     "check": "node --check app.js"
   },
-  "dependencies": {},
-  "devDependencies": {},
-  "description": "Tager Arabic RTL B2B marketplace with admin, vendor, customer, operations and finance workspaces."
+  "dependencies": {
+    "serve": "latest"
+  }
 }

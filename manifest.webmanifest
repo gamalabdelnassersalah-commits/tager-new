@@ -3,15 +3,9 @@
   "short_name": "Tager",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6faf7",
-  "theme_color": "#005a4f",
-  "dir": "rtl",
-  "lang": "ar",
+  "background_color": "#f7f7ef",
+  "theme_color": "#065f46",
   "icons": [
-    {
-      "src": "/assets/favicon-128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    }
+    {"src":"./assets/tager-icon.png","sizes":"512x512","type":"image/png"}
   ]
 }

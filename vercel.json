@@ -1,6 +1,9 @@
 {
-  "outputDirectory": "public",
+  "cleanUrls": true,
+  "headers": [
+    {"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"}]}
+  ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {"source":"/(.*)","destination":"/index.html"}
   ]
 }
