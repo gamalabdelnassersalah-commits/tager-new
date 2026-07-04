@@ -1,9 +1,10 @@
 {
-  "name": "tager-merged-production-release",
-  "version": "20.0.0",
+  "name": "tager-v23-enterprise-production-platform",
+  "version": "23.0.0",
   "private": true,
   "scripts": {
-    "build": "node build-static.mjs"
+    "build": "node build-static.mjs",
+    "check": "node --check app.js && node --check supabase-client.js"
   },
   "engines": {
     "node": ">=18"

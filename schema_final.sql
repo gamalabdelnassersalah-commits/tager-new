@@ -261,3 +261,45 @@ create table if not exists public.daily_operation_checks (
   updated_at timestamptz not null default now()
 );
 create index if not exists idx_daily_operation_checks_date on public.daily_operation_checks(check_date,status);
+
+
+-- V23 Enterprise Production Upgrade
+-- إعدادات عامة، مواد وتصنيفات، وحقول مالية إضافية قابلة للتوسع
+alter table public.products add column if not exists cost_price numeric not null default 0;
+alter table public.products add column if not exists barcode text;
+alter table public.products add column if not exists package_size text;
+alter table public.products add column if not exists vat_percent numeric not null default 0;
+alter table public.products add column if not exists material_type text;
+alter table public.products add column if not exists is_active boolean not null default true;
+
+create table if not exists public.product_categories (
+  id uuid primary key default gen_random_uuid(),
+  name_ar text not null unique,
+  name_en text,
+  parent_id uuid references public.product_categories(id) on delete set null,
+  status text not null default 'active' check (status in ('active','inactive')),
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.vendor_documents (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references public.vendors(id) on delete cascade,
+  document_type text not null,
+  document_no text,
+  expiry_date date,
+  file_url text,
+  status text not null default 'pending' check (status in ('pending','approved','rejected','expired')),
+  admin_note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.platform_settings (setting_key, setting_value)
+values ('main_settings', '{"default_commission_percent":1.5,"default_premium_cart_percent":1.5,"default_min_order":0,"free_shipping_threshold":0,"currency":"EGP","categories":["مواد غذائية أساسية","ألبان ومشروبات","منظفات وورقيات","معلبات وبقوليات","مستلزمات مطاعم وكافيهات","منتجات موسمية"],"payment_methods":["نقدي عند الاستلام","تحويل بنكي","محفظة إلكترونية","آجل مورد معتمد"],"support_phone_orders":"+20 10 24237231","support_phone_vendors":"+20 10 16135495","support_phone_finance":"+20 11 27512512","whatsapp":"+20 11 27512512"}'::jsonb)
+on conflict (setting_key) do update set setting_value = excluded.setting_value, updated_at = now();
+
+create index if not exists idx_product_categories_status on public.product_categories(status,sort_order);
+create index if not exists idx_vendor_documents_vendor_status on public.vendor_documents(vendor_id,status);
+create index if not exists idx_products_active_status on public.products(is_active,status);

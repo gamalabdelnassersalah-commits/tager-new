@@ -1,7 +1,13 @@
-# تقرير البناء
+# تقرير البناء V23
 
-رسالة البناء المتوقعة في Vercel:
+تم تنفيذ الفحص والبناء بنجاح.
 
-Tager merged production release V20 completed - public output ready
+الأوامر المستخدمة:
 
-المجلد النهائي للنشر: public
+```bash
+node --check app.js
+node --check supabase-client.js
+npm run build
+```
+
+المخرجات النهائية داخل مجلد `public`، والملف المضغوط النهائي جاهز للنشر.

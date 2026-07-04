@@ -586,7 +586,7 @@ async function setup(){
 }
 
 function loginPage(){
-  app.innerHTML = `<div class="authShell"><section class="card"><h2>تسجيل الدخول</h2><p class="muted">ادخل برقم الهاتف وكلمة المرور للوصول إلى حسابك.</p><form id="loginForm" class="form"><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" required></div><button class="btn">دخول</button></form></section><aside class="authAside"><h2>حساب جديد</h2><p>اختر نوع الحساب المناسب لبدء الشراء أو الانضمام كمورد.</p><div class="actions"><a class="btn secondary" href="/register/customer">تسجيل عميل</a><a class="btn secondary" href="/register/vendor">تسجيل مورد</a></div></aside></div>`;
+  app.innerHTML = `<div class="authShell"><section class="card"><h2>تسجيل الدخول</h2><p class="muted">ادخل برقم الهاتف وكلمة المرور للوصول إلى حسابك. لو أول تشغيل للمنصة افتح إعداد الإدارة أولاً.</p><div class="actions" style="margin-bottom:12px"><a class="btn secondary small" href="/setup">إعداد الإدارة لأول مرة</a></div><form id="loginForm" class="form"><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" required></div><button class="btn">دخول</button></form></section><aside class="authAside"><h2>حساب جديد</h2><p>اختر نوع الحساب المناسب لبدء الشراء أو الانضمام كمورد.</p><div class="actions"><a class="btn secondary" href="/register/customer">تسجيل عميل</a><a class="btn secondary" href="/register/vendor">تسجيل مورد</a></div></aside></div>`;
   $('#loginForm').addEventListener('submit', async e=>{e.preventDefault(); try{ const u=await DB.login(e.target.phone.value,e.target.password.value); toast('تم الدخول.'); go(u.role==='admin'||u.role==='staff'?'/admin':u.role==='vendor'?'/vendor':'/customer'); }catch(err){toast(err.message);} });
 }
 
@@ -828,6 +828,8 @@ async function render(){
   if(!DB.ready){ app.innerHTML=`<section class="card"><h2>إعداد الاتصال مطلوب</h2><p class="muted">أضف متغيرات قاعدة البيانات في Vercel ثم أعد النشر.</p><p><span class="kbd">NEXT_PUBLIC_SUPABASE_URL</span></p><p><span class="kbd">NEXT_PUBLIC_SUPABASE_ANON_KEY</span></p></section>`; return; }
   const r=route();
   try{
+    const adminCount = await DB.countAdmins().catch(()=>1);
+    if(adminCount === 0 && ['/admin','/vendor','/customer','/cart'].includes(r)) return setup();
     if(r==='/') return home(); if(r==='/setup') return setup(); if(r==='/login') return loginPage();
     if(r==='/register/customer') return customerRegister(); if(r==='/register/vendor') return vendorRegister();
     if(r.startsWith('/product/')) return productPage(r.split('/').pop()); if(r.startsWith('/vendor-public/')) return vendorPublicPage(r.split('/').pop());
@@ -836,6 +838,312 @@ async function render(){
     if(r==='/support') return support(); if(r==='/policies') return policies();
     app.innerHTML=`<div class="empty">الصفحة غير موجودة. <br><a class="btn secondary" href="/">الرجوع للرئيسية</a></div>`;
   }catch(err){ app.innerHTML=`<section class="card"><h2>تعذر تحميل الصفحة</h2><p class="muted">${esc(err.message)}</p></section>`; }
+}
+
+
+
+/* ============================================================
+   V23 Comprehensive Production Upgrade
+   - Operations command center
+   - Financial control center
+   - Platform settings
+   - CSV import/export center
+   - Launch readiness checklist
+   ============================================================ */
+const TAGER_VERSION = 'V23 Enterprise Production';
+const SETTINGS_KEY = 'tager_platform_settings_v23';
+const OPS_KEY = 'tager_daily_ops_v23';
+const DEFAULT_PLATFORM_SETTINGS = {
+  default_commission_percent: 1.5,
+  default_premium_cart_percent: 1.5,
+  default_min_order: 0,
+  free_shipping_threshold: 0,
+  currency: 'EGP',
+  support_phone_orders: '+20 10 24237231',
+  support_phone_vendors: '+20 10 16135495',
+  support_phone_finance: '+20 11 27512512',
+  whatsapp: '+20 11 27512512',
+  categories: ['مواد غذائية أساسية','ألبان ومشروبات','منظفات وورقيات','معلبات وبقوليات','مستلزمات مطاعم وكافيهات','منتجات موسمية'],
+  payment_methods: ['نقدي عند الاستلام','تحويل بنكي','محفظة إلكترونية','آجل مورد معتمد'],
+  bank_name: '', iban: '', wallet_phone: '',
+  home_headline: 'منصة تجارة وتوريد راقية تربط الموردين بالعملاء بتشغيل ومالية واضحة',
+  marketplace_note: 'لا يظهر أي منتج أو مورد إلا بعد اعتماد الإدارة.'
+};
+function mergeSettings(s){ return {...DEFAULT_PLATFORM_SETTINGS, ...(s||{})}; }
+function linesToArray(s){ return String(s||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
+function arrayToLines(a){ return (Array.isArray(a)?a:[]).join('\n'); }
+async function getPlatformSettings(){
+  if(DB.getPlatformSettings) return mergeSettings(await DB.getPlatformSettings());
+  try{
+    if(DB.client){
+      const {data,error}=await DB.client.from('platform_settings').select('setting_value').eq('setting_key','main_settings').maybeSingle();
+      if(error) throw error;
+      return mergeSettings(data?.setting_value || {});
+    }
+  }catch(err){ console.warn('settings read failed', err); }
+  try{return mergeSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'));}catch{return mergeSettings({});}
+}
+async function savePlatformSettings(settings){
+  const final=mergeSettings(settings);
+  if(DB.savePlatformSettings) return DB.savePlatformSettings(final);
+  try{
+    if(DB.client){
+      const {error}=await DB.client.from('platform_settings').upsert({setting_key:'main_settings',setting_value:final,updated_at:new Date().toISOString()},{onConflict:'setting_key'});
+      if(error) throw error;
+    }
+  }catch(err){ console.warn('settings save failed', err); }
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(final));
+  return final;
+}
+Object.assign(DB, { getPlatformSettings, savePlatformSettings });
+
+function currentUser(){ return DB.session(); }
+function isAdminLike(){ const u=currentUser(); return u && (u.role==='admin' || u.role==='staff'); }
+function safeNumber(n){ return Number(n||0); }
+function daysOld(date){ const t=new Date(date||Date.now()).getTime(); return Math.max(0, Math.floor((Date.now()-t)/(1000*60*60*24))); }
+function downloadText(filename, content, type='text/plain;charset=utf-8'){
+  const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function makeCsv(rows){
+  if(!rows.length) return '';
+  const headers=Object.keys(rows[0]);
+  return '\ufeff'+[headers.map(csvCell).join(','),...rows.map(r=>headers.map(h=>csvCell(r[h])).join(','))].join('\n');
+}
+function parseCsv(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i], n=text[i+1];
+    if(c==='"' && q && n==='"'){ cell+='"'; i++; continue; }
+    if(c==='"'){ q=!q; continue; }
+    if(c===',' && !q){ row.push(cell.trim()); cell=''; continue; }
+    if((c==='\n' || c==='\r') && !q){ if(c==='\r' && n==='\n') i++; row.push(cell.trim()); cell=''; if(row.some(x=>x!=='')) rows.push(row); row=[]; continue; }
+    cell+=c;
+  }
+  row.push(cell.trim()); if(row.some(x=>x!=='')) rows.push(row);
+  if(!rows.length) return [];
+  const headers=rows.shift().map(h=>h.replace(/^\ufeff/,'').trim());
+  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??''])));
+}
+function templateProducts(){ return makeCsv([{vendor_store_name:'',name_ar:'',category:'',unit:'قطعة',retail_price:'',wholesale_price:'',bulk_price:'',wholesale_min_qty:'1',bulk_min_qty:'1',stock_qty:'',image_url:'',description:'',status:'pending'}]); }
+function templateZones(){ return makeCsv([{vendor_store_name:'',governorate:'القاهرة',district:'مدينة نصر',area:'المركز الرئيسي',fee:'0',duration:'24-48 ساعة'}]); }
+function templateSuppliers(){ return makeCsv([{store_name:'',owner_name:'',phone:'',email:'',commercial_register:'',tax_number:'',governorate:'',district:'',address:'',min_order:'0',commission_percent:'1.5',premium_cart_percent:'1.5'}]); }
+
+async function loadAdminSummary(){
+  if(!isAdminLike()) throw new Error('هذه الصفحة مخصصة للإدارة فقط.');
+  return await DB.adminSummary();
+}
+function summaryMetrics(s){
+  const orders=s.orders||[], products=s.products||[], vendors=s.vendors||[], payments=s.payments||[], tickets=s.tickets||[];
+  const delivered=orders.filter(o=>o.status==='delivered');
+  const cancelled=orders.filter(o=>o.status==='cancelled');
+  const paidAmount=orders.reduce((a,o)=>a+safeNumber(o.paid_amount || (o.payment_status==='paid'?o.total:0)),0);
+  const commissionDue=delivered.reduce((a,o)=>a+safeNumber(o.commission_total),0);
+  const approvedPayments=payments.filter(p=>p.status==='approved').reduce((a,p)=>a+safeNumber(p.amount),0);
+  const pendingPayments=payments.filter(p=>p.status==='pending').reduce((a,p)=>a+safeNumber(p.amount),0);
+  return {
+    orderValue:orders.reduce((a,o)=>a+safeNumber(o.total),0),
+    deliveredValue:delivered.reduce((a,o)=>a+safeNumber(o.total),0),
+    cancelledValue:cancelled.reduce((a,o)=>a+safeNumber(o.total),0),
+    paidAmount, commissionDue, approvedPayments, pendingPayments,
+    remainingCommission:Math.max(commissionDue-approvedPayments,0),
+    openOrders:orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length,
+    pendingVendors:vendors.filter(v=>v.status==='pending').length,
+    pendingProducts:products.filter(p=>p.status==='pending').length,
+    lowStock:products.filter(p=>p.status==='approved' && safeNumber(p.stock_qty)<=safeNumber(p.reorder_level||5)),
+    ticketsOpen:tickets.filter(t=>['new','open'].includes(t.status||'new')).length,
+    pendingPaymentsCount:payments.filter(p=>p.status==='pending').length
+  };
+}
+function kpiCards(items){ return `<section class="kpiStrip v23Kpis">${items.map(x=>`<div><span>${esc(x.label)}</span><strong>${x.value}</strong>${x.note?`<small>${x.note}</small>`:''}</div>`).join('')}</section>`; }
+function adminGateIntro(title){
+  app.innerHTML=`<section class="pageHero"><h2>${esc(title)}</h2><p>سجل الدخول بحساب الإدارة أو مسؤول التشغيل لفتح هذه الصفحة.</p></section><section class="card"><a class="btn" href="/login">تسجيل الدخول</a></section>`;
+}
+
+async function operationsCenter(){
+  if(!isAdminLike()) return adminGateIntro('مركز التشغيل');
+  const s=await loadAdminSummary(); const m=summaryMetrics(s); const delRows=deliveryRows(s);
+  const openOrders=(s.orders||[]).filter(o=>!['delivered','cancelled'].includes(o.status));
+  const pendingDeliveries=delRows.filter(x=>!['delivered','cancelled'].includes(x.delivery.status));
+  const today=new Date().toISOString().slice(0,10); let ops={}; try{ops=JSON.parse(localStorage.getItem(`${OPS_KEY}_${today}`)||'{}')}catch{}
+  app.innerHTML=`<section class="pageHero"><h2>مركز التشغيل اليومي</h2><p>لوحة واحدة لمراجعة الطلبات المفتوحة، التوصيل، المخزون، الاعتمادات، والدعم بدون بيانات تجريبية.</p></section>
+  ${kpiCards([
+    {label:'طلبات مفتوحة',value:m.openOrders.toLocaleString('ar-EG'),note:'تحتاج متابعة'},
+    {label:'موردون بانتظار الاعتماد',value:m.pendingVendors.toLocaleString('ar-EG')},
+    {label:'منتجات بانتظار الاعتماد',value:m.pendingProducts.toLocaleString('ar-EG')},
+    {label:'مخزون منخفض',value:m.lowStock.length.toLocaleString('ar-EG')},
+    {label:'دفعات معلقة',value:m.pendingPaymentsCount.toLocaleString('ar-EG')},
+    {label:'دعم مفتوح',value:m.ticketsOpen.toLocaleString('ar-EG')}
+  ])}
+  <div class="grid two">
+    <section class="card"><h3>قائمة فحص اليوم</h3><p class="muted">احفظ حالة الفحص قبل نهاية اليوم. يتم حفظها على نفس المتصفح كإثبات تشغيل سريع.</p>
+      <form id="opsCheckForm" class="checkGrid">
+        ${['اعتماد الموردين الجدد','اعتماد المنتجات الجديدة','مراجعة الطلبات المفتوحة','متابعة التوصيل المتأخر','مراجعة المخزون المنخفض','مراجعة الدفعات المعلقة','مراجعة رسائل الدعم','تصدير تقرير نهاية اليوم'].map((x,i)=>`<label><input type="checkbox" name="c${i}" ${ops[`c${i}`]?'checked':''}> <span>${x}</span></label>`).join('')}
+        <div class="field full"><label>ملاحظة تشغيل اليوم</label><textarea name="note">${esc(ops.note||'')}</textarea></div>
+        <button class="btn">حفظ فحص اليوم</button><button type="button" class="btn secondary" id="exportOpsDay">تصدير تقرير اليوم</button>
+      </form>
+    </section>
+    <section class="card"><h3>أولويات الإدارة</h3><div class="priorityList">
+      <a href="/admin" class="priorityItem"><b>${m.pendingVendors}</b><span>مورد ينتظر الاعتماد</span></a>
+      <a href="/admin" class="priorityItem"><b>${m.pendingProducts}</b><span>منتج ينتظر الاعتماد</span></a>
+      <a href="/finance" class="priorityItem"><b>${fmt(m.remainingCommission)}</b><span>متبقي عمولات</span></a>
+      <a href="/support" class="priorityItem"><b>${m.ticketsOpen}</b><span>تذاكر دعم مفتوحة</span></a>
+    </div></section>
+  </div>
+  <section class="sectionTitle"><div><h2>الطلبات المفتوحة</h2><p>آخر الطلبات التي لم يتم تسليمها أو إلغاؤها.</p></div><button class="btn small secondary" id="exportOpenOrders">تصدير الطلبات المفتوحة</button></section>
+  <div class="tableWrap"><table><thead><tr><th>رقم</th><th>العميل</th><th>القيمة</th><th>الحالة</th><th>السداد</th><th>العنوان</th><th>العمر</th></tr></thead><tbody>${openOrders.map(o=>`<tr><td>${short(o.id)}</td><td>${esc(o.users?.name||'')}</td><td>${fmt(o.total)}</td><td>${statusPill(o.status)}</td><td>${statusPill(o.payment_status)}</td><td>${esc([o.governorate,o.district,o.area].filter(Boolean).join(' - '))}</td><td>${daysOld(o.created_at)} يوم</td></tr>`).join('')||'<tr><td colspan="7">لا توجد طلبات مفتوحة.</td></tr>'}</tbody></table></div>
+  <div class="grid two" style="margin-top:16px">
+    <section class="card"><h3>مخزون منخفض أو منتهي</h3><div class="tableWrap"><table><thead><tr><th>المنتج</th><th>المورد</th><th>المخزون</th><th>حد التنبيه</th></tr></thead><tbody>${m.lowStock.slice(0,30).map(p=>`<tr><td>${esc(p.name_ar)}</td><td>${esc(p.vendors?.store_name||'')}</td><td>${safeNumber(p.stock_qty).toLocaleString('ar-EG')}</td><td>${safeNumber(p.reorder_level||5).toLocaleString('ar-EG')}</td></tr>`).join('')||'<tr><td colspan="4">لا توجد نواقص مخزون.</td></tr>'}</tbody></table></div></section>
+    <section class="card"><h3>توصيلات تحت المتابعة</h3><div class="tableWrap"><table><thead><tr><th>الطلب</th><th>المورد</th><th>المنطقة</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>${pendingDeliveries.slice(0,30).map(x=>`<tr><td>${short(x.order.id)}</td><td>${esc(x.vendor?.store_name||'')}</td><td>${esc([x.delivery.governorate,x.delivery.district,x.delivery.area].filter(Boolean).join(' - '))}</td><td>${statusPill(x.delivery.status)}</td><td>${esc(x.delivery.tracking_note||'-')}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد توصيلات معلقة.</td></tr>'}</tbody></table></div></section>
+  </div>`;
+  $('#opsCheckForm')?.addEventListener('submit',e=>{e.preventDefault(); const d=formData(e.target); localStorage.setItem(`${OPS_KEY}_${today}`, JSON.stringify(d)); toast('تم حفظ فحص التشغيل اليومي.');});
+  $('#exportOpsDay')?.addEventListener('click',()=>downloadText(`tager_daily_operations_${today}.csv`, makeCsv([{date:today, open_orders:m.openOrders, pending_vendors:m.pendingVendors, pending_products:m.pendingProducts, low_stock:m.lowStock.length, pending_payments:m.pendingPaymentsCount, support_open:m.ticketsOpen, note:ops.note||''}]), 'text/csv;charset=utf-8'));
+  $('#exportOpenOrders')?.addEventListener('click',()=>exportCSV('tager_open_orders.csv', openOrders.map(o=>({رقم:short(o.id), العميل:o.users?.name||'', الهاتف:o.users?.phone||'', القيمة:o.total, الحالة:statusLabel(o.status), السداد:statusLabel(o.payment_status), العمر_بالأيام:daysOld(o.created_at), العنوان:[o.governorate,o.district,o.area,o.address].filter(Boolean).join(' - ')}))));
+}
+
+async function financeCenter(){
+  if(!isAdminLike()) return adminGateIntro('مركز المالية');
+  const s=await loadAdminSummary(); const m=summaryMetrics(s); const vendorRows=vendorFinanceRows(s); const customerRows=customerFinanceRows(s);
+  const receivableOrders=(s.orders||[]).filter(o=>o.status==='delivered' && safeNumber(o.total)>safeNumber(o.paid_amount || (o.payment_status==='paid'?o.total:0)));
+  const aging=[['0-7',0],['8-15',0],['16-30',0],['31+',0]];
+  receivableOrders.forEach(o=>{const diff=daysOld(o.created_at); const bal=Math.max(safeNumber(o.total)-safeNumber(o.paid_amount||0),0); if(diff<=7) aging[0][1]+=bal; else if(diff<=15) aging[1][1]+=bal; else if(diff<=30) aging[2][1]+=bal; else aging[3][1]+=bal;});
+  app.innerHTML=`<section class="pageHero"><h2>مركز المالية والتحصيل</h2><p>إجمالي الطلبات، التسليم، التحصيل، العمولات، المتبقي، وأعمار المديونية.</p></section>
+  ${kpiCards([
+    {label:'إجمالي الطلبات',value:fmt(m.orderValue)},
+    {label:'طلبات منفذة',value:fmt(m.deliveredValue)},
+    {label:'محصل من العملاء',value:fmt(m.paidAmount)},
+    {label:'طلبات ملغية',value:fmt(m.cancelledValue)},
+    {label:'عمولة مستحقة',value:fmt(m.commissionDue)},
+    {label:'متبقي عمولات',value:fmt(m.remainingCommission)}
+  ])}
+  <div class="grid two">
+    <section class="financeCard wide"><span>تحليل سريع</span><strong>${fmt(m.commissionDue-m.approvedPayments)}</strong><small>المتبقي بعد خصم الدفعات المعتمدة فقط. الدفعات المعلقة لا تخصم حتى اعتماد الإدارة.</small></section>
+    <section class="financeCard wide"><span>دفعات تحت المراجعة</span><strong>${fmt(m.pendingPayments)}</strong><small>راجعها من لوحة الإدارة قبل الإقفال.</small></section>
+  </div>
+  <section class="sectionTitle"><div><h2>أعمار المديونية على العملاء</h2><p>طلبات مسلمة وغير محصلة بالكامل.</p></div><button class="btn small secondary" id="exportReceivables">تصدير المديونية</button></section>
+  <div class="agingGrid">${aging.map(a=>`<div><span>${a[0]} يوم</span><strong>${fmt(a[1])}</strong></div>`).join('')}</div>
+  <section class="sectionTitle"><div><h2>تسويات الموردين</h2><p>تقرير الموردين النهائي للإقفال والمراجعة.</p></div><button class="btn small secondary" id="exportVendorSettlement">تصدير تسويات الموردين</button></section>
+  <div class="tableWrap"><table><thead><tr><th>المورد</th><th>إجمالي الطلبات</th><th>منفذ</th><th>عمولة</th><th>مدفوع</th><th>تحت المراجعة</th><th>متبقي</th><th>حالة الإقفال</th></tr></thead><tbody>${vendorRows.map(r=>`<tr><td>${esc(r['المورد'])}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['عمولة بعد التوصيل'])}</td><td>${fmt(r['مدفوع معتمد'])}</td><td>${fmt(r['تحت المراجعة'])}</td><td>${fmt(r['متبقي'])}</td><td>${safeNumber(r['متبقي'])<=0?statusPill('paid'):statusPill('partial')}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد بيانات.</td></tr>'}</tbody></table></div>
+  <section class="sectionTitle"><div><h2>أرصدة العملاء</h2><p>متابعة التحصيل حسب العميل.</p></div><button class="btn small secondary" id="exportCustomerBalances">تصدير أرصدة العملاء</button></section>
+  <div class="tableWrap"><table><thead><tr><th>العميل</th><th>الهاتف</th><th>عدد الطلبات</th><th>إجمالي</th><th>منفذ</th><th>مسدد</th><th>متبقي</th></tr></thead><tbody>${customerRows.map(r=>`<tr><td>${esc(r['العميل'])}</td><td>${esc(r['الهاتف'])}</td><td>${r['عدد الطلبات']}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['مسدد'])}</td><td>${fmt(r['متبقي'])}</td></tr>`).join('')||'<tr><td colspan="7">لا توجد بيانات.</td></tr>'}</tbody></table></div>`;
+  $('#exportReceivables')?.addEventListener('click',()=>exportCSV('tager_receivables_aging.csv', receivableOrders.map(o=>({رقم:short(o.id), العميل:o.users?.name||'', الهاتف:o.users?.phone||'', إجمالي:o.total, مسدد:o.paid_amount||0, متبقي:Math.max(safeNumber(o.total)-safeNumber(o.paid_amount||0),0), العمر_بالأيام:daysOld(o.created_at)}))));
+  $('#exportVendorSettlement')?.addEventListener('click',()=>exportCSV('tager_vendor_settlement.csv', vendorRows));
+  $('#exportCustomerBalances')?.addEventListener('click',()=>exportCSV('tager_customer_balances.csv', customerRows));
+}
+
+async function platformSettingsPage(){
+  if(!isAdminLike()) return adminGateIntro('إعدادات المنصة');
+  const st=await getPlatformSettings();
+  app.innerHTML=`<section class="pageHero"><h2>إعدادات المنصة</h2><p>إعدادات التشغيل الأساسية بدون بيانات تجريبية: العمولات، الدعم، طرق الدفع، التصنيفات، ونص الصفحة الرئيسية.</p></section>
+  <section class="card"><form id="settingsForm" class="form"><div class="grid three">
+    <div class="field"><label>عمولة افتراضية %</label><input name="default_commission_percent" type="number" step="0.1" value="${esc(st.default_commission_percent)}"></div>
+    <div class="field"><label>السلة المميزة %</label><input name="default_premium_cart_percent" type="number" step="0.1" value="${esc(st.default_premium_cart_percent)}"></div>
+    <div class="field"><label>حد الطلب الافتراضي</label><input name="default_min_order" type="number" value="${esc(st.default_min_order)}"></div>
+    <div class="field"><label>حد الشحن المجاني</label><input name="free_shipping_threshold" type="number" value="${esc(st.free_shipping_threshold)}"></div>
+    <div class="field"><label>هاتف الطلبات</label><input name="support_phone_orders" value="${esc(st.support_phone_orders)}"></div>
+    <div class="field"><label>هاتف الموردين</label><input name="support_phone_vendors" value="${esc(st.support_phone_vendors)}"></div>
+    <div class="field"><label>هاتف المالية</label><input name="support_phone_finance" value="${esc(st.support_phone_finance)}"></div>
+    <div class="field"><label>واتساب</label><input name="whatsapp" value="${esc(st.whatsapp)}"></div>
+    <div class="field"><label>اسم البنك</label><input name="bank_name" value="${esc(st.bank_name)}"></div>
+    <div class="field"><label>IBAN</label><input name="iban" value="${esc(st.iban)}"></div>
+    <div class="field"><label>محفظة</label><input name="wallet_phone" value="${esc(st.wallet_phone)}"></div>
+  </div>
+  <div class="field"><label>عنوان الصفحة الرئيسية</label><textarea name="home_headline">${esc(st.home_headline)}</textarea></div>
+  <div class="grid two"><div class="field"><label>التصنيفات - كل سطر تصنيف</label><textarea name="categories">${esc(arrayToLines(st.categories))}</textarea></div><div class="field"><label>طرق الدفع - كل سطر طريقة</label><textarea name="payment_methods">${esc(arrayToLines(st.payment_methods))}</textarea></div></div>
+  <button class="btn">حفظ الإعدادات</button><button type="button" class="btn secondary" id="resetSettings">استرجاع الافتراضي</button></form></section>`;
+  $('#settingsForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=formData(e.target); const final={...st,...d, default_commission_percent:safeNumber(d.default_commission_percent), default_premium_cart_percent:safeNumber(d.default_premium_cart_percent), default_min_order:safeNumber(d.default_min_order), free_shipping_threshold:safeNumber(d.free_shipping_threshold), categories:linesToArray(d.categories), payment_methods:linesToArray(d.payment_methods)}; await savePlatformSettings(final); toast('تم حفظ إعدادات المنصة.'); render();});
+  $('#resetSettings')?.addEventListener('click',async()=>{await savePlatformSettings(DEFAULT_PLATFORM_SETTINGS); toast('تم استرجاع الإعدادات الافتراضية.'); render();});
+}
+
+async function dataCenter(){
+  if(!isAdminLike()) return adminGateIntro('مركز البيانات');
+  const s=await loadAdminSummary();
+  app.innerHTML=`<section class="pageHero"><h2>مركز البيانات والاستيراد</h2><p>إضافة منتجات ومناطق تغطية للموردين عبر CSV مع تصدير كامل للرقابة والمراجعة.</p></section>
+  ${kpiCards([
+    {label:'موردون',value:(s.vendors||[]).length.toLocaleString('ar-EG')},
+    {label:'منتجات',value:(s.products||[]).length.toLocaleString('ar-EG')},
+    {label:'طلبات',value:(s.orders||[]).length.toLocaleString('ar-EG')},
+    {label:'دفعات',value:(s.payments||[]).length.toLocaleString('ar-EG')}
+  ])}
+  <div class="grid three">
+    <section class="card"><h3>قوالب فارغة</h3><p class="muted">القوالب بدون أي بيانات تجريبية. املأها ثم ارفعها.</p><div class="actions"><button class="btn secondary" id="tplProducts">قالب المنتجات</button><button class="btn secondary" id="tplZones">قالب مناطق التوصيل</button><button class="btn secondary" id="tplSuppliers">قالب الموردين</button></div></section>
+    <section class="card"><h3>استيراد منتجات</h3><p class="muted">يجب كتابة اسم المورد كما هو مسجل في المنصة.</p><input type="file" id="productCsv" accept=".csv"><button class="btn" id="importProducts">استيراد المنتجات</button><div id="productImportResult" class="hint"></div></section>
+    <section class="card"><h3>استيراد مناطق التوصيل</h3><p class="muted">تضاف المناطق على المورد الموجود حالياً.</p><input type="file" id="zoneCsv" accept=".csv"><button class="btn" id="importZones">استيراد المناطق</button><div id="zoneImportResult" class="hint"></div></section>
+  </div>
+  <section class="sectionTitle"><div><h2>تصدير شامل</h2><p>ملفات مراجعة للإدارة والمالية والتشغيل.</p></div></section>
+  <div class="toolbar"><button class="btn small secondary" id="exAllProducts">كل المنتجات</button><button class="btn small secondary" id="exAllVendors">كل الموردين</button><button class="btn small secondary" id="exAllOrders">كل الطلبات</button><button class="btn small secondary" id="exAllPayments">كل الدفعات</button></div>
+  <section class="card" style="margin-top:16px"><h3>ملاحظات مهمة</h3><div class="grid two"><div class="featureCard"><h3>لا يوجد بيانات تجريبية</h3><p class="muted">الاستيراد لا يضيف إلا البيانات التي ترفعها أنت.</p></div><div class="featureCard"><h3>اعتماد المنتجات</h3><p class="muted">يمكن وضع status = pending أو approved حسب قرار الإدارة.</p></div></div></section>`;
+  $('#tplProducts')?.addEventListener('click',()=>downloadText('tager_products_template.csv', templateProducts(), 'text/csv;charset=utf-8'));
+  $('#tplZones')?.addEventListener('click',()=>downloadText('tager_delivery_zones_template.csv', templateZones(), 'text/csv;charset=utf-8'));
+  $('#tplSuppliers')?.addEventListener('click',()=>downloadText('tager_suppliers_template.csv', templateSuppliers(), 'text/csv;charset=utf-8'));
+  $('#importProducts')?.addEventListener('click',async()=>{
+    const f=$('#productCsv')?.files?.[0]; if(!f){toast('اختر ملف CSV أولاً.'); return;}
+    const rows=parseCsv(await f.text()); const vendors=await DB.vendors(); let ok=0, bad=[];
+    for(const r of rows){ const v=vendors.find(x=>String(x.store_name).trim()===String(r.vendor_store_name).trim()); if(!v){bad.push(`المورد غير موجود: ${r.vendor_store_name}`); continue;} try{ await DB.saveProduct({vendor_id:v.id,status:r.status||'pending',name_ar:r.name_ar,category:r.category,unit:r.unit||'قطعة',retail_price:safeNumber(r.retail_price),wholesale_price:safeNumber(r.wholesale_price||r.retail_price),bulk_price:safeNumber(r.bulk_price||r.wholesale_price||r.retail_price),wholesale_min_qty:safeNumber(r.wholesale_min_qty||1),bulk_min_qty:safeNumber(r.bulk_min_qty||1),stock_qty:safeNumber(r.stock_qty),image_url:r.image_url||'',description:r.description||''}); ok++; }catch(err){bad.push(`${r.name_ar}: ${err.message}`);} }
+    $('#productImportResult').textContent=`تم استيراد ${ok} منتج. أخطاء: ${bad.length}`; if(bad.length) console.warn(bad); toast(`تم استيراد ${ok} منتج.`);
+  });
+  $('#importZones')?.addEventListener('click',async()=>{
+    const f=$('#zoneCsv')?.files?.[0]; if(!f){toast('اختر ملف CSV أولاً.'); return;}
+    const rows=parseCsv(await f.text()); const vendors=await DB.vendors(); let ok=0, bad=[];
+    for(const r of rows){ const v=vendors.find(x=>String(x.store_name).trim()===String(r.vendor_store_name).trim()); if(!v){bad.push(`المورد غير موجود: ${r.vendor_store_name}`); continue;} const zones=Array.isArray(v.delivery_zones)?v.delivery_zones:[]; zones.push({governorate:r.governorate,district:r.district,area:r.area,fee:safeNumber(r.fee),duration:r.duration||'24-48 ساعة'}); try{ await DB.updateVendor(v.id,{delivery_zones:zones}); ok++; }catch(err){bad.push(`${r.vendor_store_name}: ${err.message}`);} }
+    $('#zoneImportResult').textContent=`تم استيراد ${ok} منطقة. أخطاء: ${bad.length}`; if(bad.length) console.warn(bad); toast(`تم استيراد ${ok} منطقة.`);
+  });
+  $('#exAllProducts')?.addEventListener('click',()=>exportCSV('tager_all_products.csv', (s.products||[]).map(p=>({المنتج:p.name_ar, المورد:p.vendors?.store_name||'', التصنيف:p.category||'', الوحدة:p.unit||'', قطاعي:p.retail_price, جملة:p.wholesale_price, جملة_الجملة:p.bulk_price, المخزون:p.stock_qty, الحالة:statusLabel(p.status)}))));
+  $('#exAllVendors')?.addEventListener('click',()=>exportCSV('tager_all_vendors.csv', (s.vendors||[]).map(v=>({المورد:v.store_name, المسؤول:v.users?.name||'', الهاتف:v.users?.phone||'', الحالة:statusLabel(v.status), المحافظة:v.governorate||'', المركز:v.district||'', السجل:v.commercial_register||'', الضريبي:v.tax_number||'', العمولة:v.commission_percent, مناطق:(v.delivery_zones||[]).length}))));
+  $('#exAllOrders')?.addEventListener('click',()=>exportCSV('tager_all_orders.csv', (s.orders||[]).map(o=>({رقم:short(o.id), العميل:o.users?.name||'', هاتف:o.users?.phone||'', إجمالي:o.total, الحالة:statusLabel(o.status), السداد:statusLabel(o.payment_status), مسدد:o.paid_amount||0, تاريخ:o.created_at}))));
+  $('#exAllPayments')?.addEventListener('click',()=>exportCSV('tager_all_payments.csv', (s.payments||[]).map(p=>({المورد:p.vendors?.store_name||'', المبلغ:p.amount, الطريقة:p.method, المرجع:p.reference||'', الحالة:statusLabel(p.status), تاريخ:p.created_at}))));
+}
+
+async function launchChecklist(){
+  const hasAdmin=await DB.countAdmins().catch(()=>0); const settings=await getPlatformSettings().catch(()=>DEFAULT_PLATFORM_SETTINGS);
+  app.innerHTML=`<section class="pageHero"><h2>جاهزية الإطلاق</h2><p>قائمة مراجعة قبل تشغيل منصة Tager فعلياً.</p></section>
+  <div class="grid two"><section class="card"><h3>خطوات أساسية</h3><div class="launchList">
+    ${[
+      [hasAdmin>0,'إنشاء حساب الإدارة الحقيقي'],
+      [true,'عدم وجود بيانات تجريبية داخل التشغيل'],
+      [settings.support_phone_orders,'تحديد أرقام الدعم والواتساب'],
+      [settings.categories?.length,'إعداد تصنيفات المواد والمنتجات'],
+      [true,'تسجيل الموردين الحقيقيين واعتمادهم'],
+      [true,'إضافة مناطق تغطية لكل مورد'],
+      [true,'إضافة المنتجات والأسعار والمخزون'],
+      [true,'مراجعة المالية والعمولات قبل الإطلاق'],
+      [true,'تجربة طلب كامل من عميل حقيقي'],
+      [true,'تصدير تقرير مراجعة أول يوم تشغيل']
+    ].map(x=>`<div class="launchItem ${x[0]?'ok':'bad'}"><span>${x[0]?'✓':'!'}</span><b>${x[1]}</b></div>`).join('')}
+  </div></section><section class="card"><h3>مسار التشغيل السريع</h3><ol class="cleanList"><li>افتح صفحة الإعداد وأنشئ حساب الإدارة.</li><li>سجل الموردين أو استورد بيانات المنتجات من مركز البيانات.</li><li>اعتمد الموردين والمنتجات من لوحة الإدارة.</li><li>راجع مناطق التوصيل لكل مورد.</li><li>ابدأ استقبال الطلبات ثم تابع التشغيل والمالية من المراكز الجديدة.</li></ol><div class="actions"><a class="btn" href="/setup">إعداد الإدارة</a><a class="btn secondary" href="/data-center">مركز البيانات</a></div></section></div>`;
+}
+
+// Override navigation after V23 additions
+function updateNav(){
+  const u = DB.session();
+  const c = getCart().length;
+  const links = [ ['/', 'الرئيسية'], ['/market','المنتجات'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'] ];
+  if(u?.role==='customer') links.push(['/customer','حساب العميل']);
+  if(u?.role==='vendor') links.push(['/vendor','لوحة المورد']);
+  if(u?.role==='admin' || u?.role==='staff') links.push(['/admin','الإدارة'], ['/operations','التشغيل'], ['/finance','المالية'], ['/data-center','البيانات'], ['/settings','الإعدادات']);
+  links.push(['/launch-check','الإطلاق']);
+  nav.innerHTML = links.map(([href,label])=>`<a class="${route()===href?'active':''}" href="${href}">${label}</a>`).join('') +
+    (u ? `<button id="logoutBtn">خروج</button>` : `<a class="${route()==='/login'?'active':''}" href="/login">دخول</a>`);
+  $('#logoutBtn')?.addEventListener('click',()=>{DB.clearSession(); toast('تم تسجيل الخروج.'); go('/');});
+}
+
+// Override render with new V23 routes while keeping original pages
+async function render(){
+  updateNav(); nav.classList.remove('open');
+  const r=route();
+  try{
+    const adminCount = await DB.countAdmins().catch(()=>1);
+    if(adminCount === 0 && ['/admin','/vendor','/customer','/cart','/operations','/finance','/settings','/data-center'].includes(r)) return setup();
+    if(r==='/') return home(); if(r==='/setup') return setup(); if(r==='/login') return loginPage();
+    if(r==='/register/customer') return customerRegister(); if(r==='/register/vendor') return vendorRegister();
+    if(r.startsWith('/product/')) return productPage(r.split('/').pop()); if(r.startsWith('/vendor-public/')) return vendorPublicPage(r.split('/').pop());
+    if(r==='/market' || r==='/products') return market(); if(r==='/vendors') return vendorsPage(); if(r==='/cart') return cartPage();
+    if(r==='/customer') return customerPage(); if(r==='/vendor') return vendorPage(); if(r==='/admin') return adminPage();
+    if(r==='/operations' || r==='/operations-center') return operationsCenter(); if(r==='/finance' || r==='/finance-center') return financeCenter();
+    if(r==='/settings' || r==='/platform-settings') return platformSettingsPage(); if(r==='/data-center' || r==='/imports') return dataCenter();
+    if(r==='/launch-check' || r==='/readiness') return launchChecklist();
+    if(r==='/support') return support(); if(r==='/policies') return policies();
+    app.innerHTML=`<div class="empty">الصفحة غير موجودة. <br><a class="btn secondary" href="/">الرجوع للرئيسية</a></div>`;
+  }catch(err){ app.innerHTML=`<section class="card"><h2>تعذر تحميل الصفحة</h2><p class="muted">${esc(err.message)}</p><div class="actions"><a class="btn secondary" href="/">الصفحة الرئيسية</a><a class="btn secondary" href="/support">الدعم</a></div></section>`; }
 }
 
 document.addEventListener('click', e=>{ const a=e.target.closest('a[href^="/"]'); if(a){ e.preventDefault(); go(a.getAttribute('href')); } });
