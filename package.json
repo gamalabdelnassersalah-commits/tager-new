@@ -1,6 +1,6 @@
 {
-  "name": "tager-production-complete-integrated",
-  "version": "15.0.0",
+  "name": "tager-complete-platform-release",
+  "version": "18.0.0",
   "private": true,
   "scripts": {
     "build": "node build-static.mjs"

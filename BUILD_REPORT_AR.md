@@ -1,11 +1,7 @@
 # تقرير البناء
 
-تم تشغيل أمر البناء بنجاح:
+تم تجهيز النسخة لتعمل Static على Vercel من مجلد `public` بدون Next.js.
 
-`npm run build`
+الرسالة المتوقعة في Vercel:
 
-النتيجة المتوقعة في Vercel:
-
-`Tager integrated production build completed - public output ready`
-
-النظام لا يستخدم Next.js ولا يحتاج مجلد app أو pages.
+`Tager complete platform release V18 completed - public output ready`

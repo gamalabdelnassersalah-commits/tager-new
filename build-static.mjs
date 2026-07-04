@@ -3,7 +3,7 @@ import path from 'path';
 
 const root = process.cwd();
 const out = path.join(root, 'public');
-const keep = ['index.html', 'style.css', 'app.js', 'supabase-client.js'];
+const keep = ['index.html', 'style.css', 'app.js', 'supabase-client.js', 'robots.txt', 'manifest.webmanifest'];
 
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
@@ -20,6 +20,6 @@ const env = {
 };
 fs.writeFileSync(path.join(out, 'env.js'), `window.TAGER_ENV=${JSON.stringify(env)};\n`);
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
-console.log('Tager integrated production build completed - public output ready');
+console.log('Tager complete platform release V18 completed - public output ready');
 console.log('Supabase URL:', env.SUPABASE_URL ? 'loaded' : 'missing');
 console.log('Supabase key:', env.SUPABASE_ANON_KEY ? 'loaded' : 'missing');

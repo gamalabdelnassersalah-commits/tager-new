@@ -208,3 +208,56 @@ create table if not exists public.notifications (
 create index if not exists idx_audit_logs_user on public.audit_logs(user_id);
 create index if not exists idx_notifications_user_read on public.notifications(user_id,is_read);
 create index if not exists idx_products_stock on public.products(stock_qty);
+
+-- إعدادات تشغيل عامة للمنصة
+create table if not exists public.platform_settings (
+  id uuid primary key default gen_random_uuid(),
+  setting_key text not null unique,
+  setting_value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.platform_settings (setting_key, setting_value)
+values
+('support_contacts', '{"phones":["+20 10 24237231","+20 10 16135495","+20 11 27512512"],"whatsapp":"+20 11 27512512"}'::jsonb),
+('finance_rules', '{"commission_after_delivery":true,"approved_payments_only":true}'::jsonb)
+on conflict (setting_key) do update set setting_value = excluded.setting_value, updated_at = now();
+
+-- تسويات الموردين النهائية في حالة استخدام دفعات مجمعة لاحقاً
+create table if not exists public.vendor_settlements (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references public.vendors(id) on delete cascade,
+  settlement_no text,
+  period_from date,
+  period_to date,
+  delivered_sales numeric not null default 0,
+  commission_due numeric not null default 0,
+  paid_approved numeric not null default 0,
+  remaining numeric not null default 0,
+  status text not null default 'open' check (status in ('open','closed','cancelled')),
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_vendor_settlements_vendor_status on public.vendor_settlements(vendor_id,status);
+
+
+-- V18 operational completeness additions
+alter table public.orders add column if not exists customer_note text;
+alter table public.orders add column if not exists admin_close_note text;
+alter table public.deliveries add column if not exists courier_name text;
+alter table public.deliveries add column if not exists courier_phone text;
+alter table public.products add column if not exists reorder_level numeric not null default 5;
+alter table public.vendors add column if not exists finance_note text;
+
+create table if not exists public.daily_operation_checks (
+  id uuid primary key default gen_random_uuid(),
+  check_date date not null default current_date,
+  checklist jsonb not null default '{}'::jsonb,
+  status text not null default 'open' check (status in ('open','closed')),
+  created_by uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_daily_operation_checks_date on public.daily_operation_checks(check_date,status);
