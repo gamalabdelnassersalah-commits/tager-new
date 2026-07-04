@@ -352,13 +352,62 @@ function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<
 function requireUser(role){ const u=DB.session(); if(!u){ go('/login'); return null; } if(role && u.role !== role && u.role !== 'admin'){ toast('لا توجد صلاحية لهذه الصفحة.'); go('/'); return null; } return u; }
 function getCart(){ try{return JSON.parse(localStorage.getItem('tager_cart')||'[]')}catch{return[]} }
 function setCart(c){ localStorage.setItem('tager_cart', JSON.stringify(c)); updateNav(); }
-function addCart(product){ const c=getCart(); const f=c.find(x=>x.product.id===product.id); if(f) f.qty=Number(f.qty)+1; else c.push({product, qty:1, tier:'retail'}); setCart(c); toast('تمت الإضافة إلى السلة.'); }
+function addCart(product){ const c=getCart(); const f=c.find(x=>x.product.id===product.id); if(f) f.qty=Number(f.qty)+1; else c.push({product, qty:1, tier:'retail'}); setCart(c); toast('تمت الإضافة إلى السلة.'); updateNav(); }
+
+function productAsset(p){
+  const text = `${p?.category||''} ${p?.name_ar||''}`;
+  if(/لبن|حليب|مياه|مشروب|عصير|زبادي|ألبان/.test(text)) return '/assets/category-dairy.svg';
+  if(/منظف|مناديل|ورق|صابون|كلور|نظافة|مطهر/.test(text)) return '/assets/category-cleaning.svg';
+  if(/تونة|معلب|صلصة|بقول|فول|عدس/.test(text)) return '/assets/category-canned.svg';
+  if(/أرز|رز|سكر|زيت|دقيق|مكرونة|شاي|قهوة/.test(text)) return '/assets/category-staples.svg';
+  return '/assets/product-default.svg';
+}
+function productImage(p, cls=''){
+  const src = p?.image_url || productAsset(p);
+  return `<img class="${cls}" src="${esc(src)}" alt="${esc(p?.name_ar || 'منتج')}" loading="lazy" onerror="this.src='/assets/product-default.svg'">`;
+}
+function vendorLogo(v){
+  const src = v?.logo_url || '/assets/vendor-cover.svg';
+  return `<img src="${esc(src)}" alt="${esc(v?.store_name || 'مورد')}" loading="lazy" onerror="this.src='/assets/vendor-cover.svg'">`;
+}
+function addCartCustom(product, qty=1, tier='retail'){
+  const c=getCart();
+  const q=Math.max(1, Number(qty||1));
+  const f=c.find(x=>x.product.id===product.id && x.tier===tier);
+  if(f) f.qty=Number(f.qty)+q; else c.push({product, qty:q, tier});
+  setCart(c); toast('تمت إضافة المنتج إلى السلة.'); updateNav();
+}
+function productCard(p, tier='retail'){
+  const price=DB.priceFor(p, Number(tier==='retail'?1:tier==='wholesale'?p.wholesale_min_qty:p.bulk_min_qty), tier);
+  const stock=Number(p.stock_qty||0);
+  return `<article class="card product productPro">
+    <a class="productImg productImageLink" href="/product/${esc(p.id)}">${productImage(p)}</a>
+    <div class="productMeta"><span class="pill">${esc(p.category||'منتجات')}</span><span class="pill ${stock<=0?'bad':'ok'}">${stock>0?'متاح':'نفد المخزون'}</span></div>
+    <h3><a href="/product/${esc(p.id)}">${esc(p.name_ar)}</a></h3>
+    <p class="muted">${esc(p.vendors?.store_name||'')}</p>
+    <div class="priceLine compact"><span>قطاعي <b>${fmt(p.retail_price)}</b></span><span>جملة <b>${fmt(p.wholesale_price)}</b></span><span>جملة الجملة <b>${fmt(p.bulk_price)}</b></span></div>
+    <div class="productFooter"><strong>${fmt(price)}</strong><small>${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
+    <div class="actions split"><a class="btn secondary" href="/product/${esc(p.id)}">تفاصيل المنتج</a><button class="btn" data-add="${esc(p.id)}" ${stock<=0?'disabled':''}>إضافة</button></div>
+  </article>`;
+}
+function zoneChips(zones, max=10){
+  const arr = Array.isArray(zones) ? zones : [];
+  if(!arr.length) return '<span class="pill warn">لم يحدد مناطق تغطية</span>';
+  return arr.slice(0,max).map(z=>`<span class="pill">${esc(z.governorate)} - ${esc(z.district)} - ${esc(z.area)} • ${fmt(z.fee||0)}</span>`).join('') + (arr.length>max?`<span class="pill">+${arr.length-max} مناطق أخرى</span>`:'');
+}
+function productGallery(p){
+  let gallery=[]; try{ gallery = Array.isArray(p.gallery) ? p.gallery : JSON.parse(p.gallery||'[]'); }catch{ gallery=[]; }
+  const imgs=[p.image_url, ...gallery].filter(Boolean);
+  if(!imgs.length) imgs.push(productAsset(p));
+  return imgs.slice(0,5).map(src=>`<button type="button" class="thumb" data-img="${esc(src)}"><img src="${esc(src)}" onerror="this.src='/assets/product-default.svg'" alt=""></button>`).join('');
+}
+
 
 function updateNav(){
   const u = DB.session();
   const c = getCart().length;
   const links = [
-    ['/', 'الرئيسية'], ['/market','السوق'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'], ['/policies','السياسات']
+    ['/', 'الرئيسية'], ['/market','المنتجات'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'], ['/policies','السياسات']
   ];
   if(u?.role==='customer') links.push(['/customer','حساب العميل']);
   if(u?.role==='vendor') links.push(['/vendor','لوحة المورد']);
@@ -494,7 +543,7 @@ async function home(){
         <h1>رحلة شراء وتوريد راقية من أول اختيار المورد حتى إقفال الحسابات</h1>
         <p>واجهة موحدة لإدارة السوق، الموردين، مناطق التوصيل، الطلبات، السداد، والعمولات مع منع الأخطاء قبل إرسال الطلب.</p>
         <div class="actions">
-          <a class="btn" href="/market">استعراض السوق</a>
+          <a class="btn" href="/market">استعراض المنتجات</a>
           <a class="btn secondary" href="/register/vendor">تسجيل مورد</a>
           <a class="btn light" href="/support">الدعم</a>
         </div>
@@ -522,7 +571,7 @@ async function home(){
     </section>
     <section class="sectionTitle"><div><h2>نظام متكامل لكل طرف</h2><p>صفحات منظمة وسهلة القراءة للعميل والمورد والإدارة.</p></div></section>
     <div class="grid three">
-      <div class="card featureCard"><h3>سوق واضح</h3><p class="muted">عرض المنتجات والأسعار والموردين مع فلاتر المحافظة والمركز ونوع السعر.</p></div>
+      <div class="card featureCard"><h3>صفحات منتجات واضحة</h3><p class="muted">صور وأسعار تفصيلية، كميات الجملة، المورد، ومناطق التوصيل قبل الشراء.</p></div>
       <div class="card featureCard"><h3>توصيل مضبوط</h3><p class="muted">كل مورد يحدد مناطق التغطية، والعميل لا يستطيع إرسال طلب غير قابل للتوصيل.</p></div>
       <div class="card featureCard"><h3>مالية دقيقة</h3><p class="muted">إجمالي الطلبات، المنفذ، المسدد، الملغي، عمولة المنصة، والمتبقي.</p></div>
       <div class="card featureCard"><h3>لوحة مورد</h3><p class="muted">إدارة المنتجات والمخزون ومناطق التوصيل ودفعات العمولة.</p></div>
@@ -566,14 +615,57 @@ async function market(){
       const zones=p.vendors?.delivery_zones||[]; const okG=!g || zones.some(z=>z.governorate===g && (!d || z.district===d));
       return okQ && okG;
     });
-    $('#productGrid').innerHTML = filtered.length ? filtered.map(p=>{ const price=DB.priceFor(p, Number(tier==='retail'?1:tier==='wholesale'?p.wholesale_min_qty:p.bulk_min_qty), tier); return `<article class="card product"><div class="productImg">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.name_ar)}">`:'منتج'}</div><h3>${esc(p.name_ar)}</h3><p class="muted">${esc(p.vendors?.store_name||'')}</p><div class="priceLine"><span class="pill">قطاعي ${fmt(p.retail_price)}</span><span class="pill">جملة ${fmt(p.wholesale_price)}</span><span class="pill">جملة الجملة ${fmt(p.bulk_price)}</span></div><p class="muted">المخزون: ${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit)}</p><button class="btn" data-add="${p.id}">إضافة للسلة - ${fmt(price)}</button></article>`}).join('') : `<div class="empty">لا توجد منتجات مطابقة.</div>`;
+    $('#productGrid').innerHTML = filtered.length ? filtered.map(p=>productCard(p,tier)).join('') : `<div class="empty">لا توجد منتجات مطابقة.</div>`;
     document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(p=>p.id===b.dataset.add)));
   } draw();
 }
 
 async function vendorsPage(){
   let vs=[]; try{vs=await DB.vendors('approved')}catch(err){toast(err.message)}
-  app.innerHTML = `<section class="sectionTitle"><div><h2>الموردون</h2><p>قائمة الموردين المعتمدين ومناطق التغطية.</p></div></section><div class="grid three">${vs.length?vs.map(v=>`<article class="card"><div class="vendorImg">${v.logo_url?`<img src="${esc(v.logo_url)}">`:'مورد'}</div><h3>${esc(v.store_name)}</h3><p class="muted">${esc(v.description||'')}</p><div class="badgeList">${(v.delivery_zones||[]).slice(0,6).map(z=>`<span class="pill">${esc(z.governorate)} - ${esc(z.district)} - ${esc(z.area)}</span>`).join('')||'<span class="pill warn">لم يحدد مناطق</span>'}</div><p>الحد الأدنى: <b>${fmt(v.min_order)}</b></p></article>`).join(''):'<div class="empty">لا يوجد موردون معتمدون حالياً.</div>'}</div>`;
+  app.innerHTML = `<section class="sectionTitle"><div><h2>الموردون</h2><p>قائمة الموردين المعتمدين ومناطق التغطية وصفحة مستقلة لكل مورد.</p></div></section><div class="grid three">${vs.length?vs.map(v=>`<article class="card vendorPro"><div class="vendorCover">${vendorLogo(v)}</div><h3>${esc(v.store_name)}</h3><p class="muted">${esc(v.description||'')}</p><div class="badgeList">${zoneChips(v.delivery_zones,6)}</div><p>الحد الأدنى: <b>${fmt(v.min_order)}</b></p><a class="btn secondary" href="/vendor-public/${esc(v.id)}">عرض صفحة المورد</a></article>`).join(''):'<div class="empty">لا يوجد موردون معتمدون حالياً.</div>'}</div>`;
+}
+
+
+async function productPage(id){
+  let products=[]; try{products=await DB.products('approved')}catch(err){toast(err.message)}
+  const p = products.find(x=>String(x.id)===String(id));
+  if(!p){ app.innerHTML=`<div class="empty">المنتج غير موجود أو لم يتم اعتماده. <br><a class="btn secondary" href="/market">رجوع للمنتجات</a></div>`; return; }
+  const v=p.vendors||{}; const zones=v.delivery_zones||[];
+  app.innerHTML = `<section class="productDetail">
+    <div class="productMedia card">
+      <div class="mainProductImg" id="mainProductImg">${productImage(p)}</div>
+      <div class="thumbs">${productGallery(p)}</div>
+    </div>
+    <div class="card productInfo">
+      <span class="eyebrow">${esc(p.category||'منتج')}</span>
+      <h2>${esc(p.name_ar)}</h2>
+      <p class="muted">${esc(p.description||'وصف المنتج وتفاصيله تظهر هنا عند إضافتها من المورد.')}</p>
+      <div class="priceMatrix">
+        <div><span>قطاعي</span><strong>${fmt(p.retail_price)}</strong><small>من 1 ${esc(p.unit||'')}</small></div>
+        <div><span>جملة</span><strong>${fmt(p.wholesale_price)}</strong><small>من ${Number(p.wholesale_min_qty||1).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
+        <div><span>جملة الجملة</span><strong>${fmt(p.bulk_price)}</strong><small>من ${Number(p.bulk_min_qty||1).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
+      </div>
+      <div class="productFacts"><span>المورد: <b>${esc(v.store_name||'-')}</b></span><span>المخزون: <b>${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit||'')}</b></span><span>كود المنتج: <b>${esc(p.sku||short(p.id))}</b></span></div>
+      <form id="addProductForm" class="addBox"><div class="field"><label>نوع السعر</label><select name="tier"><option value="retail">قطاعي</option><option value="wholesale">جملة</option><option value="bulk">جملة الجملة</option></select></div><div class="field"><label>الكمية</label><input name="qty" type="number" min="1" value="1"></div><button class="btn" ${Number(p.stock_qty||0)<=0?'disabled':''}>إضافة للسلة</button></form>
+      <div class="coverageBlock"><h3>مناطق توصيل المورد</h3><div class="badgeList">${zoneChips(zones,14)}</div></div>
+    </div>
+  </section>
+  <section class="sectionTitle"><div><h2>منتجات أخرى من نفس المورد</h2><p>تقدر تضيف أكثر من منتج من نفس المورد قبل إتمام الطلب.</p></div></section>
+  <div class="grid three">${products.filter(x=>x.vendor_id===p.vendor_id && x.id!==p.id).slice(0,6).map(x=>productCard(x,'retail')).join('') || '<div class="empty">لا توجد منتجات أخرى حالياً.</div>'}</div>`;
+  document.querySelectorAll('.thumb').forEach(b=>b.onclick=()=>{$('#mainProductImg').innerHTML=`<img src="${esc(b.dataset.img)}" onerror="this.src='/assets/product-default.svg'" alt="${esc(p.name_ar)}">`;});
+  $('#addProductForm')?.addEventListener('submit', e=>{e.preventDefault(); const d=formData(e.target); addCartCustom(p, d.qty, d.tier);});
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(x=>x.id===b.dataset.add)));
+}
+
+async function vendorPublicPage(id){
+  let vs=[], products=[]; try{[vs,products]=await Promise.all([DB.vendors('approved'),DB.products('approved')]);}catch(err){toast(err.message)}
+  const v=vs.find(x=>String(x.id)===String(id));
+  if(!v){ app.innerHTML=`<div class="empty">المورد غير موجود أو لم يتم اعتماده. <br><a class="btn secondary" href="/vendors">رجوع للموردين</a></div>`; return; }
+  const items=products.filter(p=>p.vendor_id===v.id);
+  app.innerHTML = `<section class="vendorHero card"><div class="vendorHeroImg">${vendorLogo(v)}</div><div><span class="eyebrow">مورد معتمد</span><h2>${esc(v.store_name)}</h2><p class="muted">${esc(v.description||'صفحة المورد تعرض المنتجات ومناطق التغطية والحد الأدنى للطلب.')}</p><div class="kpis"><div><b>${items.length}</b><span>منتج معتمد</span></div><div><b>${fmt(v.min_order)}</b><span>حد أدنى للطلب</span></div><div><b>${(v.delivery_zones||[]).length}</b><span>منطقة تغطية</span></div></div></div></section>
+  <section class="card" style="margin-top:16px"><h3>مناطق التوصيل</h3><div class="badgeList">${zoneChips(v.delivery_zones,24)}</div></section>
+  <section class="sectionTitle"><div><h2>منتجات المورد</h2><p>كل المنتجات المعتمدة لهذا المورد.</p></div></section><div class="grid three">${items.length?items.map(p=>productCard(p,'retail')).join(''):'<div class="empty">لا توجد منتجات معتمدة لهذا المورد حالياً.</div>'}</div>`;
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(x=>x.id===b.dataset.add)));
 }
 
 function cartPage(){
@@ -738,7 +830,8 @@ async function render(){
   try{
     if(r==='/') return home(); if(r==='/setup') return setup(); if(r==='/login') return loginPage();
     if(r==='/register/customer') return customerRegister(); if(r==='/register/vendor') return vendorRegister();
-    if(r==='/market') return market(); if(r==='/vendors') return vendorsPage(); if(r==='/cart') return cartPage();
+    if(r.startsWith('/product/')) return productPage(r.split('/').pop()); if(r.startsWith('/vendor-public/')) return vendorPublicPage(r.split('/').pop());
+    if(r==='/market' || r==='/products') return market(); if(r==='/vendors') return vendorsPage(); if(r==='/cart') return cartPage();
     if(r==='/customer') return customerPage(); if(r==='/vendor') return vendorPage(); if(r==='/admin') return adminPage();
     if(r==='/support') return support(); if(r==='/policies') return policies();
     app.innerHTML=`<div class="empty">الصفحة غير موجودة. <br><a class="btn secondary" href="/">الرجوع للرئيسية</a></div>`;

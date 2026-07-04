@@ -1,3 +1,2 @@
 <?php
-// الملف غير مستخدم في التشغيل الحالي للمنصة.
-return;
+// Tager static release placeholder. This file is not used by the Vercel deployment.
