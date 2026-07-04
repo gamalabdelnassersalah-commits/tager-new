@@ -1,1 +1,3 @@
-<?php /* Tager V7 static production: old WordPress file disabled safely. */ ?>
+<?php
+// Tager static platform page is served from index.html.
+?>

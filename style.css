@@ -1,1 +1,1 @@
-/* Tager V7 static: styles are inside index.html */
+:root{--green:#005a4f;--orange:#f47414;--bg:#f7faf8;--ink:#102a24}body{background:var(--bg);color:var(--ink);font-family:Cairo,Tajawal,Segoe UI,Tahoma,Arial,sans-serif}.btn{background:var(--green);color:#fff}.accent{color:var(--orange)}

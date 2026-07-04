@@ -1,7 +1,9 @@
-# Build Report
+# تقرير البناء
 
-الأمر المستخدم في Vercel:
+تم تجهيز المشروع للبناء الثابت.
+
+Build Command:
 `npm run build`
 
-الناتج المتوقع:
-`Tager V10 professional UI build OK - output directory public created`
+Output Directory:
+`public`

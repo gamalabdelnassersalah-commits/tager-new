@@ -1,1 +1,2 @@
-// Tager V7 static production uses index.html. This file is intentionally safe.
+// Tager platform helpers are embedded in index.html for single-page deployment.
+window.TAGER_READY = true;
