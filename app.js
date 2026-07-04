@@ -1,8 +1,8 @@
 'use strict';
 
-const STORE_KEY = 'tager_v25_enterprise_state';
-const SESSION_KEY = 'tager_v25_session';
-const CART_KEY = 'tager_v25_cart';
+const STORE_KEY = 'tager_v26_elite_production_state';
+const SESSION_KEY = 'tager_v26_session';
+const CART_KEY = 'tager_v26_cart';
 
 const EGYPT = {
   'القاهرة':['مدينة نصر','مصر الجديدة','المعادي','التجمع الخامس','الزمالك','شبرا','حلوان','السلام','المرج','عين شمس'],
@@ -35,11 +35,12 @@ const EGYPT = {
 };
 
 const DEFAULT_STATE = () => ({
-  version:'V25 Working Enterprise Platform',
+  version:'V26 Elite Production Platform',
   settings:{
     platformName:'Tager',
-    supportPhone:'01000000000',
-    supportWhatsapp:'01000000000',
+    supportPhone:'+20 10 24237231',
+    supportPhone2:'+20 10 16135495',
+    supportWhatsapp:'+20 112 751 2512',
     supportEmail:'support@tager.local',
     currency:'EGP',
     defaultCommissionPercent:10,
@@ -48,6 +49,8 @@ const DEFAULT_STATE = () => ({
     requireProductApproval:true,
     requireVendorApproval:true,
     paymentMethods:['نقدي عند الاستلام','تحويل بنكي','محفظة إلكترونية','Instapay'],
+    platformStatus:'جاهزة للإطلاق',
+    operationsSlaHours:24,
     categories:['أغذية','مشروبات','ألبان','منظفات','ورقيات','معلبات','مواد خام','تعبئة وتغليف']
   },
   users:[], vendors:[], vendor_documents:[], vendor_delivery_zones:[], products:[],
@@ -164,8 +167,65 @@ function home(){
   const totalVendors = approvedVendors().length;
   const totalProducts = approvedProducts().length;
   const delivered = state.orders.filter(o=>o.status==='delivered').length;
-  const sales = state.orders.reduce((s,o)=>s+num(o.total),0);
-  app().innerHTML = `<section class="page hero"><div class="hero-card"><img class="hero-logo" src="/assets/tager-logo-full.png" alt="Tager"><span class="eyebrow">منصة تجارة وتوريد وتشغيل منظمة</span><h1>رحلة شراء وتوريد واضحة من أول اختيار المورد حتى إقفال الحسابات</h1><p>واجهة واحدة لإدارة السوق، الموردين، المنتجات، مناطق التوصيل، الطلبات، السداد، المستحقات، والتقارير المالية بدون صفحات ناقصة أو عناصر إدارية مكشوفة للعامة.</p><div class="hero-actions"><button class="btn2" onclick="go('/products')">استعراض المنتجات</button><button class="btn3" onclick="go('/register/vendor')">تسجيل مورد</button><button class="btn3" onclick="go('/setup')">بدء الإعداد</button></div></div><aside class="ops-card"><div class="ops-head"><strong>مركز التشغيل</strong><span class="status-pill">جاهز للعمل</span></div><div class="metric-grid">${metric('موردون معتمدون', totalVendors)}${metric('منتجات منشورة', totalProducts)}${metric('طلبات تم تسليمها', delivered)}${metric('قيمة الطلبات', money(sales))}</div><div class="steps"><div class="step"><b>1</b><div><strong>إنشاء حساب الإدارة</strong><p>أول تشغيل يبدأ من صفحة الإعداد بدون أي حسابات جاهزة.</p></div></div><div class="step"><b>2</b><div><strong>اعتماد الموردين والمنتجات</strong><p>أي مورد أو منتج لا يظهر للعامة إلا بعد موافقة الإدارة.</p></div></div><div class="step"><b>3</b><div><strong>إقفال مالي واضح</strong><p>إعدادات العمولة والسلة المميزة داخل الإدارة فقط.</p></div></div></div></aside></section><section class="page"><div class="section-head"><div><h2>المنصة مكتملة من التشغيل حتى المالية</h2><p>كل صفحة لها وظيفة واضحة، ولا توجد بيانات جاهزة مفروضة على المنصة.</p></div></div><div class="grid-3"><div class="card"><div class="icon">🏬</div><h3>إدارة الموردين</h3><p class="muted">تسجيل، اعتماد، مناطق تغطية، مستندات، منتجات، صفحة عامة لكل مورد، وحالة حساب.</p></div><div class="card"><div class="icon">📦</div><h3>إدارة المنتجات</h3><p class="muted">فئات، أسعار قطاعي وجملة وجملة الجملة، مخزون، صور، موافقة قبل النشر، وربط بالمورد.</p></div><div class="card"><div class="icon">💳</div><h3>الإدارة المالية</h3><p class="muted">إعداد العمولة داخليًا، متابعة مستحقات المنصة، مدفوعات الموردين، تقارير CSV و JSON.</p></div></div></section><section class="page"><div class="section-head"><div><h2>الصفحات الأساسية</h2><p>الرئيسية، المنتجات، الموردون، السلة، الحسابات، الإدارة، الدعم، والسياسات.</p></div></div><div class="grid"><a class="card" href="/products"><h3>المنتجات</h3><p class="muted">بحث، فئات، نوع سعر، وإضافة للسلة.</p></a><a class="card" href="/vendors"><h3>الموردون</h3><p class="muted">صفحات موردين حقيقية بعد اعتماد الإدارة.</p></a><a class="card" href="/admin"><h3>لوحة الإدارة</h3><p class="muted">تشغيل، اعتماد، مالية، إعدادات، وتصدير.</p></a><a class="card" href="/support"><h3>الدعم</h3><p class="muted">فتح تذكرة ومتابعتها داخل الإدارة.</p></a></div></section>`;
+  const openOrders = state.orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length;
+  const sales = state.orders.reduce((sum,o)=>sum+num(o.total),0);
+  const tickets = state.support_tickets.filter(t=>t.status==='open').length;
+  app().innerHTML = `
+  <section class="page hero">
+    <div class="hero-card">
+      <img class="hero-logo" src="/assets/tager-logo-full.png" alt="Tager">
+      <span class="eyebrow">تصميم إنتاجي راقٍ — بدون بيانات تجريبية</span>
+      <h1>منصة تجارة وتوريد متكاملة من التسجيل حتى إقفال الحسابات</h1>
+      <p>تم تصميم Tager كمنصة تشغيل كاملة: موردين، منتجات، فئات، مناطق تغطية، سلة، طلبات، دعم، لوحة إدارة، لوحة مورد، حساب عميل، وتقارير مالية بدون عناصر ناقصة أو صفحات فارغة غير مفهومة.</p>
+      <div class="hero-actions">
+        <button class="btn2" onclick="go('/setup')">بدء تشغيل الإدارة</button>
+        <button class="btn3" onclick="go('/products')">استعراض السوق</button>
+        <button class="btn3" onclick="go('/register/vendor')">انضم كمورد</button>
+      </div>
+    </div>
+    <aside class="ops-card">
+      <div class="ops-head"><strong>مركز التشغيل</strong><span class="status-pill">${esc(state.settings.platformStatus||'جاهزة')}</span></div>
+      <div class="metric-grid">
+        ${metric('موردون معتمدون', totalVendors)}
+        ${metric('منتجات منشورة', totalProducts)}
+        ${metric('طلبات مفتوحة', openOrders)}
+        ${metric('قيمة الطلبات', money(sales))}
+      </div>
+      <div class="steps">
+        <div class="step"><b>1</b><div><strong>إنشاء الإدارة</strong><p>أول تشغيل من صفحة الإعداد، بدون أي حسابات جاهزة داخل النسخة.</p></div></div>
+        <div class="step"><b>2</b><div><strong>اعتماد المورد والمنتج</strong><p>لا يظهر أي مورد أو منتج للعامة قبل مراجعة الإدارة.</p></div></div>
+        <div class="step"><b>3</b><div><strong>تشغيل ومالية</strong><p>الإعدادات المالية داخل الإدارة فقط، مع أرصدة ومدفوعات وتصدير.</p></div></div>
+      </div>
+    </aside>
+  </section>
+  <section class="page compact">
+    <div class="grid-4">
+      ${metric('طلبات مسلمة', delivered)}
+      ${metric('تذاكر مفتوحة', tickets)}
+      ${metric('فئات مفعلة', state.settings.categories.length)}
+      ${metric('طرق دفع', state.settings.paymentMethods.length)}
+    </div>
+  </section>
+  <section class="page compact">
+    <div class="section-head"><div><h2>منصة كاملة صفحة بصفحة</h2><p>كل قسم له وظيفة واضحة داخل دورة العمل.</p></div></div>
+    <div class="grid-3">
+      <div class="card lift"><div class="icon">🏬</div><h3>إدارة الموردين</h3><p class="muted">تسجيل مورد، اعتماد، صفحة عامة، مناطق تغطية، بيانات بنكية، حالة الحساب، ومتابعة المنتجات.</p></div>
+      <div class="card lift"><div class="icon">📦</div><h3>سوق المنتجات</h3><p class="muted">فئات، أسعار قطاعي وجملة وجملة الجملة، مخزون، صور، تفاصيل منتج، وربط بالمورد.</p></div>
+      <div class="card lift"><div class="icon">🛒</div><h3>السلة والطلب</h3><p class="muted">تحقق من المخزون والتغطية قبل إرسال الطلب، مع فصل الشحن حسب المورد.</p></div>
+      <div class="card lift"><div class="icon">💳</div><h3>المالية</h3><p class="muted">مستحقات المنصة، صافي المورد، الدفعات، اعتماد السداد، وتصدير الأرصدة CSV.</p></div>
+      <div class="card lift"><div class="icon">🎧</div><h3>الدعم</h3><p class="muted">تذاكر دعم تظهر داخل الإدارة، مع أرقام التواصل والواتساب.</p></div>
+      <div class="card lift"><div class="icon">🧭</div><h3>جاهزية الإطلاق</h3><p class="muted">قائمة تشغيل واضحة، إعدادات، سياسات، وحفظ نسخة احتياطية من البيانات.</p></div>
+    </div>
+  </section>
+  <section class="page compact">
+    <div class="section-head"><div><h2>اختصارات التشغيل</h2><p>الوصول السريع للصفحات الأساسية.</p></div></div>
+    <div class="grid">
+      <a class="card lift" href="/products"><h3>المنتجات</h3><p class="muted">بحث، فئات، أسعار، وإضافة للسلة.</p></a>
+      <a class="card lift" href="/categories"><h3>الفئات</h3><p class="muted">عرض فئات المنصة وحالة كل فئة.</p></a>
+      <a class="card lift" href="/vendors"><h3>الموردون</h3><p class="muted">موردون معتمدون وصفحات عامة فقط.</p></a>
+      <a class="card lift" href="/admin"><h3>لوحة الإدارة</h3><p class="muted">تشغيل، اعتماد، مالية، إعدادات، بيانات.</p></a>
+    </div>
+  </section>`;
 }
 
 function setup(){
@@ -218,10 +278,11 @@ function register(type){
 function productsPage(){
   const url = new URL(location.href);
   const query = url.searchParams.get('q') || '';
+  const selectedCategory = url.searchParams.get('category') || 'كل الفئات';
   const priceType = url.searchParams.get('price') || 'wholesale_price';
   const products = approvedProducts();
   const categories = ['كل الفئات', ...new Set([...state.settings.categories, ...products.map(p=>p.category).filter(Boolean)])];
-  page('المنتجات', `<div class="card form"><div class="row"><div class="field"><label>بحث</label><input id="searchBox" value="${esc(query)}" placeholder="اسم المنتج أو المورد أو الفئة"></div><div class="field"><label>الفئة</label><select id="catFilter">${categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div><div class="field"><label>نوع السعر</label><select id="priceType"><option value="retail_price" ${priceType==='retail_price'?'selected':''}>قطاعي</option><option value="wholesale_price" ${priceType==='wholesale_price'?'selected':''}>جملة</option><option value="super_wholesale_price" ${priceType==='super_wholesale_price'?'selected':''}>جملة الجملة</option></select></div></div></div><div id="productsGrid" class="grid"></div>`, 'المنتجات لا تظهر هنا إلا بعد اعتماد الإدارة واعتماد المورد.');
+  page('المنتجات', `<div class="card form"><div class="row"><div class="field"><label>بحث</label><input id="searchBox" value="${esc(query)}" placeholder="اسم المنتج أو المورد أو الفئة"></div><div class="field"><label>الفئة</label><select id="catFilter">${categories.map(c=>`<option value="${esc(c)}" ${c===selectedCategory?'selected':''}>${esc(c)}</option>`).join('')}</select></div><div class="field"><label>نوع السعر</label><select id="priceType"><option value="retail_price" ${priceType==='retail_price'?'selected':''}>قطاعي</option><option value="wholesale_price" ${priceType==='wholesale_price'?'selected':''}>جملة</option><option value="super_wholesale_price" ${priceType==='super_wholesale_price'?'selected':''}>جملة الجملة</option></select></div></div></div><div id="productsGrid" class="grid"></div>`, 'المنتجات لا تظهر هنا إلا بعد اعتماد الإدارة واعتماد المورد.');
   const render = () => {
     const q = qs('#searchBox').value.trim().toLowerCase();
     const cat = qs('#catFilter').value;
@@ -233,12 +294,39 @@ function productsPage(){
     });
     qs('#productsGrid').innerHTML = list.length ? list.map(p=>{
       const v=getVendor(p.vendor_id)||{};
-      return `<div class="card product-card">${productImage(p)}<div class="product-body"><h3>${esc(p.name_ar)}</h3><p class="muted">${esc(p.category||'بدون فئة')} — ${esc(v.store_name||'مورد')}</p><div class="price">${money(productPrice(p,pt))}</div><p class="small"><b>المخزون:</b> ${esc(p.stock)} | <b>الوحدة:</b> ${esc(p.unit||'قطعة')}</p><div class="action-row"><button class="btn" onclick="addToCart('${esc(p.id)}','${esc(pt)}')">إضافة للسلة</button><button class="btn3" onclick="go('/vendor-page/${esc(p.vendor_id)}')">المورد</button></div></div></div>`;
+      return `<div class="card product-card">${productImage(p)}<div class="product-body"><h3>${esc(p.name_ar)}</h3><p class="muted">${esc(p.category||'بدون فئة')} — ${esc(v.store_name||'مورد')}</p><div class="price">${money(productPrice(p,pt))}</div><p class="small"><b>المخزون:</b> ${esc(p.stock)} | <b>الوحدة:</b> ${esc(p.unit||'قطعة')}</p><div class="action-row"><button class="btn" onclick="addToCart('${esc(p.id)}','${esc(pt)}')">إضافة للسلة</button><button class="btn3" onclick="go('/product/${esc(p.id)}')">التفاصيل</button><button class="btn3" onclick="go('/vendor-page/${esc(p.vendor_id)}')">المورد</button></div></div></div>`;
     }).join('') : `<div class="empty">لا توجد منتجات منشورة حالياً.<br>بعد تسجيل المورد واعتماد المنتجات ستظهر هنا مباشرة.<div style="margin-top:14px"><a class="btn2" href="/register/vendor">تسجيل مورد</a></div></div>`;
   };
   ['searchBox','catFilter','priceType'].forEach(id=>qs('#'+id).addEventListener('input',render));
   ['catFilter','priceType'].forEach(id=>qs('#'+id).addEventListener('change',render));
   render();
+}
+
+function categoriesPage(){
+  const products = approvedProducts();
+  const cards = state.settings.categories.map(cat=>{
+    const count = products.filter(p=>p.category===cat).length;
+    const vendors = new Set(products.filter(p=>p.category===cat).map(p=>p.vendor_id)).size;
+    return `<a class="card lift" href="/products?category=${encodeURIComponent(cat)}"><div class="icon">${count? '📦':'◌'}</div><h3>${esc(cat)}</h3><p class="muted">منتجات منشورة: ${count} — موردون: ${vendors}</p></a>`;
+  });
+  page('الفئات', `<div class="grid">${cards.join('') || '<div class="empty">لم يتم إضافة فئات بعد. يمكن للإدارة إضافة الفئات من الإعدادات.</div>'}</div>`, 'الفئات يتم التحكم فيها من لوحة الإدارة، والمنتجات تظهر بعد الاعتماد فقط.');
+}
+
+function productDetailPage(productId){
+  const p = state.products.find(x=>x.id===productId);
+  if(!p || p.status!=='approved' || getUser(p.vendor_id)?.status!=='approved') return page('تفاصيل المنتج', '<div class="empty">المنتج غير متاح حالياً.</div>');
+  const v=getVendor(p.vendor_id)||{};
+  const zones=state.vendor_delivery_zones.filter(z=>z.vendor_id===p.vendor_id && z.is_active!==false);
+  page(p.name_ar, `<div class="grid-2"><div class="card">${productImage(p)}<div class="divider"></div><h2>${esc(p.name_ar)}</h2><p class="muted">${esc(p.description_ar||'لا يوجد وصف مضاف لهذا المنتج بعد.')}</p></div><div class="card"><span class="chip">${esc(p.category||'بدون فئة')}</span><h3>الأسعار والمخزون</h3><div class="mini-list"><span>قطاعي <b>${money(p.retail_price)}</b></span><span>جملة <b>${money(p.wholesale_price)}</b></span><span>جملة الجملة <b>${money(p.super_wholesale_price)}</b></span><span>المخزون <b>${esc(p.stock)} ${esc(p.unit||'قطعة')}</b></span></div><div class="divider"></div><h3>المورد</h3><p class="muted">${esc(v.store_name||'مورد معتمد')}</p><div class="action-row"><button class="btn" onclick="addToCart('${esc(p.id)}','wholesale_price')">إضافة بسعر الجملة</button><button class="btn3" onclick="go('/vendor-page/${esc(p.vendor_id)}')">صفحة المورد</button></div></div></div><div class="section-head"><div><h2>مناطق التغطية</h2><p>الطلب يتم فقط إذا كان عنوان العميل داخل مناطق تغطية المورد.</p></div></div>${zones.length?table(['المحافظة','المركز','القسم','رسوم','مدة'], zones.map(z=>`<tr><td>${esc(z.governorate)}</td><td>${esc(z.district)}</td><td>${esc(z.area)}</td><td>${money(z.delivery_fee)}</td><td>${esc(z.eta_days||2)} يوم</td></tr>`)):'<div class="empty">لم يحدد المورد مناطق التغطية بعد.</div>'}`);
+}
+
+function calcShippingFee(addr){
+  const vendorIds=[...new Set(cart.map(i=>i.vendor_id))];
+  return vendorIds.reduce((sum,vendorId)=>{
+    const zones=state.vendor_delivery_zones.filter(z=>z.vendor_id===vendorId && z.is_active!==false);
+    const zone=zones.find(z=>z.governorate===addr.governorate && z.district===addr.district && (!z.area || z.area==='كل المناطق' || z.area===addr.area));
+    return sum + num(zone?.delivery_fee||0);
+  },0);
 }
 
 function addToCart(productId, priceType='wholesale_price'){
@@ -274,10 +362,11 @@ function checkoutPage(){
     if(!result.ok) return qs('#out').innerHTML = notice(result.message,'error');
     const subtotal = cart.reduce((s,i)=>s+i.unit_price*i.qty,0);
     const premiumFee = f.cart_type==='سلة مميزة' ? subtotal*num(state.settings.premiumCartPercent)/100 : 0;
+    const shippingFee = calcShippingFee(f);
     const commissionTotal = cart.reduce((s,i)=>{
       const v=getVendor(i.vendor_id)||{}; return s + (i.unit_price*i.qty*num(v.commission_percent||state.settings.defaultCommissionPercent)/100);
     },0);
-    const order = {id:id(), customer_id:u.id, cart_type:f.cart_type, governorate:f.governorate, district:f.district, area:f.area, address:f.address, payment_method:f.payment_method, payment_status:'pending', subtotal, premium_fee:premiumFee, shipping_fee:0, total:subtotal+premiumFee, platform_commission:commissionTotal+premiumFee, vendor_net:subtotal-commissionTotal, status:'new', delivery_status:'pending', created_at:now()};
+    const order = {id:id(), customer_id:u.id, cart_type:f.cart_type, governorate:f.governorate, district:f.district, area:f.area, address:f.address, payment_method:f.payment_method, payment_status:'pending', subtotal, premium_fee:premiumFee, shipping_fee:shippingFee, total:subtotal+premiumFee+shippingFee, platform_commission:commissionTotal+premiumFee, vendor_net:subtotal-commissionTotal, status:'new', delivery_status:'pending', created_at:now()};
     state.orders.unshift(order);
     cart.forEach(i=>{
       const p=state.products.find(x=>x.id===i.product_id); if(p) p.stock = Math.max(0, num(p.stock)-num(i.qty));
@@ -386,7 +475,8 @@ function adminOverview(){
   return `<div class="grid"><div class="card"><h3>جاهزية التشغيل</h3><div class="steps"><div class="step"><b>✓</b><div><strong>لا توجد بيانات جاهزة</strong><p>النظام يبدأ من الصفر، وكل شيء يتم إدخاله من خلال النماذج.</p></div></div><div class="step"><b>✓</b><div><strong>الإعدادات المالية داخل الإدارة</strong><p>نسب العمولة والسلة المميزة لا تظهر في الصفحات العامة.</p></div></div><div class="step"><b>✓</b><div><strong>مراجعة قبل النشر</strong><p>اعتماد المورد والمنتج قبل الظهور في السوق.</p></div></div></div></div><div class="card"><h3>تدفق العمل</h3><p class="muted">مورد يسجل ← الإدارة تعتمد المورد ← المورد يضيف مناطق ومنتجات ← الإدارة تعتمد المنتجات ← العميل يطلب ← النظام يتحقق من التغطية ← الطلب يدخل التشغيل والمالية.</p></div></div>`;
 }
 function adminUsers(){
-  return table(['الاسم','الدور','الهاتف','الحالة','تاريخ','إجراء'], state.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.role)}</td><td>${esc(u.phone)}</td><td>${badge(u.status)}</td><td>${new Date(u.created_at).toLocaleDateString('ar-EG')}</td><td class="inline-actions"><button class="btn-ok" onclick="setUserStatus('${esc(u.id)}','approved')">اعتماد</button><button class="btn-warn" onclick="setUserStatus('${esc(u.id)}','suspended')">إيقاف</button><button class="btn-danger" onclick="setUserStatus('${esc(u.id)}','rejected')">رفض</button></td></tr>`));
+  const rows = state.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.role)}</td><td>${esc(u.phone)}</td><td>${badge(u.status)}</td><td>${new Date(u.created_at).toLocaleDateString('ar-EG')}</td><td class="inline-actions"><button class="btn-ok" onclick="setUserStatus('${esc(u.id)}','approved')">اعتماد</button><button class="btn-warn" onclick="setUserStatus('${esc(u.id)}','suspended')">إيقاف</button><button class="btn-danger" onclick="setUserStatus('${esc(u.id)}','rejected')">رفض</button></td></tr>`);
+  return `<div class="grid-2"><form class="card form" id="staffForm"><h3>إضافة مشرف إدارة</h3><div class="row">${input('name','الاسم','text','','required')}${input('phone','رقم الهاتف','tel','','required')}${input('email','البريد','email','','')}${input('password','كلمة المرور','password','','required minlength="6"')}</div><button class="btn">إضافة المشرف</button></form><div class="card"><h3>صلاحيات الإدارة</h3><p class="muted">يمكن إضافة أكثر من مشرف للتشغيل والمتابعة. كل مشرف يظهر داخل سجل العمليات عند تنفيذ أي إجراء.</p></div></div>${table(['الاسم','الدور','الهاتف','الحالة','تاريخ','إجراء'], rows)}`;
 }
 function adminVendors(){
   const rows = state.vendors.map(v=>{ const u=getUser(v.user_id)||{}; const zones=state.vendor_delivery_zones.filter(z=>z.vendor_id===v.user_id).length; const prods=state.products.filter(p=>p.vendor_id===v.user_id).length; return `<tr><td>${esc(v.store_name)}</td><td>${esc(u.name||'')}</td><td>${esc(u.phone||'')}</td><td>${badge(u.status)}</td><td>${esc(zones)}</td><td>${esc(prods)}</td><td class="inline-actions"><button class="btn-ok" onclick="setUserStatus('${esc(v.user_id)}','approved')">اعتماد</button><button class="btn-danger" onclick="setUserStatus('${esc(v.user_id)}','rejected')">رفض</button><button class="btn3" onclick="go('/vendor-page/${esc(v.user_id)}')">عرض</button></td></tr>`; });
@@ -412,7 +502,7 @@ function adminFinance(){
   return `<div class="card"><h3>الإعدادات المالية الإدارية</h3><p class="muted">هذه الإعدادات داخل الإدارة فقط ولا تظهر في الصفحات العامة للموردين أو العملاء.</p><div class="action-row"><button class="btn3" onclick="showPanel('settings')">تعديل الإعدادات</button><button class="btn2" onclick="exportCSV('vendor_balances')">تصدير أرصدة الموردين CSV</button></div></div><h2>أرصدة الموردين</h2>${table(['المورد','مبيعات','مستحق المنصة','مدفوع','قيد المراجعة','متبقي','صافي المورد'],vendorRows)}<h2>دفعات الموردين</h2>${table(['المورد','المبلغ','الطريقة','المرجع','الحالة','إجراء'],payRows)}`;
 }
 function adminSettings(){
-  return `<form class="card form" id="settingsForm"><h3>إعدادات المنصة</h3><div class="row">${input('platformName','اسم المنصة','text',state.settings.platformName,'required')}${input('supportPhone','رقم الدعم','tel',state.settings.supportPhone,'')}${input('supportWhatsapp','واتساب','tel',state.settings.supportWhatsapp,'')}${input('supportEmail','البريد','email',state.settings.supportEmail,'')}</div><div class="row">${input('defaultCommissionPercent','نسبة مستحق المنصة %','number',state.settings.defaultCommissionPercent,'min="0" step="0.01"')}${input('premiumCartPercent','رسوم السلة المميزة %','number',state.settings.premiumCartPercent,'min="0" step="0.01"')}${input('currency','العملة','text',state.settings.currency,'')}</div>${textarea('categories','الفئات - كل فئة في سطر',state.settings.categories.join('\n'),'')}<button class="btn">حفظ الإعدادات</button></form>`;
+  return `<form class="card form" id="settingsForm"><h3>إعدادات المنصة</h3><div class="row">${input('platformName','اسم المنصة','text',state.settings.platformName,'required')}${input('platformStatus','حالة المنصة','text',state.settings.platformStatus||'جاهزة للإطلاق','')}${input('supportPhone','رقم الدعم','tel',state.settings.supportPhone,'')}${input('supportPhone2','رقم دعم إضافي','tel',state.settings.supportPhone2||'','')}${input('supportWhatsapp','واتساب','tel',state.settings.supportWhatsapp,'')}${input('supportEmail','البريد','email',state.settings.supportEmail,'')}</div><div class="row">${input('defaultCommissionPercent','نسبة مستحق المنصة %','number',state.settings.defaultCommissionPercent,'min="0" step="0.01"')}${input('premiumCartPercent','رسوم السلة المميزة %','number',state.settings.premiumCartPercent,'min="0" step="0.01"')}${input('operationsSlaHours','SLA التشغيل بالساعة','number',state.settings.operationsSlaHours||24,'min="1"')}${input('currency','العملة','text',state.settings.currency,'')}</div>${textarea('categories','الفئات - كل فئة في سطر',state.settings.categories.join('\n'),'')}${textarea('paymentMethods','طرق الدفع - كل طريقة في سطر',(state.settings.paymentMethods||[]).join('\n'),'')}<button class="btn">حفظ الإعدادات</button></form>`;
 }
 function adminSupport(){
   const rows = state.support_tickets.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.phone)}</td><td>${esc(t.subject)}</td><td>${badge(t.status)}</td><td>${new Date(t.created_at).toLocaleDateString('ar-EG')}</td><td><button class="btn-ok" onclick="closeTicket('${esc(t.id)}')">إغلاق</button></td></tr>`);
@@ -423,7 +513,9 @@ function adminData(){
 }
 function bindAdminForms(){
   const f=qs('#settingsForm');
-  if(f){ f.addEventListener('submit', e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(f)); Object.assign(state.settings,{platformName:data.platformName,supportPhone:data.supportPhone,supportWhatsapp:data.supportWhatsapp,supportEmail:data.supportEmail,currency:data.currency,defaultCommissionPercent:num(data.defaultCommissionPercent),premiumCartPercent:num(data.premiumCartPercent),categories:data.categories.split(/\n|,/).map(x=>x.trim()).filter(Boolean)}); saveState(); log('update_settings','platform_settings','general'); qs('#out').innerHTML=notice('تم حفظ الإعدادات.','ok'); }); }
+  if(f){ f.addEventListener('submit', e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(f)); Object.assign(state.settings,{platformName:data.platformName,platformStatus:data.platformStatus,supportPhone:data.supportPhone,supportPhone2:data.supportPhone2,supportWhatsapp:data.supportWhatsapp,supportEmail:data.supportEmail,currency:data.currency,operationsSlaHours:num(data.operationsSlaHours),defaultCommissionPercent:num(data.defaultCommissionPercent),premiumCartPercent:num(data.premiumCartPercent),categories:data.categories.split(/\n|,/).map(x=>x.trim()).filter(Boolean),paymentMethods:data.paymentMethods.split(/\n|,/).map(x=>x.trim()).filter(Boolean)}); saveState(); log('update_settings','platform_settings','general'); qs('#out').innerHTML=notice('تم حفظ الإعدادات.','ok'); }); }
+  const staff=qs('#staffForm');
+  if(staff){ staff.addEventListener('submit', e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(staff)); if(state.users.some(u=>u.phone===data.phone.trim())) return qs('#out').innerHTML=notice('رقم الهاتف مستخدم بالفعل.','error'); const u={id:id(),role:'staff',status:'approved',name:data.name.trim(),phone:data.phone.trim(),email:data.email.trim(),password:data.password,permissions:{admin:true},created_at:now()}; state.users.push(u); saveState(); log('create_staff','users',u.id,{name:u.name}); adminDashboard(); }); }
 }
 function setUserStatus(userId,status){ const u=getUser(userId); if(!u) return; u.status=status; saveState(); log('set_user_status','users',userId,{status}); adminDashboard(); }
 function setProductStatus(productId,status){ const p=state.products.find(x=>x.id===productId); if(!p) return; p.status=status; saveState(); log('set_product_status','products',productId,{status}); adminDashboard(); }
@@ -432,7 +524,7 @@ function setPaymentStatus(paymentId,status){ const p=state.commission_payments.f
 function closeTicket(ticketId){ const t=state.support_tickets.find(x=>x.id===ticketId); if(t){t.status='closed'; saveState(); adminDashboard();} }
 
 function supportPage(){
-  page('الدعم', `<div class="grid-2"><form class="card form" id="ticketForm"><h3>فتح تذكرة دعم</h3>${input('name','الاسم','text',me()?.name||'','required')}${input('phone','رقم الهاتف','tel',me()?.phone||'','required')}${input('subject','الموضوع','text','','required')}${textarea('message','الرسالة','','required')}<button class="btn">إرسال التذكرة</button><div id="out"></div></form><div class="card"><h3>بيانات التواصل</h3><p><b>الهاتف:</b> ${esc(state.settings.supportPhone)}</p><p><b>واتساب:</b> ${esc(state.settings.supportWhatsapp)}</p><p><b>البريد:</b> ${esc(state.settings.supportEmail)}</p><p class="muted">تظهر التذاكر داخل لوحة الإدارة للمراجعة والإغلاق.</p></div></div>`);
+  page('الدعم', `<div class="grid-2"><form class="card form" id="ticketForm"><h3>فتح تذكرة دعم</h3>${input('name','الاسم','text',me()?.name||'','required')}${input('phone','رقم الهاتف','tel',me()?.phone||'','required')}${input('subject','الموضوع','text','','required')}${textarea('message','الرسالة','','required')}<button class="btn">إرسال التذكرة</button><div id="out"></div></form><div class="card"><h3>بيانات التواصل</h3><p><b>الهاتف:</b> ${esc(state.settings.supportPhone)}</p><p><b>الهاتف 2:</b> ${esc(state.settings.supportPhone2||'-')}</p><p><b>واتساب:</b> ${esc(state.settings.supportWhatsapp)}</p><p><b>البريد:</b> ${esc(state.settings.supportEmail)}</p><p class="muted">تظهر التذاكر داخل لوحة الإدارة للمراجعة والإغلاق.</p></div></div>`);
   qs('#ticketForm').addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(e.target)); state.support_tickets.unshift({id:id(), user_id:me()?.id||null, name:f.name, phone:f.phone, subject:f.subject, message:f.message, status:'open', created_at:now()}); saveState(); qs('#out').innerHTML=notice('تم إرسال التذكرة للإدارة.','ok'); e.target.reset(); });
 }
 function howPage(){ page('كيف تعمل المنصة؟', `<div class="grid"><div class="card"><div class="icon">1</div><h3>تسجيل المورد</h3><p class="muted">المورد يدخل بيانات الشركة ومناطق التغطية والمنتجات.</p></div><div class="card"><div class="icon">2</div><h3>اعتماد الإدارة</h3><p class="muted">الإدارة تراجع المورد والمنتجات قبل الظهور للعامة.</p></div><div class="card"><div class="icon">3</div><h3>طلب العميل</h3><p class="muted">العميل يختار المنتجات، والمنصة تتحقق من التغطية قبل تأكيد الطلب.</p></div><div class="card"><div class="icon">4</div><h3>التشغيل والمالية</h3><p class="muted">متابعة الحالة، الشحن، التسليم، المدفوعات، ومستحقات المنصة من الإدارة.</p></div></div>`); }
@@ -443,7 +535,7 @@ function logout(){ clearSession(); go('/login'); }
 function download(filename, content, type='text/plain;charset=utf-8'){
   const blob = new Blob([content], {type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
-function exportJSON(){ download(`tager-v25-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2), 'application/json'); }
+function exportJSON(){ download(`tager-v26-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2), 'application/json'); }
 function importJSON(){
   const file = qs('#importFile')?.files?.[0]; if(!file) return alert('اختر ملف JSON أولاً.');
   const reader = new FileReader(); reader.onload = () => { try{ const data=JSON.parse(reader.result); if(!data || !data.settings || !Array.isArray(data.users)) throw new Error('ملف غير صحيح'); state={...DEFAULT_STATE(), ...data, settings:{...DEFAULT_STATE().settings, ...(data.settings||{})}}; saveState(); alert('تم الاستيراد بنجاح.'); adminDashboard(); }catch(e){ alert('تعذر استيراد الملف: '+e.message); } }; reader.readAsText(file);
@@ -469,6 +561,8 @@ function route(){
   if(p==='/register/customer') return register('customer');
   if(p==='/register/vendor') return register('vendor');
   if(p==='/products' || p==='/market') return productsPage();
+  if(p==='/categories') return categoriesPage();
+  if(p.startsWith('/product/')) return productDetailPage(decodeURIComponent(p.split('/').pop()));
   if(p==='/vendors') return vendorsPage();
   if(p.startsWith('/vendor-page/')) return vendorPublicPage(decodeURIComponent(p.split('/').pop()));
   if(p==='/cart') return cartPage();

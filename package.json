@@ -1,6 +1,6 @@
 {
-  "name": "tager-v25-working-enterprise-platform",
-  "version": "25.0.0",
+  "name": "tager-v26-elite-production-platform",
+  "version": "26.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,6 @@
     "check": "node --check app.js"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "description": "Tager V26 Elite Production Platform - Arabic RTL B2B marketplace with admin, vendor, customer and finance workspaces."
 }
