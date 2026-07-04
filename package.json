@@ -1,12 +1,13 @@
 {
-  "name": "tager-v24-enterprise-full-audit-platform",
-  "version": "24.0.0",
+  "name": "tager-v25-working-enterprise-platform",
+  "version": "25.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node build-static.mjs",
-    "check": "node --check app.js && node --check supabase-client.js"
+    "start": "npx serve public",
+    "check": "node --check app.js"
   },
-  "engines": {
-    "node": ">=18"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

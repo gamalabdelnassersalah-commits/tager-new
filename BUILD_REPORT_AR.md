@@ -1,11 +1,7 @@
-# تقرير بناء Tager V24
+# تقرير بناء Tager V25
 
-تم بناء نسخة Tager V24 Enterprise Full Audit بنجاح.
-
-## نتائج الفحص
-- فحص `app.js`: ناجح.
-- فحص `supabase-client.js`: ناجح.
-- Build static: ناجح.
-
-## ملاحظة تشغيل
-المنصة تعمل كنسخة إنتاجية فارغة محلياً إذا لم يتم ربط Supabase. عند الربط، يتم استخدام قاعدة Supabase حسب متغيرات البيئة.
+- تم فحص JavaScript بواسطة `node --check app.js` بنجاح.
+- تم تنفيذ `npm run build` بنجاح.
+- تم إنشاء مجلد `public` المطلوب من Vercel.
+- تم نسخ ملفات التشغيل الأساسية: `index.html`, `app.js`, `styles.css`, `assets`, `schema_final.sql`.
+- تم ضبط `vercel.json` على `outputDirectory: public` مع إعادة توجيه الصفحات إلى `index.html`.

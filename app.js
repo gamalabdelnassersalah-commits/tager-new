@@ -1,1327 +1,511 @@
-const $ = s => document.querySelector(s);
-const app = $('#app');
-const nav = $('#mainNav');
-const toastBox = $('#toast');
-const DB = window.TagerDB;
-const fmt = n => `${Number(n||0).toLocaleString('ar-EG')} ج.م`;
-const short = id => String(id||'').slice(0,8);
+'use strict';
 
-const GOV = {
-  "القاهرة": [
-    "مدينة نصر",
-    "مصر الجديدة",
-    "المعادي",
-    "حلوان",
-    "التجمع الخامس",
-    "الشروق",
-    "بدر",
-    "الرحاب",
-    "مدينتي",
-    "شبرا",
-    "الساحل",
-    "روض الفرج",
-    "حدائق القبة",
-    "الزيتون",
-    "عين شمس",
-    "المطرية",
-    "المرج",
-    "السلام",
-    "النزهة",
-    "المقطم",
-    "الخليفة",
-    "السيدة زينب",
-    "وسط البلد"
-  ],
-  "الجيزة": [
-    "الدقي",
-    "العجوزة",
-    "المهندسين",
-    "الهرم",
-    "فيصل",
-    "حدائق الأهرام",
-    "6 أكتوبر",
-    "الشيخ زايد",
-    "الحوامدية",
-    "البدرشين",
-    "العياط",
-    "الصف",
-    "أطفيح",
-    "إمبابة",
-    "الوراق",
-    "بولاق الدكرور",
-    "أوسيم",
-    "كرداسة"
-  ],
-  "الإسكندرية": [
-    "سيدي جابر",
-    "سموحة",
-    "محرم بك",
-    "العجمي",
-    "المنتزه",
-    "الرمل",
-    "العامرية",
-    "برج العرب",
-    "الجمرك",
-    "اللبان",
-    "كرموز",
-    "العطارين",
-    "الدخيلة",
-    "أبو قير"
-  ],
-  "القليوبية": [
-    "بنها",
-    "شبرا الخيمة",
-    "قليوب",
-    "القناطر الخيرية",
-    "الخانكة",
-    "طوخ",
-    "قها",
-    "كفر شكر",
-    "شبين القناطر",
-    "العبور",
-    "الخصوص"
-  ],
-  "الشرقية": [
-    "الزقازيق",
-    "العاشر من رمضان",
-    "بلبيس",
-    "منيا القمح",
-    "أبو حماد",
-    "فاقوس",
-    "أبو كبير",
-    "الحسينية",
-    "ديرب نجم",
-    "ههيا",
-    "كفر صقر",
-    "أولاد صقر",
-    "الإبراهيمية",
-    "مشتول السوق",
-    "الصالحية الجديدة"
-  ],
-  "الدقهلية": [
-    "المنصورة",
-    "طلخا",
-    "ميت غمر",
-    "السنبلاوين",
-    "أجا",
-    "دكرنس",
-    "منية النصر",
-    "بلقاس",
-    "شربين",
-    "الجمالية",
-    "المطرية",
-    "تمي الأمديد",
-    "بني عبيد",
-    "نبروه"
-  ],
-  "البحيرة": [
-    "دمنهور",
-    "كفر الدوار",
-    "إدكو",
-    "رشيد",
-    "أبو حمص",
-    "حوش عيسى",
-    "الدلنجات",
-    "كوم حمادة",
-    "إيتاي البارود",
-    "أبو المطامير",
-    "وادي النطرون",
-    "بدر",
-    "النوبارية"
-  ],
-  "الغربية": [
-    "طنطا",
-    "المحلة الكبرى",
-    "كفر الزيات",
-    "زفتى",
-    "سمنود",
-    "قطور",
-    "بسيون",
-    "السنطة"
-  ],
-  "المنوفية": [
-    "شبين الكوم",
-    "منوف",
-    "أشمون",
-    "قويسنا",
-    "السادات",
-    "تلا",
-    "الباجور",
-    "بركة السبع",
-    "الشهداء",
-    "سرس الليان"
-  ],
-  "كفر الشيخ": [
-    "كفر الشيخ",
-    "دسوق",
-    "فوه",
-    "بيلا",
-    "سيدي سالم",
-    "بلطيم",
-    "الحامول",
-    "مطوبس",
-    "قلين",
-    "الرياض",
-    "برج البرلس"
-  ],
-  "دمياط": [
-    "دمياط",
-    "رأس البر",
-    "فارسكور",
-    "كفر سعد",
-    "الزرقا",
-    "كفر البطيخ",
-    "دمياط الجديدة",
-    "عزبة البرج",
-    "الروضة",
-    "ميت أبو غالب"
-  ],
-  "بورسعيد": [
-    "حي الشرق",
-    "حي العرب",
-    "حي المناخ",
-    "حي الزهور",
-    "حي الضواحي",
-    "حي الجنوب",
-    "حي غرب",
-    "بورفؤاد"
-  ],
-  "الإسماعيلية": [
-    "الإسماعيلية",
-    "فايد",
-    "القنطرة شرق",
-    "القنطرة غرب",
-    "التل الكبير",
-    "أبو صوير",
-    "القصاصين",
-    "نفيشة"
-  ],
-  "السويس": [
-    "حي السويس",
-    "حي الأربعين",
-    "حي فيصل",
-    "حي الجناين",
-    "عتاقة",
-    "القطاع الريفي"
-  ],
-  "بني سويف": [
-    "بني سويف",
-    "الواسطى",
-    "ناصر",
-    "إهناسيا",
-    "ببا",
-    "الفشن",
-    "سمسطا",
-    "بني سويف الجديدة"
-  ],
-  "الفيوم": [
-    "الفيوم",
-    "سنورس",
-    "إطسا",
-    "طامية",
-    "أبشواي",
-    "يوسف الصديق",
-    "الفيوم الجديدة"
-  ],
-  "المنيا": [
-    "المنيا",
-    "ملوي",
-    "سمالوط",
-    "أبو قرقاص",
-    "بني مزار",
-    "مطاي",
-    "دير مواس",
-    "مغاغة",
-    "العدوة",
-    "المنيا الجديدة"
-  ],
-  "أسيوط": [
-    "أسيوط",
-    "ديروط",
-    "منفلوط",
-    "القوصية",
-    "أبنوب",
-    "أبو تيج",
-    "الغنايم",
-    "ساحل سليم",
-    "البداري",
-    "صدفا",
-    "أسيوط الجديدة"
-  ],
-  "سوهاج": [
-    "سوهاج",
-    "أخميم",
-    "المنشاة",
-    "جرجا",
-    "طهطا",
-    "طما",
-    "البلينا",
-    "دار السلام",
-    "جهينة",
-    "ساقلتة",
-    "المراغة",
-    "سوهاج الجديدة"
-  ],
-  "قنا": [
-    "قنا",
-    "نجع حمادي",
-    "دشنا",
-    "قوص",
-    "نقادة",
-    "فرشوط",
-    "أبو تشت",
-    "الوقف",
-    "قفط",
-    "قنا الجديدة"
-  ],
-  "الأقصر": [
-    "الأقصر",
-    "إسنا",
-    "أرمنت",
-    "البياضية",
-    "الزينية",
-    "الطود",
-    "القرنة"
-  ],
-  "أسوان": [
-    "أسوان",
-    "دراو",
-    "كوم أمبو",
-    "إدفو",
-    "نصر النوبة",
-    "كلابشة",
-    "أبو سمبل",
-    "أسوان الجديدة"
-  ],
-  "البحر الأحمر": [
-    "الغردقة",
-    "رأس غارب",
-    "سفاجا",
-    "القصير",
-    "مرسى علم",
-    "الشلاتين",
-    "حلايب"
-  ],
-  "مطروح": [
-    "مرسى مطروح",
-    "الحمام",
-    "العلمين",
-    "الضبعة",
-    "النجيلة",
-    "سيدي براني",
-    "السلوم",
-    "سيوة"
-  ],
-  "شمال سيناء": [
-    "العريش",
-    "بئر العبد",
-    "الشيخ زويد",
-    "رفح",
-    "الحسنة",
-    "نخل"
-  ],
-  "جنوب سيناء": [
-    "شرم الشيخ",
-    "دهب",
-    "نويبع",
-    "طور سيناء",
-    "رأس سدر",
-    "أبو رديس",
-    "أبو زنيمة",
-    "سانت كاترين",
-    "طابا"
-  ],
-  "الوادي الجديد": [
-    "الخارجة",
-    "الداخلة",
-    "الفرافرة",
-    "باريس",
-    "بلاط"
-  ]
+const STORE_KEY = 'tager_v25_enterprise_state';
+const SESSION_KEY = 'tager_v25_session';
+const CART_KEY = 'tager_v25_cart';
+
+const EGYPT = {
+  'القاهرة':['مدينة نصر','مصر الجديدة','المعادي','التجمع الخامس','الزمالك','شبرا','حلوان','السلام','المرج','عين شمس'],
+  'الجيزة':['الدقي','المهندسين','الهرم','فيصل','6 أكتوبر','الشيخ زايد','العجوزة','البدرشين','العياط'],
+  'الإسكندرية':['سيدي جابر','محرم بك','العجمي','المنتزه','سموحة','برج العرب','كرموز','العامرية'],
+  'القليوبية':['بنها','قليوب','شبرا الخيمة','الخانكة','طوخ','القناطر الخيرية','كفر شكر'],
+  'الشرقية':['الزقازيق','العاشر من رمضان','بلبيس','منيا القمح','أبو حماد','فاقوس','أبو كبير'],
+  'الدقهلية':['المنصورة','طلخا','ميت غمر','السنبلاوين','أجا','منية النصر','دكرنس'],
+  'الغربية':['طنطا','المحلة الكبرى','كفر الزيات','زفتى','السنطة','بسيون'],
+  'المنوفية':['شبين الكوم','مدينة السادات','منوف','أشمون','قويسنا','تلا','الباجور'],
+  'البحيرة':['دمنهور','كفر الدوار','رشيد','إدكو','أبو حمص','وادي النطرون','إيتاي البارود'],
+  'كفر الشيخ':['كفر الشيخ','دسوق','فوه','بيلا','بلطيم','سيدي سالم'],
+  'دمياط':['دمياط','رأس البر','فارسكور','كفر سعد','الزرقا','دمياط الجديدة'],
+  'بورسعيد':['حي الشرق','حي العرب','حي المناخ','حي الزهور','بورفؤاد'],
+  'الإسماعيلية':['الإسماعيلية','فايد','القنطرة شرق','القنطرة غرب','التل الكبير'],
+  'السويس':['السويس','الأربعين','عتاقة','فيصل','الجناين'],
+  'شمال سيناء':['العريش','بئر العبد','الشيخ زويد','رفح','الحسنة'],
+  'جنوب سيناء':['طور سيناء','شرم الشيخ','دهب','نويبع','رأس سدر','سانت كاترين'],
+  'بني سويف':['بني سويف','الواسطى','ناصر','إهناسيا','ببا','الفشن'],
+  'الفيوم':['الفيوم','سنورس','طامية','إطسا','أبشواي','يوسف الصديق'],
+  'المنيا':['المنيا','ملوي','سمالوط','بني مزار','مطاي','أبو قرقاص','دير مواس'],
+  'أسيوط':['أسيوط','ديروط','منفلوط','القوصية','أبنوب','أبو تيج','صدفا'],
+  'سوهاج':['سوهاج','أخميم','المنشأة','جرجا','طهطا','طما','البلينا','دار السلام'],
+  'قنا':['قنا','نجع حمادي','دشنا','قوص','أبو تشت','فرشوط','نقادة'],
+  'الأقصر':['الأقصر','إسنا','أرمنت','القرنة','الزينية','البياضية'],
+  'أسوان':['أسوان','دراو','كوم أمبو','نصر النوبة','إدفو','أبو سمبل'],
+  'البحر الأحمر':['الغردقة','رأس غارب','سفاجا','القصير','مرسى علم','حلايب'],
+  'الوادي الجديد':['الخارجة','الداخلة','الفرافرة','باريس','بلاط'],
+  'مطروح':['مرسى مطروح','الحمام','العلمين','الضبعة','سيوة','السلوم']
 };
-const govOptions = () => Object.keys(GOV).map(g=>`<option value="${g}">${g}</option>`).join('');
-const districtOptions = g => (GOV[g]||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
-function areasFor(g,d){ return ['المركز الرئيسي','الحي الأول','الحي الثاني','الحي الثالث','المنطقة الصناعية','السوق التجاري','القرى التابعة'].map(a=>`${a}`); }
-function areaOptions(g,d){ return areasFor(g,d).map(a=>`<option value="${a}">${a}</option>`).join(''); }
 
-function toast(msg){ toastBox.textContent = msg; toastBox.classList.add('show'); setTimeout(()=>toastBox.classList.remove('show'), 3500); }
-function formData(form){ return Object.fromEntries(new FormData(form).entries()); }
-function route(){ return location.pathname === '/' ? '/' : location.pathname.replace(/\/$/,''); }
-function go(path){ history.pushState(null,'',path); render(); }
-function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function requireUser(role){ const u=DB.session(); if(!u){ go('/login'); return null; } if(role && u.role !== role && u.role !== 'admin'){ toast('لا توجد صلاحية لهذه الصفحة.'); go('/'); return null; } return u; }
-function getCart(){ try{return JSON.parse(localStorage.getItem('tager_cart')||'[]')}catch{return[]} }
-function setCart(c){ localStorage.setItem('tager_cart', JSON.stringify(c)); updateNav(); }
-function addCart(product){ const c=getCart(); const f=c.find(x=>x.product.id===product.id); if(f) f.qty=Number(f.qty)+1; else c.push({product, qty:1, tier:'retail'}); setCart(c); toast('تمت الإضافة إلى السلة.'); updateNav(); }
+const DEFAULT_STATE = () => ({
+  version:'V25 Working Enterprise Platform',
+  settings:{
+    platformName:'Tager',
+    supportPhone:'01000000000',
+    supportWhatsapp:'01000000000',
+    supportEmail:'support@tager.local',
+    currency:'EGP',
+    defaultCommissionPercent:10,
+    premiumCartPercent:1.5,
+    requireDeliveryCoverage:true,
+    requireProductApproval:true,
+    requireVendorApproval:true,
+    paymentMethods:['نقدي عند الاستلام','تحويل بنكي','محفظة إلكترونية','Instapay'],
+    categories:['أغذية','مشروبات','ألبان','منظفات','ورقيات','معلبات','مواد خام','تعبئة وتغليف']
+  },
+  users:[], vendors:[], vendor_documents:[], vendor_delivery_zones:[], products:[],
+  customer_addresses:[], orders:[], order_items:[], shipments:[], commission_payments:[], support_tickets:[], audit_logs:[]
+});
 
-function productAsset(p){
-  const text = `${p?.category||''} ${p?.name_ar||''}`;
-  if(/لبن|حليب|مياه|مشروب|عصير|زبادي|ألبان/.test(text)) return '/assets/category-dairy.svg';
-  if(/منظف|مناديل|ورق|صابون|كلور|نظافة|مطهر/.test(text)) return '/assets/category-cleaning.svg';
-  if(/تونة|معلب|صلصة|بقول|فول|عدس/.test(text)) return '/assets/category-canned.svg';
-  if(/أرز|رز|سكر|زيت|دقيق|مكرونة|شاي|قهوة/.test(text)) return '/assets/category-staples.svg';
-  return '/assets/product-default.svg';
+let state = loadState();
+let cart = loadCart();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return DEFAULT_STATE();
+    const data = JSON.parse(raw);
+    const base = DEFAULT_STATE();
+    const merged = {...base, ...data, settings:{...base.settings, ...(data.settings||{})}};
+    Object.keys(base).forEach(k=>{ if(Array.isArray(base[k]) && !Array.isArray(merged[k])) merged[k]=[]; });
+    return merged;
+  }catch(e){ console.error(e); return DEFAULT_STATE(); }
 }
-function productImage(p, cls=''){
-  const src = p?.image_url || productAsset(p);
-  return `<img class="${cls}" src="${esc(src)}" alt="${esc(p?.name_ar || 'منتج')}" loading="lazy" onerror="this.src='/assets/product-default.svg'">`;
+function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function loadCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []} }
+function saveCart(){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateShell(); }
+function id(){ return (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function now(){ return new Date().toISOString(); }
+function esc(v){ return String(v ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
+function money(n){ return `${Number(n||0).toLocaleString('ar-EG',{maximumFractionDigits:2})} ج.م`; }
+function num(n){ return Number(n||0); }
+function app(){ return document.getElementById('app'); }
+function qs(s,root=document){ return root.querySelector(s); }
+function qsa(s,root=document){ return Array.from(root.querySelectorAll(s)); }
+function session(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(e){return null} }
+function setSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({id:user.id, role:user.role, name:user.name})); updateShell(); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); updateShell(); }
+function me(){ const s=session(); return s ? state.users.find(u=>u.id===s.id) : null; }
+function myRole(){ const u=me(); return u ? u.role : ''; }
+function isAdmin(){ return myRole()==='admin' || myRole()==='staff'; }
+function isVendor(){ return myRole()==='vendor'; }
+function isCustomer(){ return myRole()==='customer'; }
+function admins(){ return state.users.filter(u=>u.role==='admin' || u.role==='staff'); }
+function go(path){ history.pushState(null,'',path); route(); window.scrollTo({top:0,behavior:'smooth'}); }
+function log(action, entity_type='', entity_id='', after_data=null){ state.audit_logs.unshift({id:id(), actor_id:me()?.id||null, action, entity_type, entity_id, after_data, created_at:now()}); state.audit_logs = state.audit_logs.slice(0,500); saveState(); }
+
+function govOptions(selected=''){
+  return Object.keys(EGYPT).map(g=>`<option value="${esc(g)}" ${g===selected?'selected':''}>${esc(g)}</option>`).join('');
 }
-function vendorLogo(v){
-  const src = v?.logo_url || '/assets/vendor-cover.svg';
-  return `<img src="${esc(src)}" alt="${esc(v?.store_name || 'مورد')}" loading="lazy" onerror="this.src='/assets/vendor-cover.svg'">`;
+function distOptions(g, selected=''){
+  const list = EGYPT[g] || [];
+  return list.map(d=>`<option value="${esc(d)}" ${d===selected?'selected':''}>${esc(d)}</option>`).join('');
 }
-function addCartCustom(product, qty=1, tier='retail'){
-  const c=getCart();
-  const q=Math.max(1, Number(qty||1));
-  const f=c.find(x=>x.product.id===product.id && x.tier===tier);
-  if(f) f.qty=Number(f.qty)+q; else c.push({product, qty:q, tier});
-  setCart(c); toast('تمت إضافة المنتج إلى السلة.'); updateNav();
+function bindGov(form){
+  const g = qs('[name="governorate"]', form);
+  const d = qs('[name="district"]', form);
+  if(!g || !d) return;
+  const sync = () => { const current = d.dataset.selected || d.value; d.innerHTML = distOptions(g.value, current); d.dataset.selected=''; };
+  sync();
+  g.addEventListener('change', sync);
 }
-function productCard(p, tier='retail'){
-  const price=DB.priceFor(p, Number(tier==='retail'?1:tier==='wholesale'?p.wholesale_min_qty:p.bulk_min_qty), tier);
-  const stock=Number(p.stock_qty||0);
-  return `<article class="card product productPro">
-    <a class="productImg productImageLink" href="/product/${esc(p.id)}">${productImage(p)}</a>
-    <div class="productMeta"><span class="pill">${esc(p.category||'منتجات')}</span><span class="pill ${stock<=0?'bad':'ok'}">${stock>0?'متاح':'نفد المخزون'}</span></div>
-    <h3><a href="/product/${esc(p.id)}">${esc(p.name_ar)}</a></h3>
-    <p class="muted">${esc(p.vendors?.store_name||'')}</p>
-    <div class="priceLine compact"><span>قطاعي <b>${fmt(p.retail_price)}</b></span><span>جملة <b>${fmt(p.wholesale_price)}</b></span><span>جملة الجملة <b>${fmt(p.bulk_price)}</b></span></div>
-    <div class="productFooter"><strong>${fmt(price)}</strong><small>${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
-    <div class="actions split"><a class="btn secondary" href="/product/${esc(p.id)}">تفاصيل المنتج</a><button class="btn" data-add="${esc(p.id)}" ${stock<=0?'disabled':''}>إضافة</button></div>
-  </article>`;
+function input(name,label,type='text',value='',attrs=''){
+  return `<div class="field"><label>${esc(label)}</label><input name="${esc(name)}" type="${esc(type)}" value="${esc(value)}" ${attrs}></div>`;
 }
-function zoneChips(zones, max=10){
-  const arr = Array.isArray(zones) ? zones : [];
-  if(!arr.length) return '<span class="pill warn">لم يحدد مناطق تغطية</span>';
-  return arr.slice(0,max).map(z=>`<span class="pill">${esc(z.governorate)} - ${esc(z.district)} - ${esc(z.area)} • ${fmt(z.fee||0)}</span>`).join('') + (arr.length>max?`<span class="pill">+${arr.length-max} مناطق أخرى</span>`:'');
+function textarea(name,label,value='',attrs=''){
+  return `<div class="field"><label>${esc(label)}</label><textarea name="${esc(name)}" ${attrs}>${esc(value)}</textarea></div>`;
 }
-function productGallery(p){
-  let gallery=[]; try{ gallery = Array.isArray(p.gallery) ? p.gallery : JSON.parse(p.gallery||'[]'); }catch{ gallery=[]; }
-  const imgs=[p.image_url, ...gallery].filter(Boolean);
-  if(!imgs.length) imgs.push(productAsset(p));
-  return imgs.slice(0,5).map(src=>`<button type="button" class="thumb" data-img="${esc(src)}"><img src="${esc(src)}" onerror="this.src='/assets/product-default.svg'" alt=""></button>`).join('');
+function select(name,label,options,value=''){
+  return `<div class="field"><label>${esc(label)}</label><select name="${esc(name)}">${options.map(o=>`<option value="${esc(o)}" ${o===value?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+}
+function notice(text,type=''){
+  return `<div class="notice ${type}">${text}</div>`;
+}
+function page(title, body, subtitle=''){
+  app().innerHTML = `<section class="page"><div class="section-head"><div><h1 class="page-title">${esc(title)}</h1>${subtitle?`<p>${esc(subtitle)}</p>`:''}</div></div>${body}</section>`;
+}
+function table(headers, rows){
+  if(!rows.length) return `<div class="empty">لا توجد بيانات حالياً.</div>`;
+  return `<div class="table-wrap"><table class="table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+function badge(status){
+  const map = {pending:'قيد المراجعة',approved:'معتمد',rejected:'مرفوض',suspended:'موقوف',new:'جديد',confirmed:'مؤكد',preparing:'قيد التجهيز',shipped:'تم الشحن',delivered:'تم التسليم',cancelled:'ملغي',paid:'مسدد',review:'تحت المراجعة',open:'مفتوح',closed:'مغلق'};
+  return `<span class="badge ${esc(status)}">${esc(map[status]||status||'غير محدد')}</span>`;
+}
+function metric(title,value,sub=''){
+  return `<div class="metric"><span>${esc(title)}</span><strong>${esc(value)}</strong>${sub?`<small class="muted">${esc(sub)}</small>`:''}</div>`;
+}
+function getVendor(userId){ return state.vendors.find(v=>v.user_id===userId); }
+function getUser(userId){ return state.users.find(u=>u.id===userId); }
+function approvedProducts(){ return state.products.filter(p=>p.status==='approved' && num(p.stock)>0 && getUser(p.vendor_id)?.status==='approved'); }
+function approvedVendors(){ return state.vendors.filter(v=>getUser(v.user_id)?.status==='approved'); }
+function productPrice(p, type='wholesale_price'){ return num(p[type] || p.wholesale_price || p.retail_price); }
+function productImage(p){ return p.image_url ? `<img class="product-image" src="${esc(p.image_url)}" alt="${esc(p.name_ar)}" onerror="this.outerHTML='<div class=&quot;product-placeholder&quot;>📦</div>'">` : `<div class="product-placeholder">📦</div>`; }
+function publicVendorCard(v){
+  const u = getUser(v.user_id) || {};
+  const zones = state.vendor_delivery_zones.filter(z=>z.vendor_id===v.user_id && z.is_active!==false);
+  const products = state.products.filter(p=>p.vendor_id===v.user_id && p.status==='approved');
+  return `<div class="card"><div class="supplier-header"><div class="supplier-avatar">${v.logo_url?`<img src="${esc(v.logo_url)}" alt="${esc(v.store_name)}">`:'🏬'}</div><div><h3>${esc(v.store_name||u.name)}</h3><p class="muted">${esc(v.description||'مورد معتمد داخل منصة Tager')}</p></div></div><p><b>المحافظة:</b> ${esc(v.governorate||u.governorate||'-')} — <b>المركز:</b> ${esc(v.district||u.district||'-')}</p><p><b>أقل طلب:</b> ${money(v.min_order)}</p><p><b>مناطق التغطية:</b> ${zones.length} منطقة — <b>منتجات منشورة:</b> ${products.length}</p><button class="btn3" onclick="go('/vendor-page/${esc(v.user_id)}')">عرض صفحة المورد</button></div>`;
 }
 
-
-function updateNav(){
-  const u = DB.session();
-  const c = getCart().length;
-  const links = [
-    ['/', 'الرئيسية'], ['/market','المنتجات'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'], ['/policies','السياسات']
-  ];
-  if(u?.role==='customer') links.push(['/customer','حساب العميل']);
-  if(u?.role==='vendor') links.push(['/vendor','لوحة المورد']);
-  if(u?.role==='admin' || u?.role==='staff') links.push(['/admin','لوحة الإدارة']);
-  nav.innerHTML = links.map(([href,label])=>`<a class="${route()===href?'active':''}" href="${href}">${label}</a>`).join('') +
-    (u ? `<button id="logoutBtn">خروج</button>` : `<a class="${route()==='/login'?'active':''}" href="/login">دخول</a>`);
-  $('#logoutBtn')?.addEventListener('click',()=>{DB.clearSession(); toast('تم تسجيل الخروج.'); go('/');});
-}
-
-function bindAddressSelectors(scope=document){
-  const g = scope.querySelector('[data-gov]'); const d = scope.querySelector('[data-district]'); const a = scope.querySelector('[data-area]');
-  if(!g || !d || !a) return;
-  const refreshD = ()=>{ d.innerHTML = districtOptions(g.value); refreshA(); };
-  const refreshA = ()=>{ a.innerHTML = areaOptions(g.value, d.value); };
-  g.addEventListener('change', refreshD); d.addEventListener('change', refreshA); refreshD();
-}
-function statusPill(s){ const map={approved:['معتمد','ok'],pending:['قيد المراجعة','warn'],rejected:['مرفوض','bad'],suspended:['موقوف','bad'],new:['جديد','warn'],accepted:['مقبول','ok'],preparing:['تجهيز','warn'],out_for_delivery:['في التوصيل','warn'],delivered:['تم التسليم','ok'],cancelled:['ملغي','bad'],out_of_stock:['غير متوفر','bad'],paid:['مسدد','ok'],unpaid:['غير مسدد','warn'],partial:['مسدد جزئياً','warn'],refunded:['مرتجع','bad'],assigned:['مسند','warn'],picked:['تم الاستلام','warn']}; const m=map[s]||[s||'غير محدد','']; return `<span class="pill ${m[1]}">${m[0]}</span>`; }
-function orderValue(orders, predicate){ return (orders||[]).filter(predicate).reduce((s,o)=>s+Number(o.total||0),0); }
-function orderCount(orders, status){ return (orders||[]).filter(o=>o.status===status).length; }
-function paymentValue(orders){ return (orders||[]).filter(o=>o.payment_status==='paid' || Number(o.paid_amount||0)>0).reduce((s,o)=>s+Number(o.paid_amount || (o.payment_status==='paid'?o.total:0) || 0),0); }
-function financialCards(cards){ return `<div class="financeGrid">${cards.map(c=>`<div class="financeCard ${c.kind||''}"><span>${c.label}</span><strong>${c.value}</strong>${c.note?`<small>${c.note}</small>`:''}</div>`).join('')}</div>`; }
-
-function statusLabel(s){
-  const map={approved:'معتمد',pending:'قيد المراجعة',rejected:'مرفوض',suspended:'موقوف',new:'جديد',accepted:'مقبول',preparing:'تجهيز',out_for_delivery:'في التوصيل',delivered:'تم التسليم',cancelled:'ملغي',out_of_stock:'غير متوفر',paid:'مسدد',unpaid:'غير مسدد',partial:'مسدد جزئياً',refunded:'مرتجع',assigned:'مسند',picked:'تم الاستلام'};
-  return map[s] || s || 'غير محدد';
-}
-function dateFmt(d){ try{return new Date(d).toLocaleDateString('ar-EG')}catch{return '-'} }
-function csvCell(v){ return '"'+String(v ?? '').replace(/"/g,'""')+'"'; }
-function exportCSV(filename, rows){
-  if(!rows || !rows.length){ toast('لا توجد بيانات للتصدير.'); return; }
-  const headers = Object.keys(rows[0]);
-  const csv = '\ufeff' + [headers.map(csvCell).join(','), ...rows.map(r=>headers.map(h=>csvCell(r[h])).join(','))].join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-function customerFinanceRows(orders){
-  const map=new Map();
-  (orders||[]).forEach(o=>{const k=o.customer_id || 'unknown'; if(!map.has(k)) map.set(k,{العميل:o.users?.name||'', الهاتف:o.users?.phone||'', 'عدد الطلبات':0, 'إجمالي الطلبات':0, 'منفذ':0, 'مسدد':0, 'ملغي':0, 'متبقي':0});
-    const r=map.get(k); r['عدد الطلبات']++; r['إجمالي الطلبات']+=Number(o.total||0); if(o.status==='delivered') r['منفذ']+=Number(o.total||0); if(o.status==='cancelled') r['ملغي']+=Number(o.total||0); const paid=Number(o.paid_amount || (o.payment_status==='paid'?o.total:0) || 0); r['مسدد']+=paid; r['متبقي']+=Math.max(Number(o.total||0)-paid,0);
+function updateShell(){
+  const c = qs('#cartCount'); if(c) c.textContent = String(cart.reduce((s,i)=>s+num(i.qty),0));
+  const a = qs('#accountLink');
+  if(a){
+    const u = me();
+    if(u){ a.textContent = u.role==='admin'||u.role==='staff' ? 'الإدارة' : u.role==='vendor' ? 'لوحة المورد' : 'حسابي'; a.setAttribute('href', u.role==='admin'||u.role==='staff' ? '/admin' : u.role==='vendor' ? '/vendor' : '/customer'); }
+    else if(!admins().length){ a.textContent = 'إنشاء الإدارة'; a.setAttribute('href','/setup'); }
+    else { a.textContent='دخول'; a.setAttribute('href','/login'); }
+  }
+  qsa('.nav-links a').forEach(link=>{
+    const href = link.getAttribute('href');
+    link.classList.toggle('active', href==='/' ? location.pathname==='/' : location.pathname.startsWith(href));
   });
-  return [...map.values()];
-}
-function vendorFinanceRows(s){
-  return (s.vendors||[]).map(v=>{ const items=(s.orders||[]).flatMap(o=>(o.order_items||[]).filter(i=>i.vendor_id===v.id).map(i=>({i,o}))); const delivered=items.filter(x=>x.o.status==='delivered'); const sales=items.reduce((a,x)=>a+Number(x.i.subtotal||0),0); const delSales=delivered.reduce((a,x)=>a+Number(x.i.subtotal||0),0); const cancelled=items.filter(x=>x.o.status==='cancelled').reduce((a,x)=>a+Number(x.i.subtotal||0),0); const comm=delivered.reduce((a,x)=>a+Number(x.i.commission||0),0); const paid=(s.payments||[]).filter(p=>p.vendor_id===v.id && p.status==='approved').reduce((a,p)=>a+Number(p.amount||0),0); const pending=(s.payments||[]).filter(p=>p.vendor_id===v.id && p.status==='pending').reduce((a,p)=>a+Number(p.amount||0),0); return {المورد:v.store_name, الهاتف:v.users?.phone||'', 'إجمالي الطلبات':sales, 'منفذ':delSales, 'ملغي':cancelled, 'عمولة بعد التوصيل':comm, 'مدفوع معتمد':paid, 'تحت المراجعة':pending, 'متبقي':Math.max(comm-paid,0)}; });
-}
-function deliveryRows(s){
-  const vendors = new Map((s.vendors||[]).map(v=>[v.id,v]));
-  return (s.orders||[]).flatMap(o=>(o.deliveries||[]).map(d=>({delivery:d, order:o, vendor:vendors.get(d.vendor_id)})));
-}
-function moneyOrDash(n){ return Number(n||0) ? fmt(n) : '-'; }
-
-function platformControlPanel(s, customerRows, vendorRows){
-  const pendingVendors=(s.vendors||[]).filter(v=>v.status==='pending').length;
-  const pendingProducts=(s.products||[]).filter(p=>p.status==='pending').length;
-  const openTickets=(s.tickets||[]).filter(t=>t.status!=='closed').length;
-  const pendingPayments=(s.payments||[]).filter(p=>p.status==='pending').reduce((a,p)=>a+Number(p.amount||0),0);
-  const outStock=(s.products||[]).filter(p=>Number(p.stock_qty||0)<=0).length;
-  const waitingDeliveries=(s.orders||[]).flatMap(o=>o.deliveries||[]).filter(d=>!['delivered','cancelled'].includes(d.status)).length;
-  const alerts=[];
-  if(pendingVendors) alerts.push(`موردون بانتظار الاعتماد: ${pendingVendors}`);
-  if(pendingProducts) alerts.push(`منتجات بانتظار الاعتماد: ${pendingProducts}`);
-  if(openTickets) alerts.push(`طلبات دعم مفتوحة: ${openTickets}`);
-  if(outStock) alerts.push(`منتجات نفد مخزونها: ${outStock}`);
-  if(pendingPayments) alerts.push(`دفعات موردين تحت المراجعة: ${fmt(pendingPayments)}`);
-  if(waitingDeliveries) alerts.push(`توصيلات مفتوحة: ${waitingDeliveries}`);
-  return `<section class="opsBoard"><div class="opsHead"><div><h3>مركز متابعة التشغيل</h3><p>أهم النقاط التي تحتاج مراجعة قبل إقفال اليوم.</p></div><span>${alerts.length ? 'يتطلب متابعة' : 'الوضع منظم'}</span></div><div class="opsGrid"><div><b>${pendingVendors}</b><small>موردون معلقون</small></div><div><b>${pendingProducts}</b><small>منتجات معلقة</small></div><div><b>${waitingDeliveries}</b><small>توصيلات مفتوحة</small></div><div><b>${openTickets}</b><small>دعم مفتوح</small></div><div><b>${fmt(pendingPayments)}</b><small>دفعات تحت المراجعة</small></div><div><b>${outStock}</b><small>مخزون منتهي</small></div></div><div class="badgeList">${alerts.map(a=>`<span class="pill warn">${esc(a)}</span>`).join('') || '<span class="pill ok">لا توجد نقاط حرجة حالياً</span>'}</div></section>`;
-}
-function settlementQuality(vendorRows){
-  const due=(vendorRows||[]).reduce((s,r)=>s+Number(r['متبقي']||0),0);
-  const pending=(vendorRows||[]).reduce((s,r)=>s+Number(r['تحت المراجعة']||0),0);
-  const clean=(vendorRows||[]).filter(r=>Number(r['متبقي']||0)===0).length;
-  return `<div class="settlementStrip"><div><span>متبقي الموردين</span><strong>${fmt(due)}</strong></div><div><span>دفعات تحت المراجعة</span><strong>${fmt(pending)}</strong></div><div><span>موردون مقفلون مالياً</span><strong>${clean.toLocaleString('ar-EG')}</strong></div></div>`;
 }
 
-
-function cartAnalysis(cart, address, cartType='standard'){
-  const groups = new Map();
-  const errors = [];
-  let subtotal = 0;
-  let shipping = 0;
-  for(const line of cart || []){
-    const product = line.product || {};
-    const vendor = product.vendors || {};
-    const qty = Number(line.qty || 0);
-    const price = DB.priceFor(line, qty, line.tier);
-    const lineTotal = price * qty;
-    subtotal += lineTotal;
-    const zone = DB.zoneMatches(vendor, address || {});
-    const key = product.vendor_id || vendor.id || vendor.store_name || 'vendor';
-    if(!groups.has(key)) groups.set(key,{vendor, zone, subtotal:0, shipping:0, items:[], errors:[]});
-    const g = groups.get(key);
-    g.subtotal += lineTotal;
-    g.items.push({line, qty, price, subtotal:lineTotal});
-    if(!zone) g.errors.push(`المورد ${vendor.store_name || ''} لا يغطي العنوان المختار.`);
-    if(qty <= 0) g.errors.push(`كمية ${product.name_ar || 'منتج'} غير صحيحة.`);
-    if(qty > Number(product.stock_qty || 0)) g.errors.push(`المخزون غير كافٍ للمنتج ${product.name_ar || ''}.`);
-  }
-  for(const g of groups.values()){
-    if(g.zone){ g.shipping = Number(g.zone.fee || 0); shipping += g.shipping; }
-    if(g.subtotal < Number(g.vendor.min_order || 0)) g.errors.push(`قيمة الطلب من ${g.vendor.store_name || 'المورد'} أقل من الحد الأدنى ${fmt(g.vendor.min_order || 0)}.`);
-    errors.push(...g.errors);
-  }
-  const total = subtotal + shipping;
-  return {groups:[...groups.values()], errors, subtotal, shipping, total, valid:errors.length===0 && (cart||[]).length>0};
-}
-function cartAnalysisHTML(a){
-  if(!a) return '';
-  const groupRows = a.groups.map(g=>`<div class="coverageRow ${g.errors.length?'bad':'ok'}"><div><strong>${esc(g.vendor.store_name || 'مورد')}</strong><p class="muted">${g.zone ? `${esc(g.zone.governorate)} - ${esc(g.zone.district)} - ${esc(g.zone.area)} | رسوم ${fmt(g.shipping)} | ${esc(g.zone.duration||'')}` : 'العنوان غير مغطى من هذا المورد'}</p>${g.errors.map(e=>`<small class="errorText">${esc(e)}</small>`).join('')}</div><span>${g.errors.length ? 'غير جاهز' : 'جاهز'}</span></div>`).join('');
-  return `<section class="cartCheck"><h3>مراجعة التوصيل قبل الطلب</h3>${groupRows || '<p class="muted">أضف منتجات للسلة لعرض فحص التوصيل.</p>'}<div class="totalBox"><div><span>إجمالي المنتجات</span><strong>${fmt(a.subtotal)}</strong></div><div><span>رسوم التوصيل</span><strong>${fmt(a.shipping)}</strong></div><div><span>الإجمالي النهائي</span><strong>${fmt(a.total)}</strong></div></div>${a.errors.length?`<div class="alert bad">يجب حل الملاحظات قبل إتمام الطلب.</div>`:`<div class="alert ok">العنوان مغطى ويمكن إتمام الطلب.</div>`}</section>`;
+function home(){
+  const totalVendors = approvedVendors().length;
+  const totalProducts = approvedProducts().length;
+  const delivered = state.orders.filter(o=>o.status==='delivered').length;
+  const sales = state.orders.reduce((s,o)=>s+num(o.total),0);
+  app().innerHTML = `<section class="page hero"><div class="hero-card"><img class="hero-logo" src="/assets/tager-logo-full.png" alt="Tager"><span class="eyebrow">منصة تجارة وتوريد وتشغيل منظمة</span><h1>رحلة شراء وتوريد واضحة من أول اختيار المورد حتى إقفال الحسابات</h1><p>واجهة واحدة لإدارة السوق، الموردين، المنتجات، مناطق التوصيل، الطلبات، السداد، المستحقات، والتقارير المالية بدون صفحات ناقصة أو عناصر إدارية مكشوفة للعامة.</p><div class="hero-actions"><button class="btn2" onclick="go('/products')">استعراض المنتجات</button><button class="btn3" onclick="go('/register/vendor')">تسجيل مورد</button><button class="btn3" onclick="go('/setup')">بدء الإعداد</button></div></div><aside class="ops-card"><div class="ops-head"><strong>مركز التشغيل</strong><span class="status-pill">جاهز للعمل</span></div><div class="metric-grid">${metric('موردون معتمدون', totalVendors)}${metric('منتجات منشورة', totalProducts)}${metric('طلبات تم تسليمها', delivered)}${metric('قيمة الطلبات', money(sales))}</div><div class="steps"><div class="step"><b>1</b><div><strong>إنشاء حساب الإدارة</strong><p>أول تشغيل يبدأ من صفحة الإعداد بدون أي حسابات جاهزة.</p></div></div><div class="step"><b>2</b><div><strong>اعتماد الموردين والمنتجات</strong><p>أي مورد أو منتج لا يظهر للعامة إلا بعد موافقة الإدارة.</p></div></div><div class="step"><b>3</b><div><strong>إقفال مالي واضح</strong><p>إعدادات العمولة والسلة المميزة داخل الإدارة فقط.</p></div></div></div></aside></section><section class="page"><div class="section-head"><div><h2>المنصة مكتملة من التشغيل حتى المالية</h2><p>كل صفحة لها وظيفة واضحة، ولا توجد بيانات جاهزة مفروضة على المنصة.</p></div></div><div class="grid-3"><div class="card"><div class="icon">🏬</div><h3>إدارة الموردين</h3><p class="muted">تسجيل، اعتماد، مناطق تغطية، مستندات، منتجات، صفحة عامة لكل مورد، وحالة حساب.</p></div><div class="card"><div class="icon">📦</div><h3>إدارة المنتجات</h3><p class="muted">فئات، أسعار قطاعي وجملة وجملة الجملة، مخزون، صور، موافقة قبل النشر، وربط بالمورد.</p></div><div class="card"><div class="icon">💳</div><h3>الإدارة المالية</h3><p class="muted">إعداد العمولة داخليًا، متابعة مستحقات المنصة، مدفوعات الموردين، تقارير CSV و JSON.</p></div></div></section><section class="page"><div class="section-head"><div><h2>الصفحات الأساسية</h2><p>الرئيسية، المنتجات، الموردون، السلة، الحسابات، الإدارة، الدعم، والسياسات.</p></div></div><div class="grid"><a class="card" href="/products"><h3>المنتجات</h3><p class="muted">بحث، فئات، نوع سعر، وإضافة للسلة.</p></a><a class="card" href="/vendors"><h3>الموردون</h3><p class="muted">صفحات موردين حقيقية بعد اعتماد الإدارة.</p></a><a class="card" href="/admin"><h3>لوحة الإدارة</h3><p class="muted">تشغيل، اعتماد، مالية، إعدادات، وتصدير.</p></a><a class="card" href="/support"><h3>الدعم</h3><p class="muted">فتح تذكرة ومتابعتها داخل الإدارة.</p></a></div></section>`;
 }
 
-function invoiceHTML(o){
-  const lines = (o.order_items||[]).map(i=>`<tr><td>${esc(i.products?.name_ar||'')}</td><td>${esc(i.vendors?.store_name||'')}</td><td>${i.qty}</td><td>${fmt(i.unit_price)}</td><td>${fmt(i.subtotal)}</td></tr>`).join('');
-  return `<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>فاتورة ${short(o.id)}</title><style>body{font-family:Arial;padding:24px;color:#172033}table{width:100%;border-collapse:collapse;margin-top:16px}td,th{border:1px solid #d8dee9;padding:9px;text-align:right}.head{display:flex;justify-content:space-between;gap:16px}.box{border:1px solid #d8dee9;border-radius:12px;padding:14px}h1{margin:0 0 8px}</style></head><body><div class="head"><div><h1>Tager</h1><p>فاتورة طلب رقم ${short(o.id)}</p></div><div class="box"><b>الإجمالي: ${fmt(o.total)}</b><br>السداد: ${statusLabel(o.payment_status)}<br>الطلب: ${statusLabel(o.status)}</div></div><p>العميل: ${esc(o.users?.name||'')} - ${esc(o.users?.phone||'')}</p><p>العنوان: ${esc([o.governorate,o.district,o.area,o.address].filter(Boolean).join(' - '))}</p><table><thead><tr><th>المنتج</th><th>المورد</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${lines}</tbody></table><h2>الشحن: ${fmt(o.shipping_fee)}</h2><h2>الإجمالي النهائي: ${fmt(o.total)}</h2></body></html>`;
-}
-function printOrder(o){ const w=window.open('', '_blank'); if(!w){toast('اسمح بفتح النافذة للطباعة.'); return;} w.document.write(invoiceHTML(o)); w.document.close(); w.focus(); setTimeout(()=>w.print(), 300); }
-function timeline(status){ const steps=[['new','جديد'],['accepted','مقبول'],['preparing','تجهيز'],['out_for_delivery','توصيل'],['delivered','تسليم']]; const idx=steps.findIndex(x=>x[0]===status); if(status==='cancelled') return '<div class="timeline cancelled"><span>ملغي</span></div>'; return `<div class="timeline">${steps.map((s,i)=>`<span class="${i<=idx?'done':''}">${s[1]}</span>`).join('')}</div>`; }
-
-function phoneLink(n){ return `tel:${String(n).replace(/\s+/g,'')}`; }
-function whatsappLink(n){ return `https://wa.me/${String(n).replace(/\D/g,'')}`; }
-
-async function home(){
-  const ready = DB.ready;
-  let summary = {vendors:[],products:[],orders:[]};
-  try{ if(ready) summary = await DB.adminSummary(); }catch{}
-  const totalOrders = summary.orders?.reduce((s,o)=>s+Number(o.total||0),0)||0;
-  const deliveredOrders = summary.orders?.filter(o=>o.status==='delivered').length||0;
-  app.innerHTML = `
-    <section class="hero">
-      <div class="heroPanel">
-        <span class="eyebrow">منصة تجارة وتوريد بتشغيل منظم</span>
-        <h1>رحلة شراء وتوريد راقية من أول اختيار المورد حتى إقفال الحسابات</h1>
-        <p>واجهة موحدة لإدارة السوق، الموردين، مناطق التوصيل، الطلبات، السداد، والعمولات مع منع الأخطاء قبل إرسال الطلب.</p>
-        <div class="actions">
-          <a class="btn" href="/market">استعراض المنتجات</a>
-          <a class="btn secondary" href="/register/vendor">تسجيل مورد</a>
-          <a class="btn light" href="/support">الدعم</a>
-        </div>
-      </div>
-      <div class="heroSide card dashboardPreview">
-        <div class="previewTop"><div><span>مركز التشغيل</span><b>Tager</b></div><span class="pill ok">جاهز للإدارة</span></div>
-        <div class="previewMini">
-          <div><span>قيمة الطلبات</span><strong>${fmt(totalOrders)}</strong></div>
-          <div><span>طلبات تم تسليمها</span><strong>${deliveredOrders.toLocaleString('ar-EG')}</strong></div>
-          <div><span>موردون معتمدون</span><strong>${summary.vendors?.filter(v=>v.status==='approved').length||0}</strong></div>
-          <div><span>منتجات متاحة</span><strong>${summary.products?.filter(p=>p.status==='approved').length||0}</strong></div>
-        </div>
-        <div class="processLine">
-          <div><i>1</i><p><b>اختيار عنوان العميل</b><br><span class="muted">المحافظة والمركز والقسم قبل الطلب.</span></p></div>
-          <div><i>2</i><p><b>فحص تغطية المورد</b><br><span class="muted">لا يتم الإرسال إذا كانت المنطقة غير مغطاة.</span></p></div>
-          <div><i>3</i><p><b>تسليم ثم حساب العمولة</b><br><span class="muted">المستحقات تظهر بعد التوصيل فقط.</span></p></div>
-        </div>
-      </div>
-    </section>
-    <section class="statGrid">
-      <div class="stat"><b>${summary.vendors?.filter(v=>v.status==='approved').length||0}</b><span>مورد معتمد</span></div>
-      <div class="stat"><b>${summary.products?.filter(p=>p.status==='approved').length||0}</b><span>منتج متاح</span></div>
-      <div class="stat"><b>${summary.orders?.length||0}</b><span>طلب مسجل</span></div>
-      <div class="stat"><b>${fmt(totalOrders)}</b><span>قيمة الطلبات</span></div>
-    </section>
-    <section class="sectionTitle"><div><h2>نظام متكامل لكل طرف</h2><p>صفحات منظمة وسهلة القراءة للعميل والمورد والإدارة.</p></div></section>
-    <div class="grid three">
-      <div class="card featureCard"><h3>صفحات منتجات واضحة</h3><p class="muted">صور وأسعار تفصيلية، كميات الجملة، المورد، ومناطق التوصيل قبل الشراء.</p></div>
-      <div class="card featureCard"><h3>توصيل مضبوط</h3><p class="muted">كل مورد يحدد مناطق التغطية، والعميل لا يستطيع إرسال طلب غير قابل للتوصيل.</p></div>
-      <div class="card featureCard"><h3>مالية دقيقة</h3><p class="muted">إجمالي الطلبات، المنفذ، المسدد، الملغي، عمولة المنصة، والمتبقي.</p></div>
-      <div class="card featureCard"><h3>لوحة مورد</h3><p class="muted">إدارة المنتجات والمخزون ومناطق التوصيل ودفعات العمولة.</p></div>
-      <div class="card featureCard"><h3>لوحة إدارة</h3><p class="muted">اعتماد الموردين والمنتجات ومتابعة الطلبات والتوصيلات والدعم.</p></div>
-      <div class="card featureCard"><h3>تقارير قابلة للتصدير</h3><p class="muted">تصدير بيانات الموردين والطلبات والتوصيلات والحسابات بصيغة CSV.</p></div><div class="card featureCard"><h3>رقابة تشغيل يومية</h3><p class="muted">تنبيهات للطلبات المفتوحة والدفعات المعلقة والمخزون المنتهي.</p></div><div class="card featureCard"><h3>إقفال مالي أوضح</h3><p class="muted">متابعة المتبقي على الموردين والمدفوع المعتمد وتحت المراجعة.</p></div><div class="card featureCard"><h3>دعم موثق</h3><p class="muted">طلبات الدعم تظهر للإدارة مع الحالة والملاحظات.</p></div>
-    </div>`;
+function setup(){
+  if(admins().length && !isAdmin()) return go('/login');
+  page('إعداد المنصة', `<div class="grid-2"><div class="card form"><h3>إنشاء أول حساب إدارة</h3>${admins().length?notice('يوجد حساب إدارة بالفعل. يمكن تعديل الإعدادات من لوحة الإدارة.','warn'):`<form id="setupForm" class="form">${input('name','اسم المدير','','','required')}${input('phone','رقم الهاتف','tel','','required')}${input('email','البريد الإلكتروني','email','','')}${input('password','كلمة المرور','password','','required minlength="6"')}<button class="btn">إنشاء الإدارة</button></form><div id="out"></div>`}</div><div class="card"><h3>خطوات التشغيل الصحيحة</h3><div class="steps"><div class="step"><b>1</b><div><strong>إنشاء المدير</strong><p>لا توجد حسابات جاهزة داخل النسخة.</p></div></div><div class="step"><b>2</b><div><strong>فتح تسجيل الموردين</strong><p>المورد يسجل ثم الإدارة تعتمد الحساب والمنتجات.</p></div></div><div class="step"><b>3</b><div><strong>تشغيل الطلبات</strong><p>الطلب لا يتم إلا إذا كانت منطقة التوصيل مغطاة.</p></div></div></div></div></div>`);
+  const form = qs('#setupForm');
+  if(form) form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(form));
+    if(state.users.some(u=>u.phone===f.phone)) return qs('#out').innerHTML = notice('رقم الهاتف مستخدم بالفعل.','error');
+    const u = {id:id(), role:'admin', status:'approved', name:f.name.trim(), phone:f.phone.trim(), email:f.email.trim(), password:f.password, permissions:{all:true}, created_at:now()};
+    state.users.push(u); saveState(); setSession(u); log('create_admin','users',u.id,{name:u.name}); go('/admin');
+  });
 }
 
-async function setup(){
-  app.innerHTML = `<div class="authShell"><section class="card"><h2>إنشاء حساب الإدارة الأول</h2><p class="muted">ابدأ بتسجيل المدير المسؤول عن اعتماد الموردين والمنتجات ومتابعة المالية.</p><form id="setupForm" class="form"><div class="field"><label>اسم المدير</label><input name="name" required></div><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>البريد</label><input name="email" type="email"></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" minlength="8" required></div><button class="btn">إنشاء حساب الإدارة</button></form></section><aside class="authAside"><h2>تشغيل منظم من البداية</h2><p>بعد إنشاء الحساب يمكنك اعتماد الموردين، مراجعة المنتجات، متابعة الطلبات، ضبط التوصيل، ومراجعة الحسابات من لوحة واحدة.</p><div class="luxDivider"></div><div class="badgeList"><span class="pill ok">اعتماد المورد</span><span class="pill ok">اعتماد المنتج</span><span class="pill ok">إغلاق مالي</span></div></aside></div>`;
-  $('#setupForm').addEventListener('submit', async e=>{e.preventDefault(); try{ await DB.createAdmin(formData(e.target)); toast('تم إنشاء حساب الإدارة.'); go('/admin'); }catch(err){toast(err.message);} });
+function login(){
+  page('تسجيل الدخول', `<div class="grid-2"><form class="card form" id="loginForm"><h3>الدخول إلى حسابك</h3>${input('phone','رقم الهاتف','tel','','required')}${input('password','كلمة المرور','password','','required')}<button class="btn">دخول</button><div id="out"></div></form><div class="card"><h3>ليس لديك حساب؟</h3><p class="muted">اختر نوع الحساب المطلوب. حساب المورد يحتاج اعتماد الإدارة قبل الظهور في السوق.</p><div class="action-row"><a class="btn3" href="/register/customer">تسجيل عميل</a><a class="btn2" href="/register/vendor">تسجيل مورد</a>${admins().length?'':'<a class="btn" href="/setup">إنشاء الإدارة</a>'}</div></div></div>`);
+  qs('#loginForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f=Object.fromEntries(new FormData(e.target));
+    const u = state.users.find(x=>x.phone===f.phone.trim() && x.password===f.password);
+    if(!u) return qs('#out').innerHTML = notice('رقم الهاتف أو كلمة المرور غير صحيحة.','error');
+    if(u.status!=='approved') return qs('#out').innerHTML = notice('الحساب غير معتمد أو موقوف. تواصل مع الإدارة.','error');
+    setSession(u); log('login','users',u.id); go(u.role==='admin'||u.role==='staff'?'/admin':u.role==='vendor'?'/vendor':'/customer');
+  });
 }
 
-function loginPage(){
-  app.innerHTML = `<div class="authShell"><section class="card"><h2>تسجيل الدخول</h2><p class="muted">ادخل برقم الهاتف وكلمة المرور للوصول إلى حسابك. لو أول تشغيل للمنصة افتح إعداد الإدارة أولاً.</p><div class="actions" style="margin-bottom:12px"><a class="btn secondary small" href="/setup">إعداد الإدارة لأول مرة</a></div><form id="loginForm" class="form"><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" required></div><button class="btn">دخول</button></form></section><aside class="authAside"><h2>حساب جديد</h2><p>اختر نوع الحساب المناسب لبدء الشراء أو الانضمام كمورد.</p><div class="actions"><a class="btn secondary" href="/register/customer">تسجيل عميل</a><a class="btn secondary" href="/register/vendor">تسجيل مورد</a></div></aside></div>`;
-  $('#loginForm').addEventListener('submit', async e=>{e.preventDefault(); try{ const u=await DB.login(e.target.phone.value,e.target.password.value); toast('تم الدخول.'); go(u.role==='admin'||u.role==='staff'?'/admin':u.role==='vendor'?'/vendor':'/customer'); }catch(err){toast(err.message);} });
+function register(type){
+  const vendor = type==='vendor';
+  const title = vendor ? 'تسجيل مورد جديد' : 'تسجيل عميل جديد';
+  page(title, `<form class="card form" id="regForm"><div class="row">${input('name',vendor?'اسم المسؤول':'اسم العميل','text','','required')}${vendor?input('store_name','اسم الشركة / المتجر','text','','required'):''}${input('phone','رقم الهاتف','tel','','required')}${input('email','البريد الإلكتروني','email','','')}</div><div class="row">${input('password','كلمة المرور','password','','required minlength="6"')}<div class="field"><label>المحافظة</label><select name="governorate">${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district"></select></div>${input('area','القسم / الحي','text','','')}</div>${input('address','العنوان التفصيلي','text','','')}${vendor?`<div class="row">${input('commercial_register','السجل التجاري','text','','')}${input('tax_number','الرقم الضريبي','text','','')}${input('min_order','أقل قيمة طلب','number','0','min="0"')}</div>${textarea('description','وصف المورد / النشاط','','')}`:''}<button class="btn">${vendor?'إرسال طلب الانضمام':'إنشاء حساب العميل'}</button><div id="out"></div></form>`, vendor?'بعد التسجيل سيظهر الطلب داخل لوحة الإدارة للاعتماد.':'يمكن للعميل تسجيل الدخول مباشرة بعد إنشاء الحساب.');
+  bindGov(qs('#regForm'));
+  qs('#regForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f=Object.fromEntries(new FormData(e.target));
+    if(state.users.some(u=>u.phone===f.phone.trim())) return qs('#out').innerHTML=notice('رقم الهاتف مسجل بالفعل.','error');
+    const u = {id:id(), role:vendor?'vendor':'customer', status:vendor?'pending':'approved', name:f.name.trim(), phone:f.phone.trim(), email:f.email.trim(), password:f.password, governorate:f.governorate, district:f.district, area:f.area.trim(), address:f.address.trim(), created_at:now()};
+    state.users.push(u);
+    if(vendor){
+      state.vendors.push({user_id:u.id, store_name:f.store_name.trim(), commercial_register:f.commercial_register.trim(), tax_number:f.tax_number.trim(), description:f.description.trim(), min_order:num(f.min_order), commission_percent:num(state.settings.defaultCommissionPercent), logo_url:'', cover_url:'', governorate:f.governorate, district:f.district, area:f.area.trim(), bank_name:'', iban:'', wallet_number:'', created_at:now()});
+      log('vendor_register','vendors',u.id,{store_name:f.store_name});
+      qs('#out').innerHTML = notice('تم إرسال طلب المورد للإدارة. لن يظهر المورد للعامة قبل الاعتماد.','ok');
+    } else {
+      state.customer_addresses.push({id:id(), customer_id:u.id, label:'العنوان الرئيسي', governorate:f.governorate, district:f.district, area:f.area.trim()||'كل المناطق', address:f.address.trim(), is_default:true, created_at:now()});
+      log('customer_register','users',u.id,{name:u.name});
+      qs('#out').innerHTML = notice('تم إنشاء حساب العميل. يمكنك تسجيل الدخول الآن.','ok');
+    }
+    saveState(); e.target.reset(); bindGov(e.target);
+  });
 }
 
-function customerRegister(){
-  app.innerHTML = `<section class="pageHero"><h2>تسجيل عميل</h2><p>حدد عنوانك بدقة حتى تظهر لك المنتجات والموردون القادرون على التوصيل لمنطقتك.</p></section><section class="card"><form id="customerForm" class="form"><div class="grid two"><div class="field"><label>الاسم</label><input name="name" required></div><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>البريد</label><input name="email" type="email"></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" minlength="8" required></div><div class="field"><label>المحافظة</label><select name="governorate" data-gov>${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district" data-district></select></div><div class="field"><label>القسم / الحي</label><select name="area" data-area></select></div><div class="field"><label>العنوان التفصيلي</label><input name="address" required></div></div><button class="btn">إنشاء حساب العميل</button></form></section>`;
-  bindAddressSelectors();
-  $('#customerForm').addEventListener('submit', async e=>{e.preventDefault(); try{ await DB.registerCustomer(formData(e.target)); toast('تم إنشاء حساب العميل.'); go('/customer'); }catch(err){toast(err.message);} });
-}
-
-function vendorRegister(){
-  app.innerHTML = `<section class="pageHero"><h2>تسجيل مورد</h2><p>سجل بيانات المتجر ومناطق التغطية ونسب التشغيل ليتم مراجعة الطلب من الإدارة.</p></section><section class="card"><form id="vendorForm" class="form"><div class="grid two"><div class="field"><label>اسم المسؤول</label><input name="owner_name" required></div><div class="field"><label>اسم المتجر</label><input name="store_name" required></div><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>البريد</label><input name="email" type="email"></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" minlength="8" required></div><div class="field"><label>السجل التجاري</label><input name="commercial_register"></div><div class="field"><label>الرقم الضريبي</label><input name="tax_number"></div><div class="field"><label>الحد الأدنى للطلب</label><input name="min_order" type="number" value="0"></div><div class="field"><label>عمولة المنصة %</label><input name="commission_percent" type="number" step="0.1" value="1.5"></div><div class="field"><label>رسوم السلة المميزة %</label><input name="premium_cart_percent" type="number" step="0.1" value="1.5"></div><div class="field"><label>المحافظة</label><select name="governorate" data-gov>${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district" data-district></select></div><div class="field"><label>القسم / الحي</label><select name="area" data-area></select></div><div class="field"><label>العنوان</label><input name="address"></div></div><div class="field"><label>نبذة عن المورد</label><textarea name="description"></textarea></div><button class="btn">إرسال طلب الانضمام</button></form></section>`;
-  bindAddressSelectors();
-  $('#vendorForm').addEventListener('submit', async e=>{e.preventDefault(); try{ await DB.registerVendor(formData(e.target)); toast('تم إرسال طلب المورد للإدارة.'); go('/login'); }catch(err){toast(err.message);} });
-}
-
-async function market(){
-  let products=[]; try{products=await DB.products('approved')}catch(err){toast(err.message)}
-  const vendors = [...new Set(products.map(p=>p.vendors?.store_name).filter(Boolean))];
-  app.innerHTML = `<section class="sectionTitle"><div><h2>السوق</h2><p>تصفح المنتجات حسب المورد والمنطقة ونوع السعر.</p></div></section><section class="card"><div class="grid four"><div class="field"><label>بحث</label><input id="q" placeholder="اسم المنتج أو المورد"></div><div class="field"><label>المحافظة</label><select id="fg"><option value="">كل المحافظات</option>${govOptions()}</select></div><div class="field"><label>المركز</label><select id="fd"><option value="">كل المراكز</option></select></div><div class="field"><label>نوع السعر</label><select id="tier"><option value="retail">قطاعي</option><option value="wholesale">جملة</option><option value="bulk">جملة الجملة</option></select></div></div></section><div id="productGrid" class="grid three" style="margin-top:16px"></div>`;
-  $('#fg').addEventListener('change',()=>{$('#fd').innerHTML='<option value="">كل المراكز</option>'+districtOptions($('#fg').value); draw();});
-  ['q','fd','tier'].forEach(id=>$('#'+id).addEventListener('input',draw));
-  function draw(){
-    const q=$('#q').value.trim(); const g=$('#fg').value; const d=$('#fd').value; const tier=$('#tier').value;
-    const filtered=products.filter(p=>{
-      const okQ=!q || `${p.name_ar} ${p.name_en||''} ${p.vendors?.store_name||''}`.includes(q);
-      const zones=p.vendors?.delivery_zones||[]; const okG=!g || zones.some(z=>z.governorate===g && (!d || z.district===d));
-      return okQ && okG;
+function productsPage(){
+  const url = new URL(location.href);
+  const query = url.searchParams.get('q') || '';
+  const priceType = url.searchParams.get('price') || 'wholesale_price';
+  const products = approvedProducts();
+  const categories = ['كل الفئات', ...new Set([...state.settings.categories, ...products.map(p=>p.category).filter(Boolean)])];
+  page('المنتجات', `<div class="card form"><div class="row"><div class="field"><label>بحث</label><input id="searchBox" value="${esc(query)}" placeholder="اسم المنتج أو المورد أو الفئة"></div><div class="field"><label>الفئة</label><select id="catFilter">${categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div><div class="field"><label>نوع السعر</label><select id="priceType"><option value="retail_price" ${priceType==='retail_price'?'selected':''}>قطاعي</option><option value="wholesale_price" ${priceType==='wholesale_price'?'selected':''}>جملة</option><option value="super_wholesale_price" ${priceType==='super_wholesale_price'?'selected':''}>جملة الجملة</option></select></div></div></div><div id="productsGrid" class="grid"></div>`, 'المنتجات لا تظهر هنا إلا بعد اعتماد الإدارة واعتماد المورد.');
+  const render = () => {
+    const q = qs('#searchBox').value.trim().toLowerCase();
+    const cat = qs('#catFilter').value;
+    const pt = qs('#priceType').value;
+    let list = products.filter(p=>{
+      const v=getVendor(p.vendor_id); const u=getUser(p.vendor_id);
+      const hay = `${p.name_ar} ${p.category||''} ${p.brand||''} ${v?.store_name||''} ${u?.name||''}`.toLowerCase();
+      return (!q || hay.includes(q)) && (cat==='كل الفئات' || p.category===cat);
     });
-    $('#productGrid').innerHTML = filtered.length ? filtered.map(p=>productCard(p,tier)).join('') : `<div class="empty">لا توجد منتجات مطابقة.</div>`;
-    document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(p=>p.id===b.dataset.add)));
-  } draw();
+    qs('#productsGrid').innerHTML = list.length ? list.map(p=>{
+      const v=getVendor(p.vendor_id)||{};
+      return `<div class="card product-card">${productImage(p)}<div class="product-body"><h3>${esc(p.name_ar)}</h3><p class="muted">${esc(p.category||'بدون فئة')} — ${esc(v.store_name||'مورد')}</p><div class="price">${money(productPrice(p,pt))}</div><p class="small"><b>المخزون:</b> ${esc(p.stock)} | <b>الوحدة:</b> ${esc(p.unit||'قطعة')}</p><div class="action-row"><button class="btn" onclick="addToCart('${esc(p.id)}','${esc(pt)}')">إضافة للسلة</button><button class="btn3" onclick="go('/vendor-page/${esc(p.vendor_id)}')">المورد</button></div></div></div>`;
+    }).join('') : `<div class="empty">لا توجد منتجات منشورة حالياً.<br>بعد تسجيل المورد واعتماد المنتجات ستظهر هنا مباشرة.<div style="margin-top:14px"><a class="btn2" href="/register/vendor">تسجيل مورد</a></div></div>`;
+  };
+  ['searchBox','catFilter','priceType'].forEach(id=>qs('#'+id).addEventListener('input',render));
+  ['catFilter','priceType'].forEach(id=>qs('#'+id).addEventListener('change',render));
+  render();
 }
 
-async function vendorsPage(){
-  let vs=[]; try{vs=await DB.vendors('approved')}catch(err){toast(err.message)}
-  app.innerHTML = `<section class="sectionTitle"><div><h2>الموردون</h2><p>قائمة الموردين المعتمدين ومناطق التغطية وصفحة مستقلة لكل مورد.</p></div></section><div class="grid three">${vs.length?vs.map(v=>`<article class="card vendorPro"><div class="vendorCover">${vendorLogo(v)}</div><h3>${esc(v.store_name)}</h3><p class="muted">${esc(v.description||'')}</p><div class="badgeList">${zoneChips(v.delivery_zones,6)}</div><p>الحد الأدنى: <b>${fmt(v.min_order)}</b></p><a class="btn secondary" href="/vendor-public/${esc(v.id)}">عرض صفحة المورد</a></article>`).join(''):'<div class="empty">لا يوجد موردون معتمدون حالياً.</div>'}</div>`;
+function addToCart(productId, priceType='wholesale_price'){
+  const p = state.products.find(x=>x.id===productId);
+  if(!p || p.status!=='approved') return alert('المنتج غير متاح حالياً.');
+  const price = productPrice(p, priceType);
+  const ex = cart.find(i=>i.product_id===productId && i.price_type===priceType);
+  if(ex) ex.qty += 1;
+  else cart.push({product_id:productId, vendor_id:p.vendor_id, name:p.name_ar, price_type:priceType, unit_price:price, qty:1});
+  saveCart(); alert('تمت الإضافة للسلة.');
 }
-
-
-async function productPage(id){
-  let products=[]; try{products=await DB.products('approved')}catch(err){toast(err.message)}
-  const p = products.find(x=>String(x.id)===String(id));
-  if(!p){ app.innerHTML=`<div class="empty">المنتج غير موجود أو لم يتم اعتماده. <br><a class="btn secondary" href="/market">رجوع للمنتجات</a></div>`; return; }
-  const v=p.vendors||{}; const zones=v.delivery_zones||[];
-  app.innerHTML = `<section class="productDetail">
-    <div class="productMedia card">
-      <div class="mainProductImg" id="mainProductImg">${productImage(p)}</div>
-      <div class="thumbs">${productGallery(p)}</div>
-    </div>
-    <div class="card productInfo">
-      <span class="eyebrow">${esc(p.category||'منتج')}</span>
-      <h2>${esc(p.name_ar)}</h2>
-      <p class="muted">${esc(p.description||'وصف المنتج وتفاصيله تظهر هنا عند إضافتها من المورد.')}</p>
-      <div class="priceMatrix">
-        <div><span>قطاعي</span><strong>${fmt(p.retail_price)}</strong><small>من 1 ${esc(p.unit||'')}</small></div>
-        <div><span>جملة</span><strong>${fmt(p.wholesale_price)}</strong><small>من ${Number(p.wholesale_min_qty||1).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
-        <div><span>جملة الجملة</span><strong>${fmt(p.bulk_price)}</strong><small>من ${Number(p.bulk_min_qty||1).toLocaleString('ar-EG')} ${esc(p.unit||'')}</small></div>
-      </div>
-      <div class="productFacts"><span>المورد: <b>${esc(v.store_name||'-')}</b></span><span>المخزون: <b>${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit||'')}</b></span><span>كود المنتج: <b>${esc(p.sku||short(p.id))}</b></span></div>
-      <form id="addProductForm" class="addBox"><div class="field"><label>نوع السعر</label><select name="tier"><option value="retail">قطاعي</option><option value="wholesale">جملة</option><option value="bulk">جملة الجملة</option></select></div><div class="field"><label>الكمية</label><input name="qty" type="number" min="1" value="1"></div><button class="btn" ${Number(p.stock_qty||0)<=0?'disabled':''}>إضافة للسلة</button></form>
-      <div class="coverageBlock"><h3>مناطق توصيل المورد</h3><div class="badgeList">${zoneChips(zones,14)}</div></div>
-    </div>
-  </section>
-  <section class="sectionTitle"><div><h2>منتجات أخرى من نفس المورد</h2><p>تقدر تضيف أكثر من منتج من نفس المورد قبل إتمام الطلب.</p></div></section>
-  <div class="grid three">${products.filter(x=>x.vendor_id===p.vendor_id && x.id!==p.id).slice(0,6).map(x=>productCard(x,'retail')).join('') || '<div class="empty">لا توجد منتجات أخرى حالياً.</div>'}</div>`;
-  document.querySelectorAll('.thumb').forEach(b=>b.onclick=()=>{$('#mainProductImg').innerHTML=`<img src="${esc(b.dataset.img)}" onerror="this.src='/assets/product-default.svg'" alt="${esc(p.name_ar)}">`;});
-  $('#addProductForm')?.addEventListener('submit', e=>{e.preventDefault(); const d=formData(e.target); addCartCustom(p, d.qty, d.tier);});
-  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(x=>x.id===b.dataset.add)));
-}
-
-async function vendorPublicPage(id){
-  let vs=[], products=[]; try{[vs,products]=await Promise.all([DB.vendors('approved'),DB.products('approved')]);}catch(err){toast(err.message)}
-  const v=vs.find(x=>String(x.id)===String(id));
-  if(!v){ app.innerHTML=`<div class="empty">المورد غير موجود أو لم يتم اعتماده. <br><a class="btn secondary" href="/vendors">رجوع للموردين</a></div>`; return; }
-  const items=products.filter(p=>p.vendor_id===v.id);
-  app.innerHTML = `<section class="vendorHero card"><div class="vendorHeroImg">${vendorLogo(v)}</div><div><span class="eyebrow">مورد معتمد</span><h2>${esc(v.store_name)}</h2><p class="muted">${esc(v.description||'صفحة المورد تعرض المنتجات ومناطق التغطية والحد الأدنى للطلب.')}</p><div class="kpis"><div><b>${items.length}</b><span>منتج معتمد</span></div><div><b>${fmt(v.min_order)}</b><span>حد أدنى للطلب</span></div><div><b>${(v.delivery_zones||[]).length}</b><span>منطقة تغطية</span></div></div></div></section>
-  <section class="card" style="margin-top:16px"><h3>مناطق التوصيل</h3><div class="badgeList">${zoneChips(v.delivery_zones,24)}</div></section>
-  <section class="sectionTitle"><div><h2>منتجات المورد</h2><p>كل المنتجات المعتمدة لهذا المورد.</p></div></section><div class="grid three">${items.length?items.map(p=>productCard(p,'retail')).join(''):'<div class="empty">لا توجد منتجات معتمدة لهذا المورد حالياً.</div>'}</div>`;
-  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(x=>x.id===b.dataset.add)));
-}
+function removeCart(k){ cart.splice(k,1); saveCart(); cartPage(); }
+function setCartQty(k,val){ cart[k].qty = Math.max(1, num(val)); saveCart(); cartPage(); }
 
 function cartPage(){
-  const cart=getCart(); const user=DB.session();
-  app.innerHTML = `<section class="sectionTitle"><div><h2>السلة</h2><p>مراجعة العنوان والتوصيل قبل تسجيل الطلب حتى لا يخطئ العميل في اختيار مورد خارج التغطية.</p></div></section><section class="card"><div id="cartList"></div><hr><form id="orderForm" class="form"><div class="grid two"><div class="field"><label>نوع السلة</label><select name="cart_type" id="cartType"><option value="standard">سلة عادية</option><option value="premium">سلة مميزة</option></select></div><div class="field"><label>طريقة الدفع</label><select name="payment_method"><option value="cash">دفع عند الاستلام</option><option value="transfer">تحويل بنكي</option><option value="wallet">محفظة</option></select></div><div class="field"><label>المحافظة</label><select name="governorate" data-gov>${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district" data-district></select></div><div class="field"><label>القسم / الحي</label><select name="area" data-area></select></div><div class="field"><label>العنوان التفصيلي</label><input name="address" value="${esc(user?.address||'')}" required></div></div><div id="coverageCheck"></div><button class="btn" id="placeOrderBtn">إتمام الطلب</button></form></section>`;
-  bindAddressSelectors();
-  const g=$('[data-gov]'); if(user?.governorate && GOV[user.governorate]){g.value=user.governorate; g.dispatchEvent(new Event('change')); if(user.district){$('[data-district]').value=user.district; $('[data-district]').dispatchEvent(new Event('change'));} if(user.area)$('[data-area]').value=user.area;}
-  function currentAddress(){return {governorate:$('[data-gov]').value,district:$('[data-district]').value,area:$('[data-area]').value,address:$('[name="address"]').value};}
-  function draw(){
-    const c=getCart();
-    $('#cartList').innerHTML = c.length ? c.map((x,i)=>`<div class="cartItem"><strong>${esc(x.product.name_ar)}</strong><input type="number" min="1" value="${x.qty}" data-qty="${i}"><select data-tier="${i}"><option value="retail" ${x.tier==='retail'?'selected':''}>قطاعي</option><option value="wholesale" ${x.tier==='wholesale'?'selected':''}>جملة</option><option value="bulk" ${x.tier==='bulk'?'selected':''}>جملة الجملة</option></select><b>${fmt(DB.priceFor(x,x.qty,x.tier)*x.qty)}</b><button class="btn small danger" data-del="${i}">حذف</button></div>`).join('') : '<div class="empty">السلة فارغة.</div>';
-    const analysis = cartAnalysis(c, currentAddress(), $('#cartType').value);
-    $('#coverageCheck').innerHTML = cartAnalysisHTML(analysis);
-    $('#placeOrderBtn').disabled = !analysis.valid;
-    document.querySelectorAll('[data-qty]').forEach(el=>el.onchange=()=>{const c=getCart(); c[el.dataset.qty].qty=Number(el.value); setCart(c); draw();});
-    document.querySelectorAll('[data-tier]').forEach(el=>el.onchange=()=>{const c=getCart(); c[el.dataset.tier].tier=el.value; setCart(c); draw();});
-    document.querySelectorAll('[data-del]').forEach(el=>el.onclick=()=>{const c=getCart(); c.splice(el.dataset.del,1); setCart(c); draw();});
-  }
-  document.querySelectorAll('[data-gov],[data-district],[data-area],[name="address"],#cartType').forEach(el=>el.addEventListener('change',draw));
-  document.querySelector('[name="address"]')?.addEventListener('input',draw);
-  draw();
-  $('#orderForm').addEventListener('submit', async e=>{e.preventDefault(); try{ const d=formData(e.target); const analysis=cartAnalysis(getCart(), d, d.cart_type); if(!analysis.valid){toast('راجع تغطية التوصيل قبل إتمام الطلب.'); return;} await DB.createOrder(getCart(), d, d.cart_type, d.payment_method); setCart([]); toast('تم تسجيل الطلب بنجاح.'); go('/customer'); }catch(err){toast(err.message);} });
-}
-
-async function customerPage(){
-  const u=requireUser('customer'); if(!u)return;
-  let orders=[]; try{orders=await DB.myOrders()}catch(err){toast(err.message)}
-  const total=orders.reduce((s,o)=>s+Number(o.total||0),0);
-  const delivered=orders.filter(o=>o.status==='delivered');
-  const cancelled=orders.filter(o=>o.status==='cancelled');
-  const paidTotal=paymentValue(orders);
-  const active=orders.filter(o=>!['delivered','cancelled'].includes(o.status));
-  app.innerHTML = `<section class="sectionTitle"><div><h2>حساب العميل</h2><p>${esc(u.name)} - ${esc(u.phone)}</p></div><a class="btn secondary" href="/market">متابعة التسوق</a></section>
-  <div class="grid two">
-    <div class="card"><h3>العنوان المسجل</h3><p>${esc([u.governorate,u.district,u.area,u.address].filter(Boolean).join(' - '))}</p><p class="muted">يتم التحقق من هذا العنوان عند إتمام الطلب حتى لا يتم اختيار مورد خارج نطاق التغطية.</p></div>
-    <div class="card"><h3>ملخص حساب العميل</h3><p class="muted">إجمالي الطلبات وقيمتها وحالات السداد تظهر هنا بشكل مباشر.</p></div>
-  </div>
-  ${financialCards([
-    {label:'إجمالي الطلبات', value:orders.length.toLocaleString('ar-EG'), note:fmt(total)},
-    {label:'طلبات منفذة', value:delivered.length.toLocaleString('ar-EG'), note:fmt(orderValue(orders,o=>o.status==='delivered')), kind:'ok'},
-    {label:'طلبات مسددة', value:orders.filter(o=>o.payment_status==='paid').length.toLocaleString('ar-EG'), note:fmt(paidTotal), kind:'ok'},
-    {label:'طلبات ملغية', value:cancelled.length.toLocaleString('ar-EG'), note:fmt(orderValue(orders,o=>o.status==='cancelled')), kind:'bad'},
-    {label:'طلبات جارية', value:active.length.toLocaleString('ar-EG'), note:fmt(orderValue(active,()=>true)), kind:'warn'},
-    {label:'المتبقي على العميل', value:fmt(Math.max(total-paidTotal,0)), note:'بعد خصم المسدد'}
-  ])}
-  <section class="sectionTitle"><h2>قائمة الطلبات</h2></section>
-  <div class="tableWrap"><table><thead><tr><th>رقم</th><th>القيمة</th><th>حالة الطلب</th><th>السداد</th><th>المسدد</th><th>التوصيل</th><th>العنوان</th><th>تاريخ</th></tr></thead><tbody>${orders.map(o=>`<tr><td>${short(o.id)}</td><td>${fmt(o.total)}</td><td>${statusPill(o.status)}${timeline(o.status)}</td><td>${statusPill(o.payment_status||'unpaid')}</td><td>${fmt(o.paid_amount || (o.payment_status==='paid'?o.total:0))}</td><td>${(o.deliveries||[]).map(d=>statusPill(d.status)).join(' ')||'-'}</td><td>${esc(o.governorate)} - ${esc(o.district)} - ${esc(o.area)}</td><td>${new Date(o.created_at).toLocaleDateString('ar-EG')}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد طلبات.</td></tr>'}</tbody></table></div>`;
-}
-
-async function vendorPage(){
-  const u=requireUser('vendor'); if(!u)return; let vendor=null; try{vendor=await DB.vendorByUser(u.id)}catch(err){toast(err.message)}
-  if(!vendor){app.innerHTML='<div class="empty">لم يتم العثور على حساب المورد.</div>';return;}
-  let products=[], orders=[], fin={sales:0,deliveredSales:0,paidSales:0,cancelledSales:0,commission:0,net:0,paid:0,pending:0,remaining:0,payments:[],orderStats:{total:0,delivered:0,paid:0,cancelled:0,active:0}};
-  try{products=(await DB.products()).filter(p=>p.vendor_id===vendor.id); orders=await DB.vendorOrders(vendor.id); fin=await DB.vendorFinancial(vendor.id);}catch(err){toast(err.message)}
-  app.innerHTML = `<section class="sectionTitle"><div><h2>لوحة المورد</h2><p>${esc(vendor.store_name)} ${statusPill(vendor.status)}</p></div></section><div class="tabs"><button class="tab active" data-tab="summary">الملخص</button><button class="tab" data-tab="zones">التوصيل</button><button class="tab" data-tab="products">المنتجات</button><button class="tab" data-tab="orders">الطلبات</button><button class="tab" data-tab="finance">المالية</button></div><div id="vendorContent"></div>`;
-  const setTab=(name)=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name)); const c=$('#vendorContent');
-    if(name==='summary') c.innerHTML=`${financialCards([
-      {label:'الطلبات الإجمالية', value:(fin.orderStats.total||0).toLocaleString('ar-EG'), note:fmt(fin.sales)},
-      {label:'طلبات منفذة', value:(fin.orderStats.delivered||0).toLocaleString('ar-EG'), note:fmt(fin.deliveredSales), kind:'ok'},
-      {label:'طلبات مسددة', value:(fin.orderStats.paid||0).toLocaleString('ar-EG'), note:fmt(fin.paidSales), kind:'ok'},
-      {label:'طلبات ملغية', value:(fin.orderStats.cancelled||0).toLocaleString('ar-EG'), note:fmt(fin.cancelledSales), kind:'bad'},
-      {label:'عمولة مستحقة بعد التوصيل', value:fmt(fin.commission), note:'تحتسب على الطلبات المنفذة فقط', kind:'warn'},
-      {label:'متبقي على المورد', value:fmt(fin.remaining), note:'بعد خصم الدفعات المعتمدة'}
-    ])}<section class="card"><h3>بيانات المورد</h3><p>${esc(vendor.description||'')}</p><p>الحد الأدنى: <b>${fmt(vendor.min_order)}</b> — نسبة المنصة بعد التوصيل: <b>${vendor.commission_percent}%</b></p></section><section class="card"><h3>تنبيهات المخزون</h3><div class="badgeList">${products.filter(p=>Number(p.stock_qty||0)<=5).slice(0,8).map(p=>`<span class="pill warn">${esc(p.name_ar)}: ${Number(p.stock_qty||0).toLocaleString('ar-EG')}</span>`).join('')||'<span class="pill ok">لا توجد نواقص حرجة</span>'}</div></section>`;
-    if(name==='zones') { c.innerHTML=`<section class="card"><h3>مناطق التوصيل</h3><p class="muted">أضف المناطق بدقة حتى لا يستطيع العميل إتمام طلب خارج تغطيتك.</p><div id="zonesList" class="grid"></div><hr><form id="zoneForm" class="form"><div class="zoneRow"><div class="field"><label>المحافظة</label><select name="governorate" data-gov>${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district" data-district></select></div><div class="field"><label>القسم / الحي</label><select name="area" data-area></select></div><div class="field"><label>رسوم</label><input name="fee" type="number" value="0"></div><div class="field"><label>المدة</label><input name="duration" value="24-48 ساعة"></div><button class="btn">إضافة</button></div></form></section>`; bindAddressSelectors(c); const drawZ=()=>{$('#zonesList').innerHTML=(vendor.delivery_zones||[]).map((z,i)=>`<div class="card"><strong>${esc(z.governorate)} - ${esc(z.district)} - ${esc(z.area)}</strong><p class="muted">${fmt(z.fee)} - ${esc(z.duration)}</p><button class="btn small danger" data-rz="${i}">حذف</button></div>`).join('')||'<div class="empty">لم يتم تحديد مناطق بعد.</div>'; document.querySelectorAll('[data-rz]').forEach(b=>b.onclick=async()=>{vendor.delivery_zones.splice(Number(b.dataset.rz),1); vendor=await DB.updateVendor(vendor.id,{delivery_zones:vendor.delivery_zones}); drawZ();});}; drawZ(); $('#zoneForm').onsubmit=async e=>{e.preventDefault(); const d=formData(e.target); vendor.delivery_zones=[...(vendor.delivery_zones||[]),{governorate:d.governorate,district:d.district,area:d.area,fee:Number(d.fee||0),duration:d.duration}]; vendor=await DB.updateVendor(vendor.id,{delivery_zones:vendor.delivery_zones}); e.target.reset(); bindAddressSelectors(c); drawZ(); toast('تم حفظ منطقة التوصيل.');}; }
-    if(name==='products') { c.innerHTML=`<section class="card"><h3>إضافة منتج</h3><form id="productForm" class="form"><div class="grid three"><div class="field"><label>اسم المنتج</label><input name="name_ar" required></div><div class="field"><label>التصنيف</label><input name="category"></div><div class="field"><label>الوحدة</label><input name="unit" value="قطعة"></div><div class="field"><label>سعر قطاعي</label><input name="retail_price" type="number" required></div><div class="field"><label>سعر جملة</label><input name="wholesale_price" type="number"></div><div class="field"><label>سعر جملة الجملة</label><input name="bulk_price" type="number"></div><div class="field"><label>حد الجملة</label><input name="wholesale_min_qty" type="number" value="1"></div><div class="field"><label>حد جملة الجملة</label><input name="bulk_min_qty" type="number" value="1"></div><div class="field"><label>المخزون</label><input name="stock_qty" type="number" value="0"></div><div class="field"><label>رابط الصورة</label><input name="image_url" placeholder="https://..."><small class="hint">يفضل صورة واضحة للمنتج قبل اعتماد الإدارة.</small></div></div><div class="field"><label>الوصف</label><textarea name="description"></textarea></div><button class="btn">حفظ المنتج</button></form></section><section class="sectionTitle"><h2>منتجاتي</h2></section><div class="grid three">${products.map(p=>`<article class="card"><h3>${esc(p.name_ar)}</h3><p>${statusPill(p.status)}</p><p>${fmt(p.retail_price)} / ${esc(p.unit)}</p><p>المخزون: <b>${Number(p.stock_qty||0).toLocaleString('ar-EG')}</b></p></article>`).join('')||'<div class="empty">لا توجد منتجات.</div>'}</div>`; $('#productForm').onsubmit=async e=>{e.preventDefault(); const d=formData(e.target); await DB.saveProduct({vendor_id:vendor.id,status:'pending',name_ar:d.name_ar,category:d.category,unit:d.unit,retail_price:Number(d.retail_price||0),wholesale_price:Number(d.wholesale_price||d.retail_price||0),bulk_price:Number(d.bulk_price||d.wholesale_price||d.retail_price||0),wholesale_min_qty:Number(d.wholesale_min_qty||1),bulk_min_qty:Number(d.bulk_min_qty||1),stock_qty:Number(d.stock_qty||0),image_url:d.image_url,description:d.description}); toast('تم حفظ المنتج وينتظر اعتماد الإدارة.'); render();}; }
-    if(name==='orders') c.innerHTML=`<div class="tableWrap"><table><thead><tr><th>طلب</th><th>منتج</th><th>كمية</th><th>قيمة</th><th>حالة الطلب</th><th>السداد</th><th>عمولة بعد التوصيل</th></tr></thead><tbody>${orders.map(x=>`<tr><td>${short(x.order_id)}</td><td>${esc(x.products?.name_ar||'')}</td><td>${x.qty}</td><td>${fmt(x.subtotal)}</td><td>${statusPill(x.orders?.status)}</td><td>${statusPill(x.orders?.payment_status||'unpaid')}</td><td>${x.orders?.status==='delivered'?fmt(x.commission):'-'}</td></tr>`).join('')||'<tr><td colspan="7">لا توجد طلبات.</td></tr>'}</tbody></table></div>`;
-    if(name==='finance') c.innerHTML=`${financialCards([
-      {label:'مبيعات منفذة', value:fmt(fin.deliveredSales), note:'طلبات تم تسليمها', kind:'ok'},
-      {label:'نسبة المنصة بعد التوصيل', value:vendor.commission_percent+'%', note:fmt(fin.commission), kind:'warn'},
-      {label:'مدفوع ومعتمد', value:fmt(fin.paid), note:'دفعات مقبولة', kind:'ok'},
-      {label:'دفعات تحت المراجعة', value:fmt(fin.pending), note:'لا تخصم من المتبقي حتى الاعتماد', kind:'warn'},
-      {label:'المتبقي الإجمالي', value:fmt(fin.remaining), note:'المبلغ المطلوب سداده'},
-      {label:'صافي المورد بعد العمولة', value:fmt(fin.net), note:'على الطلبات المنفذة'}
-    ])}<section class="card"><h3>سداد المتبقي الإجمالي</h3><p class="muted">يمكن للمورد إرسال دفعة بقيمة المتبقي بالكامل أو إدخال مبلغ جزئي، ولا يتم خصمها إلا بعد اعتماد الإدارة.</p><form id="payForm" class="form"><div class="grid three"><div class="field"><label>المبلغ</label><input name="amount" type="number" step="0.01" min="0" max="${Math.max(fin.remaining,0)}" value="${Math.max(fin.remaining,0)}" required></div><div class="field"><label>طريقة الدفع</label><select name="method"><option>تحويل بنكي</option><option>محفظة</option><option>نقدي</option></select></div><div class="field"><label>رقم العملية</label><input name="reference"></div></div><div class="field"><label>ملاحظات</label><textarea name="notes"></textarea></div><button class="btn">إرسال الدفعة للإدارة</button></form></section><section class="sectionTitle"><h2>دفعات العمولة</h2></section><div class="tableWrap"><table><thead><tr><th>المبلغ</th><th>الطريقة</th><th>الحالة</th><th>رقم العملية</th><th>التاريخ</th></tr></thead><tbody>${fin.payments.map(p=>`<tr><td>${fmt(p.amount)}</td><td>${esc(p.method)}</td><td>${statusPill(p.status)}</td><td>${esc(p.reference||'-')}</td><td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد دفعات.</td></tr>'}</tbody></table></div>`; $('#payForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=formData(e.target); const amount=Number(d.amount||0); if(amount<=0){toast('أدخل مبلغ صحيح.');return;} if(amount>Math.max(fin.remaining,0)){toast('المبلغ أكبر من المتبقي.');return;} await DB.savePayment({vendor_id:vendor.id,amount,method:d.method,reference:d.reference,notes:d.notes,status:'pending'}); toast('تم إرسال الدفعة للإدارة.'); render();});
-  };
-  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>setTab(t.dataset.tab)); setTab('summary');
-}
-
-async function adminPage(){
-  const u=requireUser('admin'); if(!u)return; let s={vendors:[],products:[],orders:[],payments:[],tickets:[]}; try{s=await DB.adminSummary()}catch(err){toast(err.message)}
-  const deliveredOrders=s.orders.filter(o=>o.status==='delivered');
-  const paidOrders=s.orders.filter(o=>o.payment_status==='paid');
-  const cancelledOrders=s.orders.filter(o=>o.status==='cancelled');
-  const commissionDelivered=deliveredOrders.reduce((a,o)=>a+Number(o.commission_total||0),0);
-  const paymentsApproved=s.payments.filter(p=>p.status==='approved').reduce((a,p)=>a+Number(p.amount||0),0);
-  const paymentsPending=s.payments.filter(p=>p.status==='pending').reduce((a,p)=>a+Number(p.amount||0),0);
-  const vendorRows=vendorFinanceRows(s); const customerRows=customerFinanceRows(s.orders); const delRows=deliveryRows(s);
-  app.innerHTML = `<section class="sectionTitle"><div><h2>لوحة الإدارة</h2><p>متابعة الموردين، المنتجات، الطلبات، التوصيل، والسداد.</p></div><button class="btn secondary" id="exportAllFinance">تصدير القوائم المالية</button></section><div class="tabs"><button class="tab active" data-tab="dash">الملخص</button><button class="tab" data-tab="vendors">الموردون</button><button class="tab" data-tab="products">المنتجات</button><button class="tab" data-tab="orders">الطلبات</button><button class="tab" data-tab="deliveries">التوصيلات</button><button class="tab" data-tab="customers">العملاء</button><button class="tab" data-tab="payments">دفعات الموردين</button><button class="tab" data-tab="finance">القوائم المالية</button><button class="tab" data-tab="support">الدعم</button><button class="tab" data-tab="staff">فريق الإدارة</button></div><div id="adminContent"></div>`;
-  $('#exportAllFinance')?.addEventListener('click',()=>exportCSV('tager_financial_summary.csv', vendorRows));
-  const setTab=(name)=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name)); const c=$('#adminContent');
-    if(name==='dash') c.innerHTML=`${financialCards([
-      {label:'الموردون', value:s.vendors.length.toLocaleString('ar-EG'), note:`${s.vendors.filter(v=>v.status==='approved').length} معتمد`},
-      {label:'المنتجات', value:s.products.length.toLocaleString('ar-EG'), note:`${s.products.filter(p=>p.status==='approved').length} معتمد`},
-      {label:'إجمالي الطلبات', value:s.orders.length.toLocaleString('ar-EG'), note:fmt(s.orders.reduce((a,o)=>a+Number(o.total||0),0))},
-      {label:'طلبات منفذة', value:deliveredOrders.length.toLocaleString('ar-EG'), note:fmt(orderValue(s.orders,o=>o.status==='delivered')), kind:'ok'},
-      {label:'طلبات مسددة', value:paidOrders.length.toLocaleString('ar-EG'), note:fmt(paymentValue(s.orders)), kind:'ok'},
-      {label:'طلبات ملغية', value:cancelledOrders.length.toLocaleString('ar-EG'), note:fmt(orderValue(s.orders,o=>o.status==='cancelled')), kind:'bad'},
-      {label:'عمولة بعد التوصيل', value:fmt(commissionDelivered), note:'تستحق بعد التسليم', kind:'warn'},
-      {label:'متبقي من الموردين', value:fmt(Math.max(commissionDelivered-paymentsApproved,0)), note:`تحت المراجعة ${fmt(paymentsPending)}`}
-    ])}${platformControlPanel(s, customerRows, vendorRows)}${settlementQuality(vendorRows)}<div class="grid three"><div class="card"><h3>مراجعة يومية</h3><p class="muted">راجع الطلبات الجديدة والتوصيلات المفتوحة والدفعات المعلقة.</p></div><div class="card"><h3>منع أخطاء العنوان</h3><p class="muted">الطلب لا يتم إلا إذا كانت منطقة العميل مغطاة من المورد.</p></div><div class="card"><h3>التحصيل</h3><p class="muted">المتبقي يظهر بعد خصم الدفعات المعتمدة فقط.</p></div></div>`;
-    if(name==='vendors') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportVendors">تصدير الموردين</button></div><div class="tableWrap"><table><thead><tr><th>المورد</th><th>الهاتف</th><th>الحالة</th><th>نسبة المنصة</th><th>السلة المميزة</th><th>حد الطلب</th><th>مناطق التغطية</th><th>إجراء</th></tr></thead><tbody>${s.vendors.map(v=>`<tr><td>${esc(v.store_name)}</td><td>${esc(v.users?.phone||'')}</td><td>${statusPill(v.status)}</td><td><input class="miniInput" type="number" step="0.01" data-vc="${v.id}" value="${Number(v.commission_percent||0)}"></td><td><input class="miniInput" type="number" step="0.01" data-vp="${v.id}" value="${Number(v.premium_cart_percent||v.commission_percent||0)}"></td><td><input class="miniInput" type="number" step="0.01" data-vm="${v.id}" value="${Number(v.min_order||0)}"></td><td>${(v.delivery_zones||[]).length.toLocaleString('ar-EG')}</td><td><button class="btn small secondary" data-uv="${v.id}">حفظ</button> <button class="btn small" data-av="${v.id}">اعتماد</button> <button class="btn small danger" data-rv="${v.id}">رفض</button></td></tr>`).join('')||'<tr><td colspan="8">لا توجد بيانات.</td></tr>'}</tbody></table></div>`;
-    if(name==='products') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportProducts">تصدير المنتجات</button></div><div class="tableWrap"><table><thead><tr><th>المنتج</th><th>المورد</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${s.products.map(p=>`<tr><td>${esc(p.name_ar)}</td><td>${esc(p.vendors?.store_name||'')}</td><td>${esc(p.category||'-')}</td><td>${fmt(p.retail_price)}</td><td>${Number(p.stock_qty||0).toLocaleString('ar-EG')} ${esc(p.unit||'')}</td><td>${statusPill(p.status)}</td><td><button class="btn small" data-ap="${p.id}">اعتماد</button> <button class="btn small danger" data-rp="${p.id}">رفض</button></td></tr>`).join('')||'<tr><td colspan="7">لا توجد بيانات.</td></tr>'}</tbody></table></div>`;
-    if(name==='orders') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportOrders">تصدير الطلبات</button></div><div class="tableWrap"><table><thead><tr><th>رقم</th><th>العميل</th><th>القيمة</th><th>حالة الطلب</th><th>السداد</th><th>المسدد</th><th>تغيير الطلب</th><th>تغيير السداد</th><th>مبلغ السداد</th><th>فاتورة</th></tr></thead><tbody>${s.orders.map(o=>`<tr><td>${short(o.id)}</td><td>${esc(o.users?.name||'')}<br><span class="muted">${esc(o.users?.phone||'')}</span></td><td>${fmt(o.total)}</td><td>${statusPill(o.status)}${timeline(o.status)}</td><td>${statusPill(o.payment_status||'unpaid')}</td><td>${fmt(o.paid_amount || (o.payment_status==='paid'?o.total:0))}</td><td><select data-os="${o.id}"><option value="new" ${o.status==='new'?'selected':''}>جديد</option><option value="accepted" ${o.status==='accepted'?'selected':''}>مقبول</option><option value="preparing" ${o.status==='preparing'?'selected':''}>تجهيز</option><option value="out_for_delivery" ${o.status==='out_for_delivery'?'selected':''}>في التوصيل</option><option value="delivered" ${o.status==='delivered'?'selected':''}>تم التسليم</option><option value="cancelled" ${o.status==='cancelled'?'selected':''}>ملغي</option></select></td><td><select data-op="${o.id}" data-total="${o.total}"><option value="unpaid" ${(o.payment_status||'unpaid')==='unpaid'?'selected':''}>غير مسدد</option><option value="partial" ${o.payment_status==='partial'?'selected':''}>مسدد جزئياً</option><option value="paid" ${o.payment_status==='paid'?'selected':''}>مسدد</option><option value="refunded" ${o.payment_status==='refunded'?'selected':''}>مرتجع</option></select></td><td><input class="miniInput" type="number" data-paid="${o.id}" value="${Number(o.paid_amount||0)}" min="0" max="${Number(o.total||0)}"></td><td><button class="btn small secondary" data-invoice="${o.id}">طباعة</button></td></tr>`).join('')||'<tr><td colspan="10">لا توجد طلبات.</td></tr>'}</tbody></table></div>`;
-    if(name==='deliveries') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportDeliveries">تصدير التوصيلات</button></div><div class="tableWrap"><table><thead><tr><th>طلب</th><th>العميل</th><th>المورد</th><th>العنوان</th><th>رسوم</th><th>المدة</th><th>الحالة</th><th>تغيير</th><th>ملاحظة</th></tr></thead><tbody>${delRows.map(x=>`<tr><td>${short(x.order.id)}</td><td>${esc(x.order.users?.name||'')}</td><td>${esc(x.vendor?.store_name||'-')}</td><td>${esc(x.delivery.governorate)} - ${esc(x.delivery.district)} - ${esc(x.delivery.area)}</td><td>${fmt(x.delivery.fee)}</td><td>${esc(x.delivery.duration||'-')}</td><td>${statusPill(x.delivery.status)}</td><td><select data-ds="${x.delivery.id}"><option value="pending" ${x.delivery.status==='pending'?'selected':''}>جديد</option><option value="assigned" ${x.delivery.status==='assigned'?'selected':''}>مسند</option><option value="picked" ${x.delivery.status==='picked'?'selected':''}>تم الاستلام</option><option value="delivered" ${x.delivery.status==='delivered'?'selected':''}>تم التسليم</option><option value="cancelled" ${x.delivery.status==='cancelled'?'selected':''}>ملغي</option></select></td><td><input class="miniInput" data-dn="${x.delivery.id}" value="${esc(x.delivery.tracking_note||'')}"></td></tr>`).join('')||'<tr><td colspan="9">لا توجد توصيلات.</td></tr>'}</tbody></table></div>`;
-    if(name==='customers') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportCustomers">تصدير العملاء</button></div><div class="tableWrap"><table><thead><tr><th>العميل</th><th>الهاتف</th><th>عدد الطلبات</th><th>إجمالي الطلبات</th><th>منفذ</th><th>مسدد</th><th>ملغي</th><th>متبقي</th></tr></thead><tbody>${customerRows.map(r=>`<tr><td>${esc(r['العميل'])}</td><td>${esc(r['الهاتف'])}</td><td>${r['عدد الطلبات']}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['مسدد'])}</td><td>${fmt(r['ملغي'])}</td><td>${fmt(r['متبقي'])}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد بيانات عملاء.</td></tr>'}</tbody></table></div>`;
-    if(name==='payments') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportPayments">تصدير الدفعات</button></div><div class="tableWrap"><table><thead><tr><th>المورد</th><th>المبلغ</th><th>الطريقة</th><th>رقم العملية</th><th>الحالة</th><th>ملاحظات</th><th>إجراء</th></tr></thead><tbody>${s.payments.map(p=>`<tr><td>${esc(p.vendors?.store_name||'')}</td><td>${fmt(p.amount)}</td><td>${esc(p.method)}</td><td>${esc(p.reference||'-')}</td><td>${statusPill(p.status)}</td><td>${esc(p.notes||'')}</td><td><button class="btn small" data-payok="${p.id}">اعتماد</button> <button class="btn small danger" data-payno="${p.id}">رفض</button></td></tr>`).join('')||'<tr><td colspan="7">لا توجد دفعات.</td></tr>'}</tbody></table></div>`;
-    if(name==='finance') c.innerHTML=`${financialCards([
-      {label:'إجمالي طلبات العملاء', value:fmt(s.orders.reduce((a,o)=>a+Number(o.total||0),0)), note:`عدد ${s.orders.length}`},
-      {label:'إجمالي المنفذ', value:fmt(orderValue(s.orders,o=>o.status==='delivered')), note:`عدد ${deliveredOrders.length}`, kind:'ok'},
-      {label:'إجمالي المسدد', value:fmt(paymentValue(s.orders)), note:`عدد ${paidOrders.length}`, kind:'ok'},
-      {label:'إجمالي الملغي', value:fmt(orderValue(s.orders,o=>o.status==='cancelled')), note:`عدد ${cancelledOrders.length}`, kind:'bad'},
-      {label:'عمولات مستحقة بعد التوصيل', value:fmt(commissionDelivered), note:'بعد التسليم فقط', kind:'warn'},
-      {label:'مدفوع من الموردين', value:fmt(paymentsApproved), note:`متبقي ${fmt(Math.max(commissionDelivered-paymentsApproved,0))}`}
-    ])}<div class="toolbar"><button class="btn small secondary" id="exportFinanceVendors">تصدير مالية الموردين</button><button class="btn small secondary" id="exportFinanceCustomers">تصدير مالية العملاء</button></div><section class="sectionTitle"><h2>قائمة مالية حسب المورد</h2></section><div class="tableWrap"><table><thead><tr><th>المورد</th><th>إجمالي الطلبات</th><th>منفذ</th><th>ملغي</th><th>عمولة بعد التوصيل</th><th>مدفوع</th><th>تحت المراجعة</th><th>متبقي</th></tr></thead><tbody>${vendorRows.map(r=>`<tr><td>${esc(r['المورد'])}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['ملغي'])}</td><td>${fmt(r['عمولة بعد التوصيل'])}</td><td>${fmt(r['مدفوع معتمد'])}</td><td>${fmt(r['تحت المراجعة'])}</td><td>${fmt(r['متبقي'])}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد بيانات مالية.</td></tr>'}</tbody></table></div><section class="sectionTitle"><h2>قائمة مالية حسب العميل</h2></section><div class="tableWrap"><table><thead><tr><th>العميل</th><th>عدد الطلبات</th><th>إجمالي</th><th>منفذ</th><th>مسدد</th><th>ملغي</th><th>متبقي</th></tr></thead><tbody>${customerRows.map(r=>`<tr><td>${esc(r['العميل'])}</td><td>${r['عدد الطلبات']}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['مسدد'])}</td><td>${fmt(r['ملغي'])}</td><td>${fmt(r['متبقي'])}</td></tr>`).join('')||'<tr><td colspan="7">لا توجد بيانات عملاء.</td></tr>'}</tbody></table></div>`;
-    if(name==='support') c.innerHTML=`<div class="toolbar"><button class="btn small secondary" id="exportSupport">تصدير الدعم</button></div><div class="tableWrap"><table><thead><tr><th>الاسم</th><th>الهاتف</th><th>النوع</th><th>الحالة</th><th>الرسالة</th><th>تغيير الحالة</th><th>ملاحظة الإدارة</th><th>التاريخ</th></tr></thead><tbody>${(s.tickets||[]).map(t=>`<tr><td>${esc(t.name||'')}</td><td>${esc(t.phone||'')}</td><td>${esc(t.ticket_type||'')}</td><td>${statusPill(t.status||'new')}</td><td>${esc(t.message||'')}</td><td><select data-ts="${t.id}"><option value="new" ${(t.status||'new')==='new'?'selected':''}>جديد</option><option value="open" ${t.status==='open'?'selected':''}>مفتوح</option><option value="closed" ${t.status==='closed'?'selected':''}>مغلق</option></select></td><td><input class="miniInput" data-tn="${t.id}" value="${esc(t.admin_note||'')}"></td><td>${dateFmt(t.created_at)}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد رسائل دعم.</td></tr>'}</tbody></table></div>`;
-    if(name==='staff') c.innerHTML=`<section class="card"><h3>إضافة مسؤول تشغيل</h3><form id="staffForm" class="form"><div class="grid three"><div class="field"><label>الاسم</label><input name="name" required></div><div class="field"><label>الهاتف</label><input name="phone" required></div><div class="field"><label>البريد</label><input name="email" type="email"></div><div class="field"><label>كلمة المرور</label><input name="password" type="password" minlength="8" required></div><div class="field"><label>الصلاحية</label><select name="permission"><option value="operations">تشغيل</option><option value="finance">مالية</option><option value="support">دعم</option><option value="full">كامل</option></select></div></div><button class="btn">حفظ المسؤول</button></form></section><section class="sectionTitle"><h2>فريق الإدارة</h2></section><div class="tableWrap"><table><thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الحالة</th><th>الصلاحيات</th></tr></thead><tbody>${(s.staff||[]).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.phone)}</td><td>${esc(x.email||'')}</td><td>${statusPill(x.status)}</td><td>${esc(Object.keys(x.permissions||{}).join('، ')||'-')}</td></tr>`).join('')||'<tr><td colspan="5">لا يوجد فريق إدارة.</td></tr>'}</tbody></table></div>`;
-    $('#exportVendors')?.addEventListener('click',()=>exportCSV('tager_vendors.csv', s.vendors.map(v=>({المورد:v.store_name, الهاتف:v.users?.phone||'', الحالة:statusLabel(v.status), النسبة:v.commission_percent, 'حد الطلب':v.min_order, 'مناطق التغطية':(v.delivery_zones||[]).length}))));
-    $('#exportProducts')?.addEventListener('click',()=>exportCSV('tager_products.csv', s.products.map(p=>({المنتج:p.name_ar, المورد:p.vendors?.store_name||'', التصنيف:p.category||'', السعر:p.retail_price, المخزون:p.stock_qty, الحالة:statusLabel(p.status)}))));
-    $('#exportOrders')?.addEventListener('click',()=>exportCSV('tager_orders.csv', s.orders.map(o=>({رقم:short(o.id), العميل:o.users?.name||'', الهاتف:o.users?.phone||'', الإجمالي:o.total, الحالة:statusLabel(o.status), السداد:statusLabel(o.payment_status), المسدد:o.paid_amount||0, العنوان:[o.governorate,o.district,o.area,o.address].filter(Boolean).join(' - ')}))));
-    $('#exportDeliveries')?.addEventListener('click',()=>exportCSV('tager_deliveries.csv', delRows.map(x=>({رقم_الطلب:short(x.order.id), العميل:x.order.users?.name||'', المورد:x.vendor?.store_name||'', العنوان:[x.delivery.governorate,x.delivery.district,x.delivery.area].join(' - '), الرسوم:x.delivery.fee, الحالة:statusLabel(x.delivery.status), الملاحظة:x.delivery.tracking_note||''}))));
-    $('#exportCustomers')?.addEventListener('click',()=>exportCSV('tager_customers_finance.csv', customerRows));
-    $('#exportPayments')?.addEventListener('click',()=>exportCSV('tager_vendor_payments.csv', s.payments.map(p=>({المورد:p.vendors?.store_name||'', المبلغ:p.amount, الطريقة:p.method, المرجع:p.reference||'', الحالة:statusLabel(p.status), ملاحظات:p.notes||''}))));
-    $('#exportSupport')?.addEventListener('click',()=>exportCSV('tager_support_tickets.csv', (s.tickets||[]).map(t=>({الاسم:t.name||'', الهاتف:t.phone||'', النوع:t.ticket_type||'', الحالة:statusLabel(t.status), الرسالة:t.message||'', ملاحظة:t.admin_note||''}))));
-    $('#exportFinanceVendors')?.addEventListener('click',()=>exportCSV('tager_vendor_finance.csv', vendorRows));
-    $('#exportFinanceCustomers')?.addEventListener('click',()=>exportCSV('tager_customer_finance.csv', customerRows));
-    document.querySelectorAll('[data-uv]').forEach(b=>b.onclick=async()=>{const id=b.dataset.uv; await DB.updateVendor(id,{commission_percent:Number(document.querySelector(`[data-vc="${id}"]`)?.value||0),premium_cart_percent:Number(document.querySelector(`[data-vp="${id}"]`)?.value||0),min_order:Number(document.querySelector(`[data-vm="${id}"]`)?.value||0)}); toast('تم حفظ إعدادات المورد.'); render();});
-    document.querySelectorAll('[data-av]').forEach(b=>b.onclick=async()=>{const v=s.vendors.find(x=>x.id===b.dataset.av); await DB.updateVendor(v.id,{status:'approved'}); await DB.updateUser(v.user_id,{status:'approved'}); toast('تم اعتماد المورد.'); render();});
-    document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=async()=>{const v=s.vendors.find(x=>x.id===b.dataset.rv); await DB.updateVendor(v.id,{status:'rejected'}); await DB.updateUser(v.user_id,{status:'rejected'}); toast('تم رفض المورد.'); render();});
-    document.querySelectorAll('[data-ap]').forEach(b=>b.onclick=async()=>{await DB.saveProduct({id:b.dataset.ap,status:'approved'}); toast('تم اعتماد المنتج.'); render();});
-    document.querySelectorAll('[data-rp]').forEach(b=>b.onclick=async()=>{await DB.saveProduct({id:b.dataset.rp,status:'rejected'}); toast('تم رفض المنتج.'); render();});
-    document.querySelectorAll('[data-payok]').forEach(b=>b.onclick=async()=>{await DB.updatePayment(b.dataset.payok,'approved','تم الاعتماد'); toast('تم اعتماد الدفعة.'); render();});
-    document.querySelectorAll('[data-payno]').forEach(b=>b.onclick=async()=>{await DB.updatePayment(b.dataset.payno,'rejected','تم الرفض'); toast('تم رفض الدفعة.'); render();});
-    document.querySelectorAll('[data-invoice]').forEach(b=>b.onclick=()=>{const o=s.orders.find(x=>x.id===b.dataset.invoice); if(o) printOrder(o);});
-    document.querySelectorAll('[data-os]').forEach(x=>x.onchange=async()=>{await DB.updateOrderStatus(x.dataset.os,x.value); toast('تم تحديث حالة الطلب.'); render();});
-    document.querySelectorAll('[data-op]').forEach(x=>x.onchange=async()=>{const paidInput=document.querySelector(`[data-paid="${x.dataset.op}"]`); const total=Number(x.dataset.total||0); const amount=x.value==='paid'?total:Number(paidInput?.value||0); await DB.updateOrderPayment(x.dataset.op,x.value,amount); toast('تم تحديث السداد.'); render();});
-    document.querySelectorAll('[data-paid]').forEach(x=>x.onchange=async()=>{const statusSel=document.querySelector(`[data-op="${x.dataset.paid}"]`); const status=statusSel?.value || 'partial'; await DB.updateOrderPayment(x.dataset.paid,status,Number(x.value||0)); toast('تم تحديث مبلغ السداد.'); render();});
-    document.querySelectorAll('[data-ds]').forEach(x=>x.onchange=async()=>{const note=document.querySelector(`[data-dn="${x.dataset.ds}"]`)?.value||''; await DB.updateDeliveryStatus(x.dataset.ds,x.value,note); toast('تم تحديث حالة التوصيل.'); render();});
-    document.querySelectorAll('[data-dn]').forEach(x=>x.onchange=async()=>{const status=document.querySelector(`[data-ds="${x.dataset.dn}"]`)?.value||'pending'; await DB.updateDeliveryStatus(x.dataset.dn,status,x.value); toast('تم تحديث ملاحظة التوصيل.');});
-    document.querySelectorAll('[data-ts]').forEach(x=>x.onchange=async()=>{const note=document.querySelector(`[data-tn="${x.dataset.ts}"]`)?.value||''; await DB.updateSupportTicket(x.dataset.ts,x.value,note); toast('تم تحديث طلب الدعم.'); render();});
-    document.querySelectorAll('[data-tn]').forEach(x=>x.onchange=async()=>{const status=document.querySelector(`[data-ts="${x.dataset.tn}"]`)?.value||'open'; await DB.updateSupportTicket(x.dataset.tn,status,x.value); toast('تم تحديث ملاحظة الدعم.');});
-    $('#staffForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=formData(e.target); await DB.createStaff({name:d.name,phone:d.phone,email:d.email,password:d.password,permissions:{[d.permission]:true}}); toast('تم إضافة مسؤول التشغيل.'); render();});
-  };
-  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>setTab(t.dataset.tab)); setTab('dash');
-}
-
-function support(){ app.innerHTML=`<section class="pageHero"><h2>الدعم والمتابعة</h2><p>قنوات اتصال واضحة للطلبات والموردين والتوصيل والشؤون المالية.</p></section>
-<div class="grid three">
-  <a class="supportCard" href="${phoneLink('+20 10 24237231')}"><span>خدمة العملاء والطلبات</span><strong>+20 10 24237231</strong><small>استفسارات الطلبات وحسابات العملاء</small></a>
-  <a class="supportCard" href="${phoneLink('+20 10 16135495')}"><span>الموردون والتوصيل</span><strong>+20 10 16135495</strong><small>متابعة مناطق التغطية وحالة الشحن</small></a>
-  <a class="supportCard" href="${phoneLink('+20 11 27512512')}"><span>الحسابات والدعم العام</span><strong>+20 11 27512512</strong><small>السداد والعمولات والمتابعة العامة</small></a>
-</div>
-<section class="card" style="margin-top:16px"><h3>واتساب الدعم</h3><p class="muted">لإرسال رقم الطلب أو بيانات السداد أو متابعة المورد.</p><a class="btn" target="_blank" rel="noopener" href="${whatsappLink('+201127512512')}">فتح واتساب +20 11 27512512</a></section>
-<section class="card" style="margin-top:16px"><h3>إرسال طلب دعم</h3><form id="supportForm" class="form"><div class="grid three"><div class="field"><label>الاسم</label><input name="name" required></div><div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>نوع الطلب</label><select name="ticket_type"><option>طلب</option><option>توصيل</option><option>مورد</option><option>مالي</option><option>أخرى</option></select></div></div><div class="field"><label>الرسالة</label><textarea name="message" required></textarea></div><button class="btn">إرسال</button></form></section>
-<div class="grid three" style="margin-top:16px"><div class="card featureCard"><h3>متابعة طلب</h3><p class="muted">اكتب رقم الطلب وحالة التوصيل المطلوبة.</p></div><div class="card featureCard"><h3>دعم مورد</h3><p class="muted">اكتب اسم المورد والمنطقة أو المنتج المطلوب مراجعته.</p></div><div class="card featureCard"><h3>مراجعة مالية</h3><p class="muted">اكتب رقم العملية والمبلغ واسم المورد لتسريع المراجعة.</p></div></div>`; $('#supportForm')?.addEventListener('submit',async e=>{e.preventDefault(); try{const d=formData(e.target); const u=DB.session(); await DB.createSupportTicket({...d,user_id:u?.id||null,status:'new'}); e.target.reset(); toast('تم إرسال طلب الدعم.');}catch(err){toast(err.message)}}); }
-function policies(){ app.innerHTML=`<section class="pageHero"><h2>السياسات التشغيلية</h2><p>قواعد واضحة لضمان طلبات صحيحة وحسابات دقيقة بين العميل والمورد والإدارة.</p></section><section class="card"><div class="grid two"><div class="featureCard"><h3>اعتماد المورد</h3><p class="muted">لا يظهر المورد في السوق إلا بعد اعتماد الإدارة ومراجعة بياناته الأساسية.</p></div><div class="featureCard"><h3>اعتماد المنتج</h3><p class="muted">لا يظهر المنتج للعميل إلا بعد مراجعته واعتماده داخل لوحة الإدارة.</p></div><div class="featureCard"><h3>التوصيل</h3><p class="muted">إتمام الطلب مرتبط بتغطية المورد للمحافظة والمركز والقسم المختار.</p></div><div class="featureCard"><h3>العمولة</h3><p class="muted">تستحق عمولة المنصة بعد التسليم فقط وتخصم منها الدفعات المعتمدة.</p></div><div class="featureCard"><h3>السداد</h3><p class="muted">الدفعات المرسلة من الموردين لا تخصم من المتبقي إلا بعد اعتماد الإدارة.</p></div><div class="featureCard"><h3>الطلبات الملغية</h3><p class="muted">الطلبات الملغية تظهر في القوائم المالية للمتابعة ولا تدخل ضمن المنفذ.</p></div></div></section>`; }
-
-async function render(){
-  updateNav(); nav.classList.remove('open');
-  if(!DB.ready){ app.innerHTML=`<section class="card"><h2>إعداد الاتصال مطلوب</h2><p class="muted">أضف متغيرات قاعدة البيانات في Vercel ثم أعد النشر.</p><p><span class="kbd">NEXT_PUBLIC_SUPABASE_URL</span></p><p><span class="kbd">NEXT_PUBLIC_SUPABASE_ANON_KEY</span></p></section>`; return; }
-  const r=route();
-  try{
-    const adminCount = await DB.countAdmins().catch(()=>1);
-    if(adminCount === 0 && ['/admin','/vendor','/customer','/cart'].includes(r)) return setup();
-    if(r==='/') return home(); if(r==='/setup') return setup(); if(r==='/login') return loginPage();
-    if(r==='/register/customer') return customerRegister(); if(r==='/register/vendor') return vendorRegister();
-    if(r.startsWith('/product/')) return productPage(r.split('/').pop()); if(r.startsWith('/vendor-public/')) return vendorPublicPage(r.split('/').pop());
-    if(r==='/market' || r==='/products') return market(); if(r==='/vendors') return vendorsPage(); if(r==='/cart') return cartPage();
-    if(r==='/customer') return customerPage(); if(r==='/vendor') return vendorPage(); if(r==='/admin') return adminPage();
-    if(r==='/support') return support(); if(r==='/policies') return policies();
-    app.innerHTML=`<div class="empty">الصفحة غير موجودة. <br><a class="btn secondary" href="/">الرجوع للرئيسية</a></div>`;
-  }catch(err){ app.innerHTML=`<section class="card"><h2>تعذر تحميل الصفحة</h2><p class="muted">${esc(err.message)}</p></section>`; }
-}
-
-
-
-/* ============================================================
-   V23 Comprehensive Production Upgrade
-   - Operations command center
-   - Financial control center
-   - Platform settings
-   - CSV import/export center
-   - Launch readiness checklist
-   ============================================================ */
-const TAGER_VERSION = 'V23 Enterprise Production';
-const SETTINGS_KEY = 'tager_platform_settings_v23';
-const OPS_KEY = 'tager_daily_ops_v23';
-const DEFAULT_PLATFORM_SETTINGS = {
-  default_commission_percent: 1.5,
-  default_premium_cart_percent: 1.5,
-  default_min_order: 0,
-  free_shipping_threshold: 0,
-  currency: 'EGP',
-  support_phone_orders: '+20 10 24237231',
-  support_phone_vendors: '+20 10 16135495',
-  support_phone_finance: '+20 11 27512512',
-  whatsapp: '+20 11 27512512',
-  categories: ['مواد غذائية أساسية','ألبان ومشروبات','منظفات وورقيات','معلبات وبقوليات','مستلزمات مطاعم وكافيهات','منتجات موسمية'],
-  payment_methods: ['نقدي عند الاستلام','تحويل بنكي','محفظة إلكترونية','آجل مورد معتمد'],
-  bank_name: '', iban: '', wallet_phone: '',
-  home_headline: 'منصة تجارة وتوريد راقية تربط الموردين بالعملاء بتشغيل ومالية واضحة',
-  marketplace_note: 'لا يظهر أي منتج أو مورد إلا بعد اعتماد الإدارة.'
-};
-function mergeSettings(s){ return {...DEFAULT_PLATFORM_SETTINGS, ...(s||{})}; }
-function linesToArray(s){ return String(s||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean); }
-function arrayToLines(a){ return (Array.isArray(a)?a:[]).join('\n'); }
-async function getPlatformSettings(){
-  if(DB.getPlatformSettings) return mergeSettings(await DB.getPlatformSettings());
-  try{
-    if(DB.client){
-      const {data,error}=await DB.client.from('platform_settings').select('setting_value').eq('setting_key','main_settings').maybeSingle();
-      if(error) throw error;
-      return mergeSettings(data?.setting_value || {});
-    }
-  }catch(err){ console.warn('settings read failed', err); }
-  try{return mergeSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'));}catch{return mergeSettings({});}
-}
-async function savePlatformSettings(settings){
-  const final=mergeSettings(settings);
-  if(DB.savePlatformSettings) return DB.savePlatformSettings(final);
-  try{
-    if(DB.client){
-      const {error}=await DB.client.from('platform_settings').upsert({setting_key:'main_settings',setting_value:final,updated_at:new Date().toISOString()},{onConflict:'setting_key'});
-      if(error) throw error;
-    }
-  }catch(err){ console.warn('settings save failed', err); }
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(final));
-  return final;
-}
-Object.assign(DB, { getPlatformSettings, savePlatformSettings });
-
-function currentUser(){ return DB.session(); }
-function isAdminLike(){ const u=currentUser(); return u && (u.role==='admin' || u.role==='staff'); }
-function safeNumber(n){ return Number(n||0); }
-function daysOld(date){ const t=new Date(date||Date.now()).getTime(); return Math.max(0, Math.floor((Date.now()-t)/(1000*60*60*24))); }
-function downloadText(filename, content, type='text/plain;charset=utf-8'){
-  const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-function makeCsv(rows){
-  if(!rows.length) return '';
-  const headers=Object.keys(rows[0]);
-  return '\ufeff'+[headers.map(csvCell).join(','),...rows.map(r=>headers.map(h=>csvCell(r[h])).join(','))].join('\n');
-}
-function parseCsv(text){
-  const rows=[]; let row=[], cell='', q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i], n=text[i+1];
-    if(c==='"' && q && n==='"'){ cell+='"'; i++; continue; }
-    if(c==='"'){ q=!q; continue; }
-    if(c===',' && !q){ row.push(cell.trim()); cell=''; continue; }
-    if((c==='\n' || c==='\r') && !q){ if(c==='\r' && n==='\n') i++; row.push(cell.trim()); cell=''; if(row.some(x=>x!=='')) rows.push(row); row=[]; continue; }
-    cell+=c;
-  }
-  row.push(cell.trim()); if(row.some(x=>x!=='')) rows.push(row);
-  if(!rows.length) return [];
-  const headers=rows.shift().map(h=>h.replace(/^\ufeff/,'').trim());
-  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??''])));
-}
-function templateProducts(){ return makeCsv([{vendor_store_name:'',name_ar:'',category:'',unit:'قطعة',retail_price:'',wholesale_price:'',bulk_price:'',wholesale_min_qty:'1',bulk_min_qty:'1',stock_qty:'',image_url:'',description:'',status:'pending'}]); }
-function templateZones(){ return makeCsv([{vendor_store_name:'',governorate:'القاهرة',district:'مدينة نصر',area:'المركز الرئيسي',fee:'0',duration:'24-48 ساعة'}]); }
-function templateSuppliers(){ return makeCsv([{store_name:'',owner_name:'',phone:'',email:'',commercial_register:'',tax_number:'',governorate:'',district:'',address:'',min_order:'0',commission_percent:'1.5',premium_cart_percent:'1.5'}]); }
-
-async function loadAdminSummary(){
-  if(!isAdminLike()) throw new Error('هذه الصفحة مخصصة للإدارة فقط.');
-  return await DB.adminSummary();
-}
-function summaryMetrics(s){
-  const orders=s.orders||[], products=s.products||[], vendors=s.vendors||[], payments=s.payments||[], tickets=s.tickets||[];
-  const delivered=orders.filter(o=>o.status==='delivered');
-  const cancelled=orders.filter(o=>o.status==='cancelled');
-  const paidAmount=orders.reduce((a,o)=>a+safeNumber(o.paid_amount || (o.payment_status==='paid'?o.total:0)),0);
-  const commissionDue=delivered.reduce((a,o)=>a+safeNumber(o.commission_total),0);
-  const approvedPayments=payments.filter(p=>p.status==='approved').reduce((a,p)=>a+safeNumber(p.amount),0);
-  const pendingPayments=payments.filter(p=>p.status==='pending').reduce((a,p)=>a+safeNumber(p.amount),0);
-  return {
-    orderValue:orders.reduce((a,o)=>a+safeNumber(o.total),0),
-    deliveredValue:delivered.reduce((a,o)=>a+safeNumber(o.total),0),
-    cancelledValue:cancelled.reduce((a,o)=>a+safeNumber(o.total),0),
-    paidAmount, commissionDue, approvedPayments, pendingPayments,
-    remainingCommission:Math.max(commissionDue-approvedPayments,0),
-    openOrders:orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length,
-    pendingVendors:vendors.filter(v=>v.status==='pending').length,
-    pendingProducts:products.filter(p=>p.status==='pending').length,
-    lowStock:products.filter(p=>p.status==='approved' && safeNumber(p.stock_qty)<=safeNumber(p.reorder_level||5)),
-    ticketsOpen:tickets.filter(t=>['new','open'].includes(t.status||'new')).length,
-    pendingPaymentsCount:payments.filter(p=>p.status==='pending').length
-  };
-}
-function kpiCards(items){ return `<section class="kpiStrip v23Kpis">${items.map(x=>`<div><span>${esc(x.label)}</span><strong>${x.value}</strong>${x.note?`<small>${x.note}</small>`:''}</div>`).join('')}</section>`; }
-function adminGateIntro(title){
-  app.innerHTML=`<section class="pageHero"><h2>${esc(title)}</h2><p>سجل الدخول بحساب الإدارة أو مسؤول التشغيل لفتح هذه الصفحة.</p></section><section class="card"><a class="btn" href="/login">تسجيل الدخول</a></section>`;
-}
-
-async function operationsCenter(){
-  if(!isAdminLike()) return adminGateIntro('مركز التشغيل');
-  const s=await loadAdminSummary(); const m=summaryMetrics(s); const delRows=deliveryRows(s);
-  const openOrders=(s.orders||[]).filter(o=>!['delivered','cancelled'].includes(o.status));
-  const pendingDeliveries=delRows.filter(x=>!['delivered','cancelled'].includes(x.delivery.status));
-  const today=new Date().toISOString().slice(0,10); let ops={}; try{ops=JSON.parse(localStorage.getItem(`${OPS_KEY}_${today}`)||'{}')}catch{}
-  app.innerHTML=`<section class="pageHero"><h2>مركز التشغيل اليومي</h2><p>لوحة واحدة لمراجعة الطلبات المفتوحة، التوصيل، المخزون، الاعتمادات، والدعم بدون بيانات تجريبية.</p></section>
-  ${kpiCards([
-    {label:'طلبات مفتوحة',value:m.openOrders.toLocaleString('ar-EG'),note:'تحتاج متابعة'},
-    {label:'موردون بانتظار الاعتماد',value:m.pendingVendors.toLocaleString('ar-EG')},
-    {label:'منتجات بانتظار الاعتماد',value:m.pendingProducts.toLocaleString('ar-EG')},
-    {label:'مخزون منخفض',value:m.lowStock.length.toLocaleString('ar-EG')},
-    {label:'دفعات معلقة',value:m.pendingPaymentsCount.toLocaleString('ar-EG')},
-    {label:'دعم مفتوح',value:m.ticketsOpen.toLocaleString('ar-EG')}
-  ])}
-  <div class="grid two">
-    <section class="card"><h3>قائمة فحص اليوم</h3><p class="muted">احفظ حالة الفحص قبل نهاية اليوم. يتم حفظها على نفس المتصفح كإثبات تشغيل سريع.</p>
-      <form id="opsCheckForm" class="checkGrid">
-        ${['اعتماد الموردين الجدد','اعتماد المنتجات الجديدة','مراجعة الطلبات المفتوحة','متابعة التوصيل المتأخر','مراجعة المخزون المنخفض','مراجعة الدفعات المعلقة','مراجعة رسائل الدعم','تصدير تقرير نهاية اليوم'].map((x,i)=>`<label><input type="checkbox" name="c${i}" ${ops[`c${i}`]?'checked':''}> <span>${x}</span></label>`).join('')}
-        <div class="field full"><label>ملاحظة تشغيل اليوم</label><textarea name="note">${esc(ops.note||'')}</textarea></div>
-        <button class="btn">حفظ فحص اليوم</button><button type="button" class="btn secondary" id="exportOpsDay">تصدير تقرير اليوم</button>
-      </form>
-    </section>
-    <section class="card"><h3>أولويات الإدارة</h3><div class="priorityList">
-      <a href="/admin" class="priorityItem"><b>${m.pendingVendors}</b><span>مورد ينتظر الاعتماد</span></a>
-      <a href="/admin" class="priorityItem"><b>${m.pendingProducts}</b><span>منتج ينتظر الاعتماد</span></a>
-      <a href="/finance" class="priorityItem"><b>${fmt(m.remainingCommission)}</b><span>متبقي عمولات</span></a>
-      <a href="/support" class="priorityItem"><b>${m.ticketsOpen}</b><span>تذاكر دعم مفتوحة</span></a>
-    </div></section>
-  </div>
-  <section class="sectionTitle"><div><h2>الطلبات المفتوحة</h2><p>آخر الطلبات التي لم يتم تسليمها أو إلغاؤها.</p></div><button class="btn small secondary" id="exportOpenOrders">تصدير الطلبات المفتوحة</button></section>
-  <div class="tableWrap"><table><thead><tr><th>رقم</th><th>العميل</th><th>القيمة</th><th>الحالة</th><th>السداد</th><th>العنوان</th><th>العمر</th></tr></thead><tbody>${openOrders.map(o=>`<tr><td>${short(o.id)}</td><td>${esc(o.users?.name||'')}</td><td>${fmt(o.total)}</td><td>${statusPill(o.status)}</td><td>${statusPill(o.payment_status)}</td><td>${esc([o.governorate,o.district,o.area].filter(Boolean).join(' - '))}</td><td>${daysOld(o.created_at)} يوم</td></tr>`).join('')||'<tr><td colspan="7">لا توجد طلبات مفتوحة.</td></tr>'}</tbody></table></div>
-  <div class="grid two" style="margin-top:16px">
-    <section class="card"><h3>مخزون منخفض أو منتهي</h3><div class="tableWrap"><table><thead><tr><th>المنتج</th><th>المورد</th><th>المخزون</th><th>حد التنبيه</th></tr></thead><tbody>${m.lowStock.slice(0,30).map(p=>`<tr><td>${esc(p.name_ar)}</td><td>${esc(p.vendors?.store_name||'')}</td><td>${safeNumber(p.stock_qty).toLocaleString('ar-EG')}</td><td>${safeNumber(p.reorder_level||5).toLocaleString('ar-EG')}</td></tr>`).join('')||'<tr><td colspan="4">لا توجد نواقص مخزون.</td></tr>'}</tbody></table></div></section>
-    <section class="card"><h3>توصيلات تحت المتابعة</h3><div class="tableWrap"><table><thead><tr><th>الطلب</th><th>المورد</th><th>المنطقة</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>${pendingDeliveries.slice(0,30).map(x=>`<tr><td>${short(x.order.id)}</td><td>${esc(x.vendor?.store_name||'')}</td><td>${esc([x.delivery.governorate,x.delivery.district,x.delivery.area].filter(Boolean).join(' - '))}</td><td>${statusPill(x.delivery.status)}</td><td>${esc(x.delivery.tracking_note||'-')}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد توصيلات معلقة.</td></tr>'}</tbody></table></div></section>
-  </div>`;
-  $('#opsCheckForm')?.addEventListener('submit',e=>{e.preventDefault(); const d=formData(e.target); localStorage.setItem(`${OPS_KEY}_${today}`, JSON.stringify(d)); toast('تم حفظ فحص التشغيل اليومي.');});
-  $('#exportOpsDay')?.addEventListener('click',()=>downloadText(`tager_daily_operations_${today}.csv`, makeCsv([{date:today, open_orders:m.openOrders, pending_vendors:m.pendingVendors, pending_products:m.pendingProducts, low_stock:m.lowStock.length, pending_payments:m.pendingPaymentsCount, support_open:m.ticketsOpen, note:ops.note||''}]), 'text/csv;charset=utf-8'));
-  $('#exportOpenOrders')?.addEventListener('click',()=>exportCSV('tager_open_orders.csv', openOrders.map(o=>({رقم:short(o.id), العميل:o.users?.name||'', الهاتف:o.users?.phone||'', القيمة:o.total, الحالة:statusLabel(o.status), السداد:statusLabel(o.payment_status), العمر_بالأيام:daysOld(o.created_at), العنوان:[o.governorate,o.district,o.area,o.address].filter(Boolean).join(' - ')}))));
-}
-
-async function financeCenter(){
-  if(!isAdminLike()) return adminGateIntro('مركز المالية');
-  const s=await loadAdminSummary(); const m=summaryMetrics(s); const vendorRows=vendorFinanceRows(s); const customerRows=customerFinanceRows(s);
-  const receivableOrders=(s.orders||[]).filter(o=>o.status==='delivered' && safeNumber(o.total)>safeNumber(o.paid_amount || (o.payment_status==='paid'?o.total:0)));
-  const aging=[['0-7',0],['8-15',0],['16-30',0],['31+',0]];
-  receivableOrders.forEach(o=>{const diff=daysOld(o.created_at); const bal=Math.max(safeNumber(o.total)-safeNumber(o.paid_amount||0),0); if(diff<=7) aging[0][1]+=bal; else if(diff<=15) aging[1][1]+=bal; else if(diff<=30) aging[2][1]+=bal; else aging[3][1]+=bal;});
-  app.innerHTML=`<section class="pageHero"><h2>مركز المالية والتحصيل</h2><p>إجمالي الطلبات، التسليم، التحصيل، العمولات، المتبقي، وأعمار المديونية.</p></section>
-  ${kpiCards([
-    {label:'إجمالي الطلبات',value:fmt(m.orderValue)},
-    {label:'طلبات منفذة',value:fmt(m.deliveredValue)},
-    {label:'محصل من العملاء',value:fmt(m.paidAmount)},
-    {label:'طلبات ملغية',value:fmt(m.cancelledValue)},
-    {label:'عمولة مستحقة',value:fmt(m.commissionDue)},
-    {label:'متبقي عمولات',value:fmt(m.remainingCommission)}
-  ])}
-  <div class="grid two">
-    <section class="financeCard wide"><span>تحليل سريع</span><strong>${fmt(m.commissionDue-m.approvedPayments)}</strong><small>المتبقي بعد خصم الدفعات المعتمدة فقط. الدفعات المعلقة لا تخصم حتى اعتماد الإدارة.</small></section>
-    <section class="financeCard wide"><span>دفعات تحت المراجعة</span><strong>${fmt(m.pendingPayments)}</strong><small>راجعها من لوحة الإدارة قبل الإقفال.</small></section>
-  </div>
-  <section class="sectionTitle"><div><h2>أعمار المديونية على العملاء</h2><p>طلبات مسلمة وغير محصلة بالكامل.</p></div><button class="btn small secondary" id="exportReceivables">تصدير المديونية</button></section>
-  <div class="agingGrid">${aging.map(a=>`<div><span>${a[0]} يوم</span><strong>${fmt(a[1])}</strong></div>`).join('')}</div>
-  <section class="sectionTitle"><div><h2>تسويات الموردين</h2><p>تقرير الموردين النهائي للإقفال والمراجعة.</p></div><button class="btn small secondary" id="exportVendorSettlement">تصدير تسويات الموردين</button></section>
-  <div class="tableWrap"><table><thead><tr><th>المورد</th><th>إجمالي الطلبات</th><th>منفذ</th><th>عمولة</th><th>مدفوع</th><th>تحت المراجعة</th><th>متبقي</th><th>حالة الإقفال</th></tr></thead><tbody>${vendorRows.map(r=>`<tr><td>${esc(r['المورد'])}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['عمولة بعد التوصيل'])}</td><td>${fmt(r['مدفوع معتمد'])}</td><td>${fmt(r['تحت المراجعة'])}</td><td>${fmt(r['متبقي'])}</td><td>${safeNumber(r['متبقي'])<=0?statusPill('paid'):statusPill('partial')}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد بيانات.</td></tr>'}</tbody></table></div>
-  <section class="sectionTitle"><div><h2>أرصدة العملاء</h2><p>متابعة التحصيل حسب العميل.</p></div><button class="btn small secondary" id="exportCustomerBalances">تصدير أرصدة العملاء</button></section>
-  <div class="tableWrap"><table><thead><tr><th>العميل</th><th>الهاتف</th><th>عدد الطلبات</th><th>إجمالي</th><th>منفذ</th><th>مسدد</th><th>متبقي</th></tr></thead><tbody>${customerRows.map(r=>`<tr><td>${esc(r['العميل'])}</td><td>${esc(r['الهاتف'])}</td><td>${r['عدد الطلبات']}</td><td>${fmt(r['إجمالي الطلبات'])}</td><td>${fmt(r['منفذ'])}</td><td>${fmt(r['مسدد'])}</td><td>${fmt(r['متبقي'])}</td></tr>`).join('')||'<tr><td colspan="7">لا توجد بيانات.</td></tr>'}</tbody></table></div>`;
-  $('#exportReceivables')?.addEventListener('click',()=>exportCSV('tager_receivables_aging.csv', receivableOrders.map(o=>({رقم:short(o.id), العميل:o.users?.name||'', الهاتف:o.users?.phone||'', إجمالي:o.total, مسدد:o.paid_amount||0, متبقي:Math.max(safeNumber(o.total)-safeNumber(o.paid_amount||0),0), العمر_بالأيام:daysOld(o.created_at)}))));
-  $('#exportVendorSettlement')?.addEventListener('click',()=>exportCSV('tager_vendor_settlement.csv', vendorRows));
-  $('#exportCustomerBalances')?.addEventListener('click',()=>exportCSV('tager_customer_balances.csv', customerRows));
-}
-
-async function platformSettingsPage(){
-  if(!isAdminLike()) return adminGateIntro('إعدادات المنصة');
-  const st=await getPlatformSettings();
-  app.innerHTML=`<section class="pageHero"><h2>إعدادات المنصة</h2><p>إعدادات التشغيل الأساسية بدون بيانات تجريبية: العمولات، الدعم، طرق الدفع، التصنيفات، ونص الصفحة الرئيسية.</p></section>
-  <section class="card"><form id="settingsForm" class="form"><div class="grid three">
-    <div class="field"><label>عمولة افتراضية %</label><input name="default_commission_percent" type="number" step="0.1" value="${esc(st.default_commission_percent)}"></div>
-    <div class="field"><label>السلة المميزة %</label><input name="default_premium_cart_percent" type="number" step="0.1" value="${esc(st.default_premium_cart_percent)}"></div>
-    <div class="field"><label>حد الطلب الافتراضي</label><input name="default_min_order" type="number" value="${esc(st.default_min_order)}"></div>
-    <div class="field"><label>حد الشحن المجاني</label><input name="free_shipping_threshold" type="number" value="${esc(st.free_shipping_threshold)}"></div>
-    <div class="field"><label>هاتف الطلبات</label><input name="support_phone_orders" value="${esc(st.support_phone_orders)}"></div>
-    <div class="field"><label>هاتف الموردين</label><input name="support_phone_vendors" value="${esc(st.support_phone_vendors)}"></div>
-    <div class="field"><label>هاتف المالية</label><input name="support_phone_finance" value="${esc(st.support_phone_finance)}"></div>
-    <div class="field"><label>واتساب</label><input name="whatsapp" value="${esc(st.whatsapp)}"></div>
-    <div class="field"><label>اسم البنك</label><input name="bank_name" value="${esc(st.bank_name)}"></div>
-    <div class="field"><label>IBAN</label><input name="iban" value="${esc(st.iban)}"></div>
-    <div class="field"><label>محفظة</label><input name="wallet_phone" value="${esc(st.wallet_phone)}"></div>
-  </div>
-  <div class="field"><label>عنوان الصفحة الرئيسية</label><textarea name="home_headline">${esc(st.home_headline)}</textarea></div>
-  <div class="grid two"><div class="field"><label>التصنيفات - كل سطر تصنيف</label><textarea name="categories">${esc(arrayToLines(st.categories))}</textarea></div><div class="field"><label>طرق الدفع - كل سطر طريقة</label><textarea name="payment_methods">${esc(arrayToLines(st.payment_methods))}</textarea></div></div>
-  <button class="btn">حفظ الإعدادات</button><button type="button" class="btn secondary" id="resetSettings">استرجاع الافتراضي</button></form></section>`;
-  $('#settingsForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=formData(e.target); const final={...st,...d, default_commission_percent:safeNumber(d.default_commission_percent), default_premium_cart_percent:safeNumber(d.default_premium_cart_percent), default_min_order:safeNumber(d.default_min_order), free_shipping_threshold:safeNumber(d.free_shipping_threshold), categories:linesToArray(d.categories), payment_methods:linesToArray(d.payment_methods)}; await savePlatformSettings(final); toast('تم حفظ إعدادات المنصة.'); render();});
-  $('#resetSettings')?.addEventListener('click',async()=>{await savePlatformSettings(DEFAULT_PLATFORM_SETTINGS); toast('تم استرجاع الإعدادات الافتراضية.'); render();});
-}
-
-async function dataCenter(){
-  if(!isAdminLike()) return adminGateIntro('مركز البيانات');
-  const s=await loadAdminSummary();
-  app.innerHTML=`<section class="pageHero"><h2>مركز البيانات والاستيراد</h2><p>إضافة منتجات ومناطق تغطية للموردين عبر CSV مع تصدير كامل للرقابة والمراجعة.</p></section>
-  ${kpiCards([
-    {label:'موردون',value:(s.vendors||[]).length.toLocaleString('ar-EG')},
-    {label:'منتجات',value:(s.products||[]).length.toLocaleString('ar-EG')},
-    {label:'طلبات',value:(s.orders||[]).length.toLocaleString('ar-EG')},
-    {label:'دفعات',value:(s.payments||[]).length.toLocaleString('ar-EG')}
-  ])}
-  <div class="grid three">
-    <section class="card"><h3>قوالب فارغة</h3><p class="muted">القوالب بدون أي بيانات تجريبية. املأها ثم ارفعها.</p><div class="actions"><button class="btn secondary" id="tplProducts">قالب المنتجات</button><button class="btn secondary" id="tplZones">قالب مناطق التوصيل</button><button class="btn secondary" id="tplSuppliers">قالب الموردين</button></div></section>
-    <section class="card"><h3>استيراد منتجات</h3><p class="muted">يجب كتابة اسم المورد كما هو مسجل في المنصة.</p><input type="file" id="productCsv" accept=".csv"><button class="btn" id="importProducts">استيراد المنتجات</button><div id="productImportResult" class="hint"></div></section>
-    <section class="card"><h3>استيراد مناطق التوصيل</h3><p class="muted">تضاف المناطق على المورد الموجود حالياً.</p><input type="file" id="zoneCsv" accept=".csv"><button class="btn" id="importZones">استيراد المناطق</button><div id="zoneImportResult" class="hint"></div></section>
-  </div>
-  <section class="sectionTitle"><div><h2>تصدير شامل</h2><p>ملفات مراجعة للإدارة والمالية والتشغيل.</p></div></section>
-  <div class="toolbar"><button class="btn small secondary" id="exAllProducts">كل المنتجات</button><button class="btn small secondary" id="exAllVendors">كل الموردين</button><button class="btn small secondary" id="exAllOrders">كل الطلبات</button><button class="btn small secondary" id="exAllPayments">كل الدفعات</button></div>
-  <section class="card" style="margin-top:16px"><h3>ملاحظات مهمة</h3><div class="grid two"><div class="featureCard"><h3>لا يوجد بيانات تجريبية</h3><p class="muted">الاستيراد لا يضيف إلا البيانات التي ترفعها أنت.</p></div><div class="featureCard"><h3>اعتماد المنتجات</h3><p class="muted">يمكن وضع status = pending أو approved حسب قرار الإدارة.</p></div></div></section>`;
-  $('#tplProducts')?.addEventListener('click',()=>downloadText('tager_products_template.csv', templateProducts(), 'text/csv;charset=utf-8'));
-  $('#tplZones')?.addEventListener('click',()=>downloadText('tager_delivery_zones_template.csv', templateZones(), 'text/csv;charset=utf-8'));
-  $('#tplSuppliers')?.addEventListener('click',()=>downloadText('tager_suppliers_template.csv', templateSuppliers(), 'text/csv;charset=utf-8'));
-  $('#importProducts')?.addEventListener('click',async()=>{
-    const f=$('#productCsv')?.files?.[0]; if(!f){toast('اختر ملف CSV أولاً.'); return;}
-    const rows=parseCsv(await f.text()); const vendors=await DB.vendors(); let ok=0, bad=[];
-    for(const r of rows){ const v=vendors.find(x=>String(x.store_name).trim()===String(r.vendor_store_name).trim()); if(!v){bad.push(`المورد غير موجود: ${r.vendor_store_name}`); continue;} try{ await DB.saveProduct({vendor_id:v.id,status:r.status||'pending',name_ar:r.name_ar,category:r.category,unit:r.unit||'قطعة',retail_price:safeNumber(r.retail_price),wholesale_price:safeNumber(r.wholesale_price||r.retail_price),bulk_price:safeNumber(r.bulk_price||r.wholesale_price||r.retail_price),wholesale_min_qty:safeNumber(r.wholesale_min_qty||1),bulk_min_qty:safeNumber(r.bulk_min_qty||1),stock_qty:safeNumber(r.stock_qty),image_url:r.image_url||'',description:r.description||''}); ok++; }catch(err){bad.push(`${r.name_ar}: ${err.message}`);} }
-    $('#productImportResult').textContent=`تم استيراد ${ok} منتج. أخطاء: ${bad.length}`; if(bad.length) console.warn(bad); toast(`تم استيراد ${ok} منتج.`);
+  const rows = cart.map((i,k)=>{
+    const p = state.products.find(x=>x.id===i.product_id);
+    const available = p && p.status==='approved' && num(p.stock)>=num(i.qty);
+    return `<tr><td>${esc(i.name)}</td><td><input type="number" min="1" value="${esc(i.qty)}" onchange="setCartQty(${k},this.value)" style="width:92px"></td><td>${money(i.unit_price)}</td><td>${money(i.unit_price*i.qty)}</td><td>${available?badge('approved'):badge('rejected')}</td><td><button class="btn-danger" onclick="removeCart(${k})">حذف</button></td></tr>`;
   });
-  $('#importZones')?.addEventListener('click',async()=>{
-    const f=$('#zoneCsv')?.files?.[0]; if(!f){toast('اختر ملف CSV أولاً.'); return;}
-    const rows=parseCsv(await f.text()); const vendors=await DB.vendors(); let ok=0, bad=[];
-    for(const r of rows){ const v=vendors.find(x=>String(x.store_name).trim()===String(r.vendor_store_name).trim()); if(!v){bad.push(`المورد غير موجود: ${r.vendor_store_name}`); continue;} const zones=Array.isArray(v.delivery_zones)?v.delivery_zones:[]; zones.push({governorate:r.governorate,district:r.district,area:r.area,fee:safeNumber(r.fee),duration:r.duration||'24-48 ساعة'}); try{ await DB.updateVendor(v.id,{delivery_zones:zones}); ok++; }catch(err){bad.push(`${r.vendor_store_name}: ${err.message}`);} }
-    $('#zoneImportResult').textContent=`تم استيراد ${ok} منطقة. أخطاء: ${bad.length}`; if(bad.length) console.warn(bad); toast(`تم استيراد ${ok} منطقة.`);
+  page('السلة', `<div class="card"><h3>محتويات السلة</h3>${cart.length?table(['الصنف','الكمية','السعر','الإجمالي','الحالة','إجراء'], rows):'<div class="empty">السلة فارغة.</div>'}<h2>الإجمالي: ${money(cart.reduce((s,i)=>s+i.unit_price*i.qty,0))}</h2><div class="action-row"><a class="btn3" href="/products">استكمال التسوق</a>${cart.length?'<a class="btn" href="/checkout">إتمام الطلب</a>':''}</div></div>`);
+}
+
+function checkoutPage(){
+  const u = me(); if(!u) return go('/login');
+  if(!cart.length) return go('/cart');
+  const addr = state.customer_addresses.find(a=>a.customer_id===u.id && a.is_default) || {};
+  page('إتمام الطلب', `<form class="card form" id="checkoutForm"><h3>بيانات التوصيل والدفع</h3><div class="row"><div class="field"><label>المحافظة</label><select name="governorate">${govOptions(addr.governorate||u.governorate)}</select></div><div class="field"><label>المركز</label><select name="district" data-selected="${esc(addr.district||u.district||'')}"></select></div>${input('area','القسم / الحي','text',addr.area||u.area||'','')}${input('address','العنوان التفصيلي','text',addr.address||u.address||'','required')}</div><div class="row">${select('payment_method','طريقة الدفع',state.settings.paymentMethods,state.settings.paymentMethods[0])}${select('cart_type','نوع السلة',['سلة عادية','سلة مميزة'],'سلة عادية')}</div><button class="btn">تأكيد الطلب</button><div id="out"></div></form><div class="card"><h3>ملخص الطلب</h3>${table(['الصنف','الكمية','الإجمالي'], cart.map(i=>`<tr><td>${esc(i.name)}</td><td>${esc(i.qty)}</td><td>${money(i.qty*i.unit_price)}</td></tr>`))}</div>`);
+  bindGov(qs('#checkoutForm'));
+  qs('#checkoutForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f=Object.fromEntries(new FormData(e.target));
+    const result = validateCartCoverage(f);
+    if(!result.ok) return qs('#out').innerHTML = notice(result.message,'error');
+    const subtotal = cart.reduce((s,i)=>s+i.unit_price*i.qty,0);
+    const premiumFee = f.cart_type==='سلة مميزة' ? subtotal*num(state.settings.premiumCartPercent)/100 : 0;
+    const commissionTotal = cart.reduce((s,i)=>{
+      const v=getVendor(i.vendor_id)||{}; return s + (i.unit_price*i.qty*num(v.commission_percent||state.settings.defaultCommissionPercent)/100);
+    },0);
+    const order = {id:id(), customer_id:u.id, cart_type:f.cart_type, governorate:f.governorate, district:f.district, area:f.area, address:f.address, payment_method:f.payment_method, payment_status:'pending', subtotal, premium_fee:premiumFee, shipping_fee:0, total:subtotal+premiumFee, platform_commission:commissionTotal+premiumFee, vendor_net:subtotal-commissionTotal, status:'new', delivery_status:'pending', created_at:now()};
+    state.orders.unshift(order);
+    cart.forEach(i=>{
+      const p=state.products.find(x=>x.id===i.product_id); if(p) p.stock = Math.max(0, num(p.stock)-num(i.qty));
+      const v=getVendor(i.vendor_id)||{}; const sub=i.unit_price*i.qty; const pct=num(v.commission_percent||state.settings.defaultCommissionPercent); const comm=sub*pct/100;
+      state.order_items.push({id:id(), order_id:order.id, product_id:i.product_id, vendor_id:i.vendor_id, qty:i.qty, unit_price:i.unit_price, subtotal:sub, commission_percent:pct, commission_amount:comm, vendor_net:sub-comm, created_at:now()});
+    });
+    [...new Set(cart.map(i=>i.vendor_id))].forEach(vendor_id=>state.shipments.push({id:id(), order_id:order.id, vendor_id, status:'pending', governorate:f.governorate, district:f.district, area:f.area, created_at:now()}));
+    state.customer_addresses.push({id:id(), customer_id:u.id, label:'عنوان طلب', governorate:f.governorate, district:f.district, area:f.area||'كل المناطق', address:f.address, is_default:false, created_at:now()});
+    cart=[]; saveCart(); saveState(); log('create_order','orders',order.id,{total:order.total}); qs('#out').innerHTML = notice('تم إنشاء الطلب بنجاح. يمكنك متابعته من حساب العميل.','ok'); setTimeout(()=>go('/customer'),900);
   });
-  $('#exAllProducts')?.addEventListener('click',()=>exportCSV('tager_all_products.csv', (s.products||[]).map(p=>({المنتج:p.name_ar, المورد:p.vendors?.store_name||'', التصنيف:p.category||'', الوحدة:p.unit||'', قطاعي:p.retail_price, جملة:p.wholesale_price, جملة_الجملة:p.bulk_price, المخزون:p.stock_qty, الحالة:statusLabel(p.status)}))));
-  $('#exAllVendors')?.addEventListener('click',()=>exportCSV('tager_all_vendors.csv', (s.vendors||[]).map(v=>({المورد:v.store_name, المسؤول:v.users?.name||'', الهاتف:v.users?.phone||'', الحالة:statusLabel(v.status), المحافظة:v.governorate||'', المركز:v.district||'', السجل:v.commercial_register||'', الضريبي:v.tax_number||'', العمولة:v.commission_percent, مناطق:(v.delivery_zones||[]).length}))));
-  $('#exAllOrders')?.addEventListener('click',()=>exportCSV('tager_all_orders.csv', (s.orders||[]).map(o=>({رقم:short(o.id), العميل:o.users?.name||'', هاتف:o.users?.phone||'', إجمالي:o.total, الحالة:statusLabel(o.status), السداد:statusLabel(o.payment_status), مسدد:o.paid_amount||0, تاريخ:o.created_at}))));
-  $('#exAllPayments')?.addEventListener('click',()=>exportCSV('tager_all_payments.csv', (s.payments||[]).map(p=>({المورد:p.vendors?.store_name||'', المبلغ:p.amount, الطريقة:p.method, المرجع:p.reference||'', الحالة:statusLabel(p.status), تاريخ:p.created_at}))));
+}
+function validateCartCoverage(addr){
+  for(const i of cart){
+    const p = state.products.find(x=>x.id===i.product_id);
+    if(!p || p.status!=='approved') return {ok:false, message:`المنتج ${i.name} غير متاح.`};
+    if(num(p.stock)<num(i.qty)) return {ok:false, message:`المخزون غير كافٍ للمنتج ${i.name}.`};
+    const vu = getUser(i.vendor_id);
+    if(!vu || vu.status!=='approved') return {ok:false, message:`مورد المنتج ${i.name} غير معتمد حالياً.`};
+    if(state.settings.requireDeliveryCoverage){
+      const zones = state.vendor_delivery_zones.filter(z=>z.vendor_id===i.vendor_id && z.is_active!==false);
+      const covered = zones.some(z=>z.governorate===addr.governorate && z.district===addr.district && (!z.area || z.area==='كل المناطق' || z.area===addr.area));
+      if(!covered) return {ok:false, message:`لا يمكن إتمام الطلب: مورد ${i.name} لا يغطي العنوان المختار.`};
+    }
+  }
+  return {ok:true};
 }
 
-async function launchChecklist(){
-  const hasAdmin=await DB.countAdmins().catch(()=>0); const settings=await getPlatformSettings().catch(()=>DEFAULT_PLATFORM_SETTINGS);
-  app.innerHTML=`<section class="pageHero"><h2>جاهزية الإطلاق</h2><p>قائمة مراجعة قبل تشغيل منصة Tager فعلياً.</p></section>
-  <div class="grid two"><section class="card"><h3>خطوات أساسية</h3><div class="launchList">
-    ${[
-      [hasAdmin>0,'إنشاء حساب الإدارة الحقيقي'],
-      [true,'عدم وجود بيانات تجريبية داخل التشغيل'],
-      [settings.support_phone_orders,'تحديد أرقام الدعم والواتساب'],
-      [settings.categories?.length,'إعداد تصنيفات المواد والمنتجات'],
-      [true,'تسجيل الموردين الحقيقيين واعتمادهم'],
-      [true,'إضافة مناطق تغطية لكل مورد'],
-      [true,'إضافة المنتجات والأسعار والمخزون'],
-      [true,'مراجعة المالية والعمولات قبل الإطلاق'],
-      [true,'تجربة طلب كامل من عميل حقيقي'],
-      [true,'تصدير تقرير مراجعة أول يوم تشغيل']
-    ].map(x=>`<div class="launchItem ${x[0]?'ok':'bad'}"><span>${x[0]?'✓':'!'}</span><b>${x[1]}</b></div>`).join('')}
-  </div></section><section class="card"><h3>مسار التشغيل السريع</h3><ol class="cleanList"><li>افتح صفحة الإعداد وأنشئ حساب الإدارة.</li><li>سجل الموردين أو استورد بيانات المنتجات من مركز البيانات.</li><li>اعتمد الموردين والمنتجات من لوحة الإدارة.</li><li>راجع مناطق التوصيل لكل مورد.</li><li>ابدأ استقبال الطلبات ثم تابع التشغيل والمالية من المراكز الجديدة.</li></ol><div class="actions"><a class="btn" href="/setup">إعداد الإدارة</a><a class="btn secondary" href="/data-center">مركز البيانات</a></div></section></div>`;
+function vendorsPage(){
+  const list = approvedVendors();
+  page('الموردون', list.length?`<div class="grid">${list.map(publicVendorCard).join('')}</div>`:`<div class="empty">لا يوجد موردون معتمدون حالياً.<br>بعد تسجيل المورد واعتماده من الإدارة سيظهر هنا بصفحته ومناطق تغطيته.</div><div class="card"><h3>إضافة مورد جديد</h3><p class="muted">المورد يسجل بياناته، يضيف مناطق التوصيل والمنتجات، ثم تقوم الإدارة بالمراجعة والاعتماد.</p><a class="btn2" href="/register/vendor">تسجيل مورد</a></div>`, 'قائمة الموردين المعتمدين فقط. لا تظهر أي إعدادات مالية داخل الصفحة العامة.');
+}
+function vendorPublicPage(vendorId){
+  const v = getVendor(vendorId); const u = getUser(vendorId);
+  if(!v || !u || u.status!=='approved') return page('صفحة المورد', '<div class="empty">المورد غير متاح حالياً.</div>');
+  const products = state.products.filter(p=>p.vendor_id===vendorId && p.status==='approved');
+  const zones = state.vendor_delivery_zones.filter(z=>z.vendor_id===vendorId && z.is_active!==false);
+  page(v.store_name, `<div class="card supplier-header"><div class="supplier-avatar">${v.logo_url?`<img src="${esc(v.logo_url)}" alt="${esc(v.store_name)}">`:'🏬'}</div><div><h2>${esc(v.store_name)}</h2><p class="muted">${esc(v.description||'مورد معتمد داخل Tager')}</p><p><b>أقل طلب:</b> ${money(v.min_order)} — <b>المحافظة:</b> ${esc(v.governorate||u.governorate||'-')}</p></div></div><div class="section-head"><div><h2>مناطق التغطية</h2><p>الطلب يتم فقط داخل المناطق المعتمدة من المورد.</p></div></div>${zones.length?table(['المحافظة','المركز','القسم','رسوم التوصيل','مدة التوصيل'], zones.map(z=>`<tr><td>${esc(z.governorate)}</td><td>${esc(z.district)}</td><td>${esc(z.area)}</td><td>${money(z.delivery_fee)}</td><td>${esc(z.eta_days||2)} يوم</td></tr>`)):'<div class="empty">لم يتم إضافة مناطق تغطية بعد.</div>'}<div class="section-head"><div><h2>منتجات المورد</h2><p>منتجات معتمدة ومنشورة.</p></div></div><div class="grid">${products.length?products.map(p=>`<div class="card product-card">${productImage(p)}<div class="product-body"><h3>${esc(p.name_ar)}</h3><p class="muted">${esc(p.category||'')}</p><div class="price">${money(productPrice(p))}</div><button class="btn" onclick="addToCart('${esc(p.id)}','wholesale_price')">إضافة للسلة</button></div></div>`).join(''):'<div class="empty">لا توجد منتجات منشورة لهذا المورد.</div>'}</div>`);
 }
 
-// Override navigation after V23 additions
-function updateNav(){
-  const u = DB.session();
-  const c = getCart().length;
-  const links = [ ['/', 'الرئيسية'], ['/market','المنتجات'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'] ];
-  if(u?.role==='customer') links.push(['/customer','حساب العميل']);
-  if(u?.role==='vendor') links.push(['/vendor','لوحة المورد']);
-  if(u?.role==='admin' || u?.role==='staff') links.push(['/admin','الإدارة'], ['/operations','التشغيل'], ['/finance','المالية'], ['/data-center','البيانات'], ['/settings','الإعدادات']);
-  links.push(['/launch-check','الإطلاق']);
-  nav.innerHTML = links.map(([href,label])=>`<a class="${route()===href?'active':''}" href="${href}">${label}</a>`).join('') +
-    (u ? `<button id="logoutBtn">خروج</button>` : `<a class="${route()==='/login'?'active':''}" href="/login">دخول</a>`);
-  $('#logoutBtn')?.addEventListener('click',()=>{DB.clearSession(); toast('تم تسجيل الخروج.'); go('/');});
+function customerDashboard(){
+  const u=me(); if(!u || !isCustomer()) return go('/login');
+  const orders = state.orders.filter(o=>o.customer_id===u.id);
+  const rows = orders.map(o=>`<tr><td>${esc(o.id.slice(0,8))}</td><td>${badge(o.status)}</td><td>${esc(o.governorate)} - ${esc(o.district)}</td><td>${money(o.total)}</td><td>${new Date(o.created_at).toLocaleDateString('ar-EG')}</td></tr>`);
+  page('حساب العميل', `<div class="grid-3">${metric('طلباتي',orders.length)}${metric('إجمالي المشتريات',money(orders.reduce((s,o)=>s+num(o.total),0)))}${metric('الطلبات المفتوحة',orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length)}</div><div class="tabs"><button class="tab active" onclick="showPanel('orders')">طلباتي</button><button class="tab" onclick="showPanel('profile')">بياناتي</button><button class="tab" onclick="logout()">خروج</button></div><div id="panel-orders" class="panel">${table(['رقم','الحالة','العنوان','الإجمالي','التاريخ'],rows)}</div><div id="panel-profile" class="panel hidden"><div class="card"><h3>${esc(u.name)}</h3><p><b>الهاتف:</b> ${esc(u.phone)}</p><p><b>العنوان:</b> ${esc(u.governorate||'')} - ${esc(u.district||'')} - ${esc(u.address||'')}</p></div></div>`);
 }
 
-// Override render with new V23 routes while keeping original pages
-async function render(){
-  updateNav(); nav.classList.remove('open');
-  const r=route();
-  try{
-    const adminCount = await DB.countAdmins().catch(()=>1);
-    if(adminCount === 0 && ['/admin','/vendor','/customer','/cart','/operations','/finance','/settings','/data-center'].includes(r)) return setup();
-    if(r==='/') return home(); if(r==='/setup') return setup(); if(r==='/login') return loginPage();
-    if(r==='/register/customer') return customerRegister(); if(r==='/register/vendor') return vendorRegister();
-    if(r.startsWith('/product/')) return productPage(r.split('/').pop()); if(r.startsWith('/vendor-public/')) return vendorPublicPage(r.split('/').pop());
-    if(r==='/market' || r==='/products') return market(); if(r==='/vendors') return vendorsPage(); if(r==='/cart') return cartPage();
-    if(r==='/customer') return customerPage(); if(r==='/vendor') return vendorPage(); if(r==='/admin') return adminPage();
-    if(r==='/operations' || r==='/operations-center') return operationsCenter(); if(r==='/finance' || r==='/finance-center') return financeCenter();
-    if(r==='/settings' || r==='/platform-settings') return platformSettingsPage(); if(r==='/data-center' || r==='/imports') return dataCenter();
-    if(r==='/launch-check' || r==='/readiness') return launchChecklist();
-    if(r==='/support') return support(); if(r==='/policies') return policies();
-    app.innerHTML=`<div class="empty">الصفحة غير موجودة. <br><a class="btn secondary" href="/">الرجوع للرئيسية</a></div>`;
-  }catch(err){ app.innerHTML=`<section class="card"><h2>تعذر تحميل الصفحة</h2><p class="muted">${esc(err.message)}</p><div class="actions"><a class="btn secondary" href="/">الصفحة الرئيسية</a><a class="btn secondary" href="/support">الدعم</a></div></section>`; }
+function vendorDashboard(){
+  const u=me(); if(!u || !isVendor()) return go('/login');
+  const v=getVendor(u.id) || {};
+  const products=state.products.filter(p=>p.vendor_id===u.id);
+  const zones=state.vendor_delivery_zones.filter(z=>z.vendor_id===u.id);
+  const items=state.order_items.filter(i=>i.vendor_id===u.id);
+  const payments=state.commission_payments.filter(p=>p.vendor_id===u.id);
+  const sales=items.reduce((s,i)=>s+num(i.subtotal),0); const commission=items.reduce((s,i)=>s+num(i.commission_amount),0); const paid=payments.filter(p=>p.status==='approved').reduce((s,p)=>s+num(p.amount),0); const pending=payments.filter(p=>p.status==='pending').reduce((s,p)=>s+num(p.amount),0);
+  page('لوحة المورد', `${u.status==='approved'?'':notice('حساب المورد قيد المراجعة. يمكن تجهيز البيانات، ولكن لن تظهر المنتجات للعامة قبل اعتماد الإدارة.','warn')}<div class="grid-3">${metric('المبيعات',money(sales))}${metric('مستحقات المنصة',money(commission-paid))}${metric('منتجاتي',products.length)}</div><div class="tabs"><button class="tab active" onclick="showPanel('summary')">الملخص</button><button class="tab" onclick="showPanel('profile')">بيانات المورد</button><button class="tab" onclick="showPanel('zones')">مناطق التوصيل</button><button class="tab" onclick="showPanel('products')">المنتجات</button><button class="tab" onclick="showPanel('finance')">الحساب المالي</button><button class="tab" onclick="logout()">خروج</button></div><div id="panel-summary" class="panel"><div class="card"><h3>${esc(v.store_name||u.name)}</h3><p class="muted">${esc(v.description||'')}</p><p>${badge(u.status)}</p></div></div><div id="panel-profile" class="panel hidden">${vendorProfileForm(v,u)}</div><div id="panel-zones" class="panel hidden">${zoneForm()}${zonesTable(zones)}</div><div id="panel-products" class="panel hidden">${productForm()}${vendorProductsTable(products)}</div><div id="panel-finance" class="panel hidden"><div class="grid-3">${metric('إجمالي المبيعات',money(sales))}${metric('مستحقات المنصة',money(commission))}${metric('مدفوع ومعتمد',money(paid))}${metric('مدفوع قيد المراجعة',money(pending))}${metric('المتبقي',money(commission-paid))}${metric('صافي المورد',money(sales-commission))}</div>${paymentForm()}${paymentsTable(payments)}</div><div id="out"></div>`);
+  bindAllDashboardForms();
+}
+function showPanel(name){
+  qsa('.tab').forEach(b=>b.classList.remove('active'));
+  const btn = [...qsa('.tab')].find(b=>b.getAttribute('onclick')?.includes(`'${name}'`)); if(btn) btn.classList.add('active');
+  qsa('.panel').forEach(p=>p.classList.add('hidden'));
+  const el=qs('#panel-'+name); if(el) el.classList.remove('hidden');
+}
+function vendorProfileForm(v,u){
+  return `<form class="card form" id="vendorProfileForm"><h3>بيانات المورد</h3><div class="row">${input('store_name','اسم الشركة / المتجر','text',v.store_name||'','required')}${input('logo_url','رابط لوجو المورد','url',v.logo_url||'','')}${input('min_order','أقل طلب','number',v.min_order||0,'min="0"')}</div><div class="row"><div class="field"><label>المحافظة</label><select name="governorate">${govOptions(v.governorate||u.governorate)}</select></div><div class="field"><label>المركز</label><select name="district" data-selected="${esc(v.district||u.district||'')}"></select></div>${input('area','القسم / الحي','text',v.area||u.area||'','')}</div>${textarea('description','وصف المورد',v.description||'','')}<div class="row">${input('bank_name','البنك','text',v.bank_name||'','')}${input('iban','IBAN','text',v.iban||'','')}${input('wallet_number','رقم المحفظة','text',v.wallet_number||'','')}</div><button class="btn">حفظ البيانات</button></form>`;
+}
+function zoneForm(){ return `<form class="card form" id="zoneForm"><h3>إضافة منطقة توصيل</h3><div class="row"><div class="field"><label>المحافظة</label><select name="governorate">${govOptions()}</select></div><div class="field"><label>المركز</label><select name="district"></select></div>${input('area','القسم / الحي','text','كل المناطق','')}</div><div class="row">${input('delivery_fee','رسوم التوصيل','number','0','min="0"')}${input('eta_days','مدة التوصيل بالأيام','number','2','min="1"')}</div><button class="btn">حفظ منطقة التوصيل</button></form>`; }
+function zonesTable(zones){
+  return zones.length ? table(['المحافظة','المركز','القسم','رسوم','مدة','إجراء'], zones.map(z=>`<tr><td>${esc(z.governorate)}</td><td>${esc(z.district)}</td><td>${esc(z.area)}</td><td>${money(z.delivery_fee)}</td><td>${esc(z.eta_days)} يوم</td><td><button class="btn-danger" onclick="deleteZone('${esc(z.id)}')">حذف</button></td></tr>`)) : '<div class="empty">لم تضف مناطق توصيل بعد. أضف منطقة واحدة على الأقل حتى يتم قبول الطلبات.</div>';
+}
+function productForm(){
+  const cats = state.settings.categories.length ? state.settings.categories : ['أغذية','مشروبات','منظفات'];
+  return `<form class="card form" id="productForm"><h3>إضافة منتج</h3><div class="row">${input('name_ar','اسم المنتج','text','','required')}${select('category','الفئة',cats,cats[0])}${input('brand','العلامة التجارية','text','','')}${input('unit','الوحدة','text','قطعة','')}</div><div class="row">${input('retail_price','سعر القطاعي','number','0','min="0" step="0.01"')}${input('wholesale_price','سعر الجملة','number','0','min="0" step="0.01"')}${input('super_wholesale_price','سعر جملة الجملة','number','0','min="0" step="0.01"')}</div><div class="row">${input('stock','المخزون','number','0','min="0"')}${input('wholesale_min','حد الجملة','number','12','min="1"')}${input('super_wholesale_min','حد جملة الجملة','number','48','min="1"')}</div>${input('image_url','رابط صورة المنتج','url','','')}${textarea('description_ar','وصف المنتج','','')}<button class="btn">إرسال المنتج للمراجعة</button></form>`;
+}
+function vendorProductsTable(products){
+  return products.length ? table(['المنتج','الفئة','الحالة','السعر','المخزون','إجراء'], products.map(p=>`<tr><td>${esc(p.name_ar)}</td><td>${esc(p.category||'')}</td><td>${badge(p.status)}</td><td>${money(p.wholesale_price)}</td><td>${esc(p.stock)}</td><td><button class="btn-danger" onclick="deleteProduct('${esc(p.id)}')">حذف</button></td></tr>`)) : '<div class="empty">لا توجد منتجات. أضف منتج وسيظهر للإدارة للمراجعة.</div>';
+}
+function paymentForm(){
+  return `<form class="card form" id="paymentForm"><h3>تسجيل دفعة مستحقات المنصة</h3><div class="row">${input('amount','المبلغ','number','0','min="0" step="0.01"')}${select('method','طريقة الدفع',['تحويل بنكي','محفظة إلكترونية','Instapay','نقدي'],'تحويل بنكي')}${input('reference','رقم العملية / المرجع','text','','')}</div>${textarea('notes','ملاحظات','','')}<button class="btn">إرسال الدفعة للمراجعة</button></form>`;
+}
+function paymentsTable(payments){
+  return payments.length ? table(['المبلغ','الطريقة','المرجع','الحالة','التاريخ'], payments.map(p=>`<tr><td>${money(p.amount)}</td><td>${esc(p.method)}</td><td>${esc(p.reference||'')}</td><td>${badge(p.status)}</td><td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td></tr>`)) : '<div class="empty">لا توجد دفعات مسجلة.</div>';
+}
+function bindAllDashboardForms(){
+  const profile=qs('#vendorProfileForm');
+  if(profile){ bindGov(profile); profile.addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(profile)); const u=me(); const v=getVendor(u.id); Object.assign(v,{store_name:f.store_name,logo_url:f.logo_url,min_order:num(f.min_order),governorate:f.governorate,district:f.district,area:f.area,description:f.description,bank_name:f.bank_name,iban:f.iban,wallet_number:f.wallet_number}); saveState(); log('update_vendor_profile','vendors',u.id); qs('#out').innerHTML=notice('تم حفظ بيانات المورد.','ok'); }); }
+  const zone=qs('#zoneForm');
+  if(zone){ bindGov(zone); zone.addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(zone)); const exists=state.vendor_delivery_zones.some(z=>z.vendor_id===me().id && z.governorate===f.governorate && z.district===f.district && z.area===f.area); if(exists) return qs('#out').innerHTML=notice('منطقة التوصيل مسجلة بالفعل.','error'); state.vendor_delivery_zones.push({id:id(), vendor_id:me().id, governorate:f.governorate, district:f.district, area:f.area||'كل المناطق', delivery_fee:num(f.delivery_fee), eta_days:num(f.eta_days||2), is_active:true, created_at:now()}); saveState(); log('create_zone','vendor_delivery_zones',me().id); vendorDashboard(); }); }
+  const prod=qs('#productForm');
+  if(prod){ prod.addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(prod)); state.products.unshift({id:id(), vendor_id:me().id, status:state.settings.requireProductApproval?'pending':'approved', name_ar:f.name_ar, category:f.category, brand:f.brand, unit:f.unit, description_ar:f.description_ar, retail_price:num(f.retail_price), wholesale_price:num(f.wholesale_price), super_wholesale_price:num(f.super_wholesale_price), wholesale_min:num(f.wholesale_min), super_wholesale_min:num(f.super_wholesale_min), stock:num(f.stock), image_url:f.image_url, created_at:now()}); saveState(); log('create_product','products',me().id,{name:f.name_ar}); vendorDashboard(); }); }
+  const pay=qs('#paymentForm');
+  if(pay){ pay.addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(pay)); if(num(f.amount)<=0) return qs('#out').innerHTML=notice('أدخل مبلغ صحيح.','error'); state.commission_payments.unshift({id:id(), vendor_id:me().id, amount:num(f.amount), method:f.method, reference:f.reference, notes:f.notes, status:'pending', created_at:now()}); saveState(); log('create_payment','commission_payments',me().id); vendorDashboard(); }); }
+}
+function deleteZone(zoneId){ state.vendor_delivery_zones = state.vendor_delivery_zones.filter(z=>z.id!==zoneId || z.vendor_id!==me().id); saveState(); vendorDashboard(); }
+function deleteProduct(productId){ const p=state.products.find(x=>x.id===productId); if(!p || p.vendor_id!==me().id) return; if(confirm('هل تريد حذف المنتج؟')){ state.products = state.products.filter(x=>x.id!==productId); saveState(); vendorDashboard(); } }
+
+function adminDashboard(){
+  const u=me(); if(!u || !isAdmin()) return go('/login');
+  const ordersTotal = state.orders.reduce((s,o)=>s+num(o.total),0);
+  const commission = state.order_items.reduce((s,i)=>s+num(i.commission_amount),0) + state.orders.reduce((s,o)=>s+num(o.premium_fee),0);
+  const paid = state.commission_payments.filter(p=>p.status==='approved').reduce((s,p)=>s+num(p.amount),0);
+  page('لوحة الإدارة', `<div class="grid-3">${metric('المستخدمون',state.users.length)}${metric('قيمة الطلبات',money(ordersTotal))}${metric('مستحقات المنصة',money(commission-paid))}${metric('موردون قيد المراجعة',state.users.filter(x=>x.role==='vendor'&&x.status==='pending').length)}${metric('منتجات قيد المراجعة',state.products.filter(x=>x.status==='pending').length)}${metric('تذاكر دعم مفتوحة',state.support_tickets.filter(t=>t.status==='open').length)}</div><div class="tabs"><button class="tab active" onclick="showPanel('overview')">الملخص</button><button class="tab" onclick="showPanel('users')">المستخدمون</button><button class="tab" onclick="showPanel('vendors')">الموردون</button><button class="tab" onclick="showPanel('products')">المنتجات</button><button class="tab" onclick="showPanel('orders')">الطلبات</button><button class="tab" onclick="showPanel('finance')">المالية</button><button class="tab" onclick="showPanel('settings')">الإعدادات</button><button class="tab" onclick="showPanel('support')">الدعم</button><button class="tab" onclick="showPanel('data')">البيانات</button><button class="tab" onclick="logout()">خروج</button></div><div id="panel-overview" class="panel">${adminOverview()}</div><div id="panel-users" class="panel hidden">${adminUsers()}</div><div id="panel-vendors" class="panel hidden">${adminVendors()}</div><div id="panel-products" class="panel hidden">${adminProducts()}</div><div id="panel-orders" class="panel hidden">${adminOrders()}</div><div id="panel-finance" class="panel hidden">${adminFinance()}</div><div id="panel-settings" class="panel hidden">${adminSettings()}</div><div id="panel-support" class="panel hidden">${adminSupport()}</div><div id="panel-data" class="panel hidden">${adminData()}</div><div id="out"></div>`);
+  bindAdminForms();
+}
+function adminOverview(){
+  return `<div class="grid"><div class="card"><h3>جاهزية التشغيل</h3><div class="steps"><div class="step"><b>✓</b><div><strong>لا توجد بيانات جاهزة</strong><p>النظام يبدأ من الصفر، وكل شيء يتم إدخاله من خلال النماذج.</p></div></div><div class="step"><b>✓</b><div><strong>الإعدادات المالية داخل الإدارة</strong><p>نسب العمولة والسلة المميزة لا تظهر في الصفحات العامة.</p></div></div><div class="step"><b>✓</b><div><strong>مراجعة قبل النشر</strong><p>اعتماد المورد والمنتج قبل الظهور في السوق.</p></div></div></div></div><div class="card"><h3>تدفق العمل</h3><p class="muted">مورد يسجل ← الإدارة تعتمد المورد ← المورد يضيف مناطق ومنتجات ← الإدارة تعتمد المنتجات ← العميل يطلب ← النظام يتحقق من التغطية ← الطلب يدخل التشغيل والمالية.</p></div></div>`;
+}
+function adminUsers(){
+  return table(['الاسم','الدور','الهاتف','الحالة','تاريخ','إجراء'], state.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.role)}</td><td>${esc(u.phone)}</td><td>${badge(u.status)}</td><td>${new Date(u.created_at).toLocaleDateString('ar-EG')}</td><td class="inline-actions"><button class="btn-ok" onclick="setUserStatus('${esc(u.id)}','approved')">اعتماد</button><button class="btn-warn" onclick="setUserStatus('${esc(u.id)}','suspended')">إيقاف</button><button class="btn-danger" onclick="setUserStatus('${esc(u.id)}','rejected')">رفض</button></td></tr>`));
+}
+function adminVendors(){
+  const rows = state.vendors.map(v=>{ const u=getUser(v.user_id)||{}; const zones=state.vendor_delivery_zones.filter(z=>z.vendor_id===v.user_id).length; const prods=state.products.filter(p=>p.vendor_id===v.user_id).length; return `<tr><td>${esc(v.store_name)}</td><td>${esc(u.name||'')}</td><td>${esc(u.phone||'')}</td><td>${badge(u.status)}</td><td>${esc(zones)}</td><td>${esc(prods)}</td><td class="inline-actions"><button class="btn-ok" onclick="setUserStatus('${esc(v.user_id)}','approved')">اعتماد</button><button class="btn-danger" onclick="setUserStatus('${esc(v.user_id)}','rejected')">رفض</button><button class="btn3" onclick="go('/vendor-page/${esc(v.user_id)}')">عرض</button></td></tr>`; });
+  return `<div class="card"><h3>إدارة الموردين</h3><p class="muted">المورد غير المعتمد لا يظهر في صفحة الموردين ولا تظهر منتجاته في السوق.</p></div>${table(['المورد','المسؤول','الهاتف','الحالة','مناطق','منتجات','إجراء'],rows)}`;
+}
+function adminProducts(){
+  const rows = state.products.map(p=>{ const v=getVendor(p.vendor_id)||{}; return `<tr><td>${esc(p.name_ar)}</td><td>${esc(v.store_name||'')}</td><td>${esc(p.category||'')}</td><td>${badge(p.status)}</td><td>${money(p.wholesale_price)}</td><td>${esc(p.stock)}</td><td class="inline-actions"><button class="btn-ok" onclick="setProductStatus('${esc(p.id)}','approved')">اعتماد</button><button class="btn-danger" onclick="setProductStatus('${esc(p.id)}','rejected')">رفض</button></td></tr>`; });
+  return table(['المنتج','المورد','الفئة','الحالة','سعر الجملة','المخزون','إجراء'], rows);
+}
+function adminOrders(){
+  const rows = state.orders.map(o=>{ const u=getUser(o.customer_id)||{}; return `<tr><td>${esc(o.id.slice(0,8))}</td><td>${esc(u.name||'')}</td><td>${badge(o.status)}</td><td>${esc(o.governorate)} - ${esc(o.district)}</td><td>${money(o.total)}</td><td>${new Date(o.created_at).toLocaleDateString('ar-EG')}</td><td><select onchange="setOrderStatus('${esc(o.id)}',this.value)"><option value="new" ${o.status==='new'?'selected':''}>جديد</option><option value="confirmed" ${o.status==='confirmed'?'selected':''}>مؤكد</option><option value="preparing" ${o.status==='preparing'?'selected':''}>قيد التجهيز</option><option value="shipped" ${o.status==='shipped'?'selected':''}>تم الشحن</option><option value="delivered" ${o.status==='delivered'?'selected':''}>تم التسليم</option><option value="cancelled" ${o.status==='cancelled'?'selected':''}>ملغي</option></select></td></tr>`; });
+  return table(['رقم','العميل','الحالة','العنوان','الإجمالي','التاريخ','تحديث'], rows);
+}
+function vendorBalance(vendorId){
+  const items=state.order_items.filter(i=>i.vendor_id===vendorId);
+  const payments=state.commission_payments.filter(p=>p.vendor_id===vendorId);
+  const sales=items.reduce((s,i)=>s+num(i.subtotal),0); const commission=items.reduce((s,i)=>s+num(i.commission_amount),0); const paid=payments.filter(p=>p.status==='approved').reduce((s,p)=>s+num(p.amount),0); const pending=payments.filter(p=>p.status==='pending').reduce((s,p)=>s+num(p.amount),0);
+  return {sales,commission,paid,pending,remaining:commission-paid,vendorNet:sales-commission};
+}
+function adminFinance(){
+  const vendorRows = state.vendors.map(v=>{ const b=vendorBalance(v.user_id); return `<tr><td>${esc(v.store_name)}</td><td>${money(b.sales)}</td><td>${money(b.commission)}</td><td>${money(b.paid)}</td><td>${money(b.pending)}</td><td>${money(b.remaining)}</td><td>${money(b.vendorNet)}</td></tr>`; });
+  const payRows = state.commission_payments.map(p=>{ const v=getVendor(p.vendor_id)||{}; return `<tr><td>${esc(v.store_name||p.vendor_id.slice(0,8))}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td><td>${esc(p.reference||'')}</td><td>${badge(p.status)}</td><td class="inline-actions"><button class="btn-ok" onclick="setPaymentStatus('${esc(p.id)}','approved')">اعتماد</button><button class="btn-danger" onclick="setPaymentStatus('${esc(p.id)}','rejected')">رفض</button></td></tr>`; });
+  return `<div class="card"><h3>الإعدادات المالية الإدارية</h3><p class="muted">هذه الإعدادات داخل الإدارة فقط ولا تظهر في الصفحات العامة للموردين أو العملاء.</p><div class="action-row"><button class="btn3" onclick="showPanel('settings')">تعديل الإعدادات</button><button class="btn2" onclick="exportCSV('vendor_balances')">تصدير أرصدة الموردين CSV</button></div></div><h2>أرصدة الموردين</h2>${table(['المورد','مبيعات','مستحق المنصة','مدفوع','قيد المراجعة','متبقي','صافي المورد'],vendorRows)}<h2>دفعات الموردين</h2>${table(['المورد','المبلغ','الطريقة','المرجع','الحالة','إجراء'],payRows)}`;
+}
+function adminSettings(){
+  return `<form class="card form" id="settingsForm"><h3>إعدادات المنصة</h3><div class="row">${input('platformName','اسم المنصة','text',state.settings.platformName,'required')}${input('supportPhone','رقم الدعم','tel',state.settings.supportPhone,'')}${input('supportWhatsapp','واتساب','tel',state.settings.supportWhatsapp,'')}${input('supportEmail','البريد','email',state.settings.supportEmail,'')}</div><div class="row">${input('defaultCommissionPercent','نسبة مستحق المنصة %','number',state.settings.defaultCommissionPercent,'min="0" step="0.01"')}${input('premiumCartPercent','رسوم السلة المميزة %','number',state.settings.premiumCartPercent,'min="0" step="0.01"')}${input('currency','العملة','text',state.settings.currency,'')}</div>${textarea('categories','الفئات - كل فئة في سطر',state.settings.categories.join('\n'),'')}<button class="btn">حفظ الإعدادات</button></form>`;
+}
+function adminSupport(){
+  const rows = state.support_tickets.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.phone)}</td><td>${esc(t.subject)}</td><td>${badge(t.status)}</td><td>${new Date(t.created_at).toLocaleDateString('ar-EG')}</td><td><button class="btn-ok" onclick="closeTicket('${esc(t.id)}')">إغلاق</button></td></tr>`);
+  return table(['الاسم','الهاتف','الموضوع','الحالة','التاريخ','إجراء'], rows);
+}
+function adminData(){
+  return `<div class="grid"><div class="card"><h3>تصدير البيانات</h3><p class="muted">احتفظ بنسخة من البيانات المدخلة من المتصفح.</p><div class="action-row"><button class="btn" onclick="exportJSON()">تصدير JSON</button><button class="btn2" onclick="exportCSV('products')">منتجات CSV</button><button class="btn2" onclick="exportCSV('orders')">طلبات CSV</button><button class="btn2" onclick="exportCSV('users')">مستخدمون CSV</button></div></div><div class="card"><h3>استيراد نسخة JSON</h3><p class="muted">استخدم ملف تم تصديره سابقاً من نفس النسخة.</p><input type="file" id="importFile" accept="application/json"><button class="btn3" onclick="importJSON()">استيراد</button></div><div class="card"><h3>سجل العمليات</h3>${table(['العملية','الكيان','التاريخ'], state.audit_logs.slice(0,20).map(l=>`<tr><td>${esc(l.action)}</td><td>${esc(l.entity_type)}</td><td>${new Date(l.created_at).toLocaleString('ar-EG')}</td></tr>`))}</div></div>`;
+}
+function bindAdminForms(){
+  const f=qs('#settingsForm');
+  if(f){ f.addEventListener('submit', e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(f)); Object.assign(state.settings,{platformName:data.platformName,supportPhone:data.supportPhone,supportWhatsapp:data.supportWhatsapp,supportEmail:data.supportEmail,currency:data.currency,defaultCommissionPercent:num(data.defaultCommissionPercent),premiumCartPercent:num(data.premiumCartPercent),categories:data.categories.split(/\n|,/).map(x=>x.trim()).filter(Boolean)}); saveState(); log('update_settings','platform_settings','general'); qs('#out').innerHTML=notice('تم حفظ الإعدادات.','ok'); }); }
+}
+function setUserStatus(userId,status){ const u=getUser(userId); if(!u) return; u.status=status; saveState(); log('set_user_status','users',userId,{status}); adminDashboard(); }
+function setProductStatus(productId,status){ const p=state.products.find(x=>x.id===productId); if(!p) return; p.status=status; saveState(); log('set_product_status','products',productId,{status}); adminDashboard(); }
+function setOrderStatus(orderId,status){ const o=state.orders.find(x=>x.id===orderId); if(!o) return; o.status=status; if(status==='delivered') o.payment_status='paid'; saveState(); log('set_order_status','orders',orderId,{status}); adminDashboard(); }
+function setPaymentStatus(paymentId,status){ const p=state.commission_payments.find(x=>x.id===paymentId); if(!p) return; p.status=status; saveState(); log('set_payment_status','commission_payments',paymentId,{status}); adminDashboard(); }
+function closeTicket(ticketId){ const t=state.support_tickets.find(x=>x.id===ticketId); if(t){t.status='closed'; saveState(); adminDashboard();} }
+
+function supportPage(){
+  page('الدعم', `<div class="grid-2"><form class="card form" id="ticketForm"><h3>فتح تذكرة دعم</h3>${input('name','الاسم','text',me()?.name||'','required')}${input('phone','رقم الهاتف','tel',me()?.phone||'','required')}${input('subject','الموضوع','text','','required')}${textarea('message','الرسالة','','required')}<button class="btn">إرسال التذكرة</button><div id="out"></div></form><div class="card"><h3>بيانات التواصل</h3><p><b>الهاتف:</b> ${esc(state.settings.supportPhone)}</p><p><b>واتساب:</b> ${esc(state.settings.supportWhatsapp)}</p><p><b>البريد:</b> ${esc(state.settings.supportEmail)}</p><p class="muted">تظهر التذاكر داخل لوحة الإدارة للمراجعة والإغلاق.</p></div></div>`);
+  qs('#ticketForm').addEventListener('submit', e=>{ e.preventDefault(); const f=Object.fromEntries(new FormData(e.target)); state.support_tickets.unshift({id:id(), user_id:me()?.id||null, name:f.name, phone:f.phone, subject:f.subject, message:f.message, status:'open', created_at:now()}); saveState(); qs('#out').innerHTML=notice('تم إرسال التذكرة للإدارة.','ok'); e.target.reset(); });
+}
+function howPage(){ page('كيف تعمل المنصة؟', `<div class="grid"><div class="card"><div class="icon">1</div><h3>تسجيل المورد</h3><p class="muted">المورد يدخل بيانات الشركة ومناطق التغطية والمنتجات.</p></div><div class="card"><div class="icon">2</div><h3>اعتماد الإدارة</h3><p class="muted">الإدارة تراجع المورد والمنتجات قبل الظهور للعامة.</p></div><div class="card"><div class="icon">3</div><h3>طلب العميل</h3><p class="muted">العميل يختار المنتجات، والمنصة تتحقق من التغطية قبل تأكيد الطلب.</p></div><div class="card"><div class="icon">4</div><h3>التشغيل والمالية</h3><p class="muted">متابعة الحالة، الشحن، التسليم، المدفوعات، ومستحقات المنصة من الإدارة.</p></div></div>`); }
+function policiesPage(){ page('السياسات', `<div class="grid"><div class="card"><h3>شروط الاستخدام</h3><p class="muted">استخدام المنصة مشروط بصحة بيانات الحساب والعنوان والالتزام بسياسات البيع والتوريد.</p></div><div class="card"><h3>سياسة الموردين</h3><p class="muted">لا يتم نشر المورد أو المنتجات إلا بعد مراجعة الإدارة واعتمادها.</p></div><div class="card"><h3>سياسة الطلبات</h3><p class="muted">لا يتم تأكيد الطلب إذا لم تكن منطقة العميل ضمن مناطق تغطية المورد.</p></div><div class="card"><h3>سياسة الخصوصية</h3><p class="muted">بيانات المستخدمين محفوظة داخل تخزين المنصة. عند الربط بقاعدة بيانات يتم تطبيق صلاحيات الوصول المناسبة.</p></div></div>`); }
+function aboutPage(){ page('عن Tager', `<div class="card"><h3>منصة تجارة وتوريد وربط</h3><p class="muted">Tager مصممة لتشغيل سوق توريد منظم بين الموردين والعملاء مع إدارة داخلية للمالية والتشغيل والاعتماد.</p></div>`); }
+function logout(){ clearSession(); go('/login'); }
+
+function download(filename, content, type='text/plain;charset=utf-8'){
+  const blob = new Blob([content], {type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function exportJSON(){ download(`tager-v25-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2), 'application/json'); }
+function importJSON(){
+  const file = qs('#importFile')?.files?.[0]; if(!file) return alert('اختر ملف JSON أولاً.');
+  const reader = new FileReader(); reader.onload = () => { try{ const data=JSON.parse(reader.result); if(!data || !data.settings || !Array.isArray(data.users)) throw new Error('ملف غير صحيح'); state={...DEFAULT_STATE(), ...data, settings:{...DEFAULT_STATE().settings, ...(data.settings||{})}}; saveState(); alert('تم الاستيراد بنجاح.'); adminDashboard(); }catch(e){ alert('تعذر استيراد الملف: '+e.message); } }; reader.readAsText(file);
+}
+function csvValue(v){ return `"${String(v??'').replace(/"/g,'""')}"`; }
+function toCSV(rows){ if(!rows.length) return ''; const keys=Object.keys(rows[0]); return [keys.map(csvValue).join(','), ...rows.map(r=>keys.map(k=>csvValue(r[k])).join(','))].join('\n'); }
+function exportCSV(type){
+  let rows=[];
+  if(type==='products') rows = state.products.map(p=>({id:p.id,name:p.name_ar,vendor:getVendor(p.vendor_id)?.store_name||'',status:p.status,category:p.category,retail_price:p.retail_price,wholesale_price:p.wholesale_price,stock:p.stock}));
+  if(type==='orders') rows = state.orders.map(o=>({id:o.id,customer:getUser(o.customer_id)?.name||'',status:o.status,total:o.total,governorate:o.governorate,district:o.district,created_at:o.created_at}));
+  if(type==='users') rows = state.users.map(u=>({id:u.id,name:u.name,role:u.role,phone:u.phone,status:u.status,created_at:u.created_at}));
+  if(type==='vendor_balances') rows = state.vendors.map(v=>({vendor:v.store_name,...vendorBalance(v.user_id)}));
+  download(`tager-${type}-${new Date().toISOString().slice(0,10)}.csv`, '\ufeff'+toCSV(rows), 'text/csv;charset=utf-8');
 }
 
-document.addEventListener('click', e=>{ const a=e.target.closest('a[href^="/"]'); if(a){ e.preventDefault(); go(a.getAttribute('href')); } });
-window.addEventListener('popstate', render);
-$('#menuBtn').onclick=()=>nav.classList.toggle('open');
-render();
-
-/* ============================================================
-   V24 Full Audit Fixes
-   - Official logo fixed in header/footer/invoice/app icons
-   - Supplier registration no longer exposes platform commission fields
-   - Public pages completed with professional empty states instead of blank pages
-   - Admin-only financial settings grouped clearly inside settings/admin areas
-   ============================================================ */
-const TAGER_VERSION_V24 = 'V24 Enterprise Full Page Audit';
-
-function v24EmptyState(title, text, actions=[], steps=[]){
-  return `<section class="emptyState"><h3>${esc(title)}</h3><p>${esc(text)}</p>${actions.length?`<div class="emptyActions">${actions.map(a=>`<a class="btn ${a.secondary?'secondary':'light'}" href="${a.href}">${esc(a.label)}</a>`).join('')}</div>`:''}${steps.length?`<div class="miniProcess">${steps.map((s,i)=>`<div><b>${(i+1).toLocaleString('ar-EG')}</b><span>${esc(s)}</span></div>`).join('')}</div>`:''}</section>`;
+function route(){
+  updateShell();
+  const p = location.pathname.replace(/\/$/,'') || '/';
+  if(p==='/') return home();
+  if(p==='/setup') return setup();
+  if(p==='/login') return login();
+  if(p==='/logout') return logout();
+  if(p==='/register/customer') return register('customer');
+  if(p==='/register/vendor') return register('vendor');
+  if(p==='/products' || p==='/market') return productsPage();
+  if(p==='/vendors') return vendorsPage();
+  if(p.startsWith('/vendor-page/')) return vendorPublicPage(decodeURIComponent(p.split('/').pop()));
+  if(p==='/cart') return cartPage();
+  if(p==='/checkout') return checkoutPage();
+  if(p==='/customer') return customerDashboard();
+  if(p==='/vendor') return vendorDashboard();
+  if(p==='/admin') return adminDashboard();
+  if(p==='/support') return supportPage();
+  if(p==='/how') return howPage();
+  if(p==='/policies') return policiesPage();
+  if(p==='/about') return aboutPage();
+  return home();
 }
 
-function v24LogoShowcase(){
-  return `<section class="card"><h3>الهوية الرسمية للمنصة</h3><div class="logoShowcase"><img class="logoFull" src="/assets/tager-logo-full.png" alt="Tager"><img class="logoIcon" src="/assets/tager-logo-icon.png" alt="Tager Icon"><p class="muted">تم ضبط اللوجو الرسمي في الهيدر، الفوتر، أيقونة التطبيق، الفاتورة، وصفحات التشغيل.</p></div></section>`;
-}
+window.go = go;
+window.logout = logout;
+window.addToCart = addToCart;
+window.removeCart = removeCart;
+window.setCartQty = setCartQty;
+window.showPanel = showPanel;
+window.deleteZone = deleteZone;
+window.deleteProduct = deleteProduct;
+window.setUserStatus = setUserStatus;
+window.setProductStatus = setProductStatus;
+window.setOrderStatus = setOrderStatus;
+window.setPaymentStatus = setPaymentStatus;
+window.closeTicket = closeTicket;
+window.exportJSON = exportJSON;
+window.importJSON = importJSON;
+window.exportCSV = exportCSV;
 
-async function home(){
-  let summary = {vendors:[],products:[],orders:[]};
-  let settings = DEFAULT_PLATFORM_SETTINGS;
-  try{ settings = await getPlatformSettings(); }catch{}
-  try{ summary = await DB.adminSummary(); }catch{}
-  const totalOrders = summary.orders?.reduce((s,o)=>s+Number(o.total||0),0)||0;
-  const deliveredOrders = summary.orders?.filter(o=>o.status==='delivered').length||0;
-  const approvedVendors = summary.vendors?.filter(v=>v.status==='approved').length||0;
-  const approvedProducts = summary.products?.filter(p=>p.status==='approved').length||0;
-  app.innerHTML = `
-    <section class="hero">
-      <div class="heroPanel">
-        <span class="eyebrow">منصة تجارة وتوريد بتشغيل منظم</span>
-        <h1>${esc(settings.home_headline || 'رحلة شراء وتوريد راقية من أول اختيار المورد حتى إقفال الحسابات')}</h1>
-        <p>واجهة موحدة لإدارة السوق، الموردين، المنتجات، مناطق التوصيل، الطلبات، السداد، التقارير، ومتابعة التشغيل اليومي بدون أي بيانات تجريبية إجبارية.</p>
-        <div class="actions">
-          <a class="btn" href="/market">استعراض المنتجات</a>
-          <a class="btn secondary" href="/register/vendor">تسجيل مورد</a>
-          <a class="btn light" href="/support">الدعم</a>
-        </div>
-      </div>
-      <div class="heroSide card dashboardPreview">
-        <div class="previewTop"><div><span>مركز التشغيل</span><b>Tager</b></div><span class="pill ok">جاهز للإدارة</span></div>
-        <div class="previewMini">
-          <div><span>قيمة الطلبات</span><strong>${fmt(totalOrders)}</strong></div>
-          <div><span>طلبات تم تسليمها</span><strong>${deliveredOrders.toLocaleString('ar-EG')}</strong></div>
-          <div><span>موردون معتمدون</span><strong>${approvedVendors.toLocaleString('ar-EG')}</strong></div>
-          <div><span>منتجات متاحة</span><strong>${approvedProducts.toLocaleString('ar-EG')}</strong></div>
-        </div>
-        <div class="processLine">
-          <div><i>1</i><p><b>اختيار عنوان العميل</b><br><span class="muted">المحافظة والمركز والقسم قبل الطلب.</span></p></div>
-          <div><i>2</i><p><b>فحص تغطية المورد</b><br><span class="muted">لا يتم الإرسال إذا كانت المنطقة غير مغطاة.</span></p></div>
-          <div><i>3</i><p><b>تسليم ثم إقفال مالي</b><br><span class="muted">المستحقات تظهر للإدارة بعد إتمام التشغيل.</span></p></div>
-        </div>
-      </div>
-    </section>
-    <section class="statGrid">
-      <div class="stat"><b>${approvedVendors.toLocaleString('ar-EG')}</b><span>مورد معتمد</span></div>
-      <div class="stat"><b>${approvedProducts.toLocaleString('ar-EG')}</b><span>منتج متاح</span></div>
-      <div class="stat"><b>${(summary.orders?.length||0).toLocaleString('ar-EG')}</b><span>طلب مسجل</span></div>
-      <div class="stat"><b>${fmt(totalOrders)}</b><span>قيمة الطلبات</span></div>
-    </section>
-    <section class="sectionTitle"><div><h2>صفحات المنصة مكتملة</h2><p>الصفحات العامة، صفحات الحسابات، ولوحات الإدارة موجودة كمسار تشغيل واضح.</p></div></section>
-    <div class="grid three">
-      <div class="card featureCard"><h3>السوق والمنتجات</h3><p class="muted">بحث، فلترة، تفاصيل المنتج، المورد، الأسعار، المخزون، وإضافة للسلة.</p></div>
-      <div class="card featureCard"><h3>الموردون</h3><p class="muted">قائمة موردين، صفحة مورد، مناطق تغطية، حد طلب، واعتماد إداري قبل الظهور.</p></div>
-      <div class="card featureCard"><h3>السلة وإتمام الطلب</h3><p class="muted">فحص تلقائي للتغطية، رسوم التوصيل، منع أخطاء العنوان، وطباعة فاتورة.</p></div>
-      <div class="card featureCard"><h3>لوحة العميل</h3><p class="muted">طلبات العميل، السداد، حالة التوصيل، وفواتير الطلبات.</p></div>
-      <div class="card featureCard"><h3>لوحة المورد</h3><p class="muted">إضافة منتجات، مخزون، مناطق توصيل، طلبات، وتسويات مالية.</p></div>
-      <div class="card featureCard"><h3>لوحة الإدارة</h3><p class="muted">اعتماد الموردين والمنتجات، الطلبات، التوصيل، العملاء، الدعم، وفريق الإدارة.</p></div>
-    </div>
-    <section class="sectionTitle"><div><h2>مراكز الإدارة المتقدمة</h2><p>كل شيء إداري ومالي في صفحات الإدارة فقط.</p></div></section>
-    <div class="grid four">
-      <div class="card featureCard"><h3>مركز التشغيل</h3><p class="muted">طلبات مفتوحة، مخزون منخفض، توصيلات، تذاكر دعم، وفحص يومي.</p></div>
-      <div class="card featureCard"><h3>المركز المالي</h3><p class="muted">مستحقات الموردين، التحصيل، التسويات، أعمار المديونية، والتصدير.</p></div>
-      <div class="card featureCard"><h3>مركز البيانات</h3><p class="muted">قوالب CSV، استيراد منتجات، استيراد مناطق التوصيل، وتصدير شامل.</p></div>
-      <div class="card featureCard"><h3>إعدادات المنصة</h3><p class="muted">الدعم، طرق الدفع، التصنيفات، الشحن، والإعدادات المالية بصلاحية الإدارة.</p></div>
-    </div>
-    ${v24LogoShowcase()}`;
-}
-
-async function vendorRegister(){
-  let st=DEFAULT_PLATFORM_SETTINGS;
-  try{ st=await getPlatformSettings(); }catch{}
-  app.innerHTML = `<section class="pageHero"><h2>تسجيل مورد</h2><p>سجل بيانات المتجر ومناطق التغطية. الإعدادات المالية الخاصة بالمنصة يتم تحديدها من الإدارة فقط بعد مراجعة الطلب.</p></section>
-  <section class="card"><form id="vendorForm" class="form"><div class="grid two">
-    <div class="field"><label>اسم المسؤول</label><input name="owner_name" required></div>
-    <div class="field"><label>اسم المتجر</label><input name="store_name" required></div>
-    <div class="field"><label>رقم الهاتف</label><input name="phone" required></div>
-    <div class="field"><label>البريد</label><input name="email" type="email"></div>
-    <div class="field"><label>كلمة المرور</label><input name="password" type="password" minlength="8" required></div>
-    <div class="field"><label>السجل التجاري</label><input name="commercial_register"></div>
-    <div class="field"><label>الرقم الضريبي</label><input name="tax_number"></div>
-    <div class="field"><label>الحد الأدنى المتوقع للطلب</label><input name="min_order" type="number" value="${Number(st.default_min_order||0)}"></div>
-    <div class="field"><label>المحافظة</label><select name="governorate" data-gov>${govOptions()}</select></div>
-    <div class="field"><label>المركز</label><select name="district" data-district></select></div>
-    <div class="field"><label>القسم / الحي</label><select name="area" data-area></select></div>
-    <div class="field"><label>العنوان</label><input name="address"></div>
-    <div class="field"><label>اسم البنك</label><input name="bank_name"></div>
-    <div class="field"><label>IBAN / رقم الحساب</label><input name="iban"></div>
-    <input type="hidden" name="commission_percent" value="${Number(st.default_commission_percent||1.5)}">
-    <input type="hidden" name="premium_cart_percent" value="${Number(st.default_premium_cart_percent||1.5)}">
-  </div><div class="field"><label>نبذة عن المورد والمواد التي يوفرها</label><textarea name="description"></textarea></div>
-  <div class="auditBanner"><h3>مراجعة الإدارة</h3><p>بعد الإرسال ستراجع الإدارة بيانات المورد والمستندات ومناطق التغطية، ثم تحدد الإعدادات المالية الداخلية من لوحة الإدارة فقط.</p></div>
-  <button class="btn">إرسال طلب الانضمام</button></form></section>`;
-  bindAddressSelectors();
-  $('#vendorForm').addEventListener('submit', async e=>{e.preventDefault(); try{ await DB.registerVendor(formData(e.target)); toast('تم إرسال طلب المورد للإدارة.'); go('/login'); }catch(err){toast(err.message);} });
-}
-
-async function vendorsPage(){
-  let vs=[]; try{vs=await DB.vendors('approved')}catch(err){toast(err.message)}
-  const content = vs.length ? vs.map(v=>`<article class="card vendorPro"><div class="vendorCover">${vendorLogo(v)}</div><h3>${esc(v.store_name)}</h3><p class="muted">${esc(v.description||'')}</p><div class="badgeList">${zoneChips(v.delivery_zones,6)}</div><p>الحد الأدنى: <b>${fmt(v.min_order)}</b></p><a class="btn secondary" href="/vendor-public/${esc(v.id)}">عرض صفحة المورد</a></article>`).join('') : v24EmptyState('لا يوجد موردون معتمدون حالياً','الصفحة مكتملة، وستظهر هنا بطاقات الموردين فور اعتمادهم من لوحة الإدارة. لا يتم عرض مورد غير مراجع أو غير معتمد.',[{label:'تسجيل مورد جديد',href:'/register/vendor'},{label:'الدعم',href:'/support',secondary:true}],['تسجيل المورد','مراجعة الإدارة','تحديد مناطق التغطية','ظهور المورد في السوق']);
-  app.innerHTML = `<section class="pageHero"><h2>الموردون</h2><p>قائمة الموردين المعتمدين ومناطق التغطية وصفحة مستقلة لكل مورد.</p></section><section class="card"><div class="grid four"><div class="field"><label>بحث باسم المورد</label><input id="vendorSearch" placeholder="اسم المورد"></div><div class="field"><label>المحافظة</label><select id="vendorGov"><option value="">كل المحافظات</option>${govOptions()}</select></div><div class="field"><label>المركز</label><select id="vendorDistrict"><option value="">كل المراكز</option></select></div><div class="field"><label>الحالة</label><input value="موردون معتمدون فقط" disabled></div></div></section><div id="vendorsGrid" class="grid three" style="margin-top:16px">${content}</div>`;
-  const draw=()=>{ if(!vs.length) return; const q=$('#vendorSearch').value.trim(); const g=$('#vendorGov').value; const d=$('#vendorDistrict').value; const filtered=vs.filter(v=>{ const okQ=!q || String(v.store_name||'').includes(q); const zones=v.delivery_zones||[]; const okG=!g || zones.some(z=>z.governorate===g && (!d || z.district===d)); return okQ && okG; }); $('#vendorsGrid').innerHTML=filtered.length?filtered.map(v=>`<article class="card vendorPro"><div class="vendorCover">${vendorLogo(v)}</div><h3>${esc(v.store_name)}</h3><p class="muted">${esc(v.description||'')}</p><div class="badgeList">${zoneChips(v.delivery_zones,6)}</div><p>الحد الأدنى: <b>${fmt(v.min_order)}</b></p><a class="btn secondary" href="/vendor-public/${esc(v.id)}">عرض صفحة المورد</a></article>`).join(''):v24EmptyState('لا توجد نتيجة مطابقة','غيّر البحث أو المحافظة لعرض موردين آخرين.'); };
-  $('#vendorGov')?.addEventListener('change',()=>{$('#vendorDistrict').innerHTML='<option value="">كل المراكز</option>'+districtOptions($('#vendorGov').value); draw();});
-  $('#vendorSearch')?.addEventListener('input',draw); $('#vendorDistrict')?.addEventListener('change',draw);
-}
-
-async function market(){
-  let products=[]; try{products=await DB.products('approved')}catch(err){toast(err.message)}
-  app.innerHTML = `<section class="pageHero"><h2>المنتجات</h2><p>تصفح المنتجات حسب المورد والمنطقة ونوع السعر. لا يظهر أي منتج إلا بعد اعتماد الإدارة.</p></section><section class="card"><div class="grid four"><div class="field"><label>بحث</label><input id="q" placeholder="اسم المنتج أو المورد"></div><div class="field"><label>المحافظة</label><select id="fg"><option value="">كل المحافظات</option>${govOptions()}</select></div><div class="field"><label>المركز</label><select id="fd"><option value="">كل المراكز</option></select></div><div class="field"><label>نوع السعر</label><select id="tier"><option value="retail">قطاعي</option><option value="wholesale">جملة</option><option value="bulk">جملة الجملة</option></select></div></div></section><div id="productGrid" class="grid three" style="margin-top:16px"></div>
-  <section class="sectionTitle"><div><h2>طريقة الشراء</h2><p>المنصة لا تسمح بإرسال طلب غير قابل للتوصيل.</p></div></section><div class="grid three"><div class="card featureCard"><h3>اختيار المنتج</h3><p class="muted">اختر المنتج والكمية ونوع السعر المناسب.</p></div><div class="card featureCard"><h3>فحص المنطقة</h3><p class="muted">يتم فحص تغطية المورد قبل إتمام الطلب.</p></div><div class="card featureCard"><h3>إرسال الطلب</h3><p class="muted">بعد الفحص تظهر التكاليف النهائية للعميل.</p></div></div>`;
-  $('#fg').addEventListener('change',()=>{$('#fd').innerHTML='<option value="">كل المراكز</option>'+districtOptions($('#fg').value); draw();});
-  ['q','fd','tier'].forEach(id=>$('#'+id).addEventListener('input',draw));
-  function draw(){
-    const q=$('#q').value.trim(); const g=$('#fg').value; const d=$('#fd').value; const tier=$('#tier').value;
-    const filtered=products.filter(p=>{ const okQ=!q || `${p.name_ar} ${p.name_en||''} ${p.vendors?.store_name||''}`.includes(q); const zones=p.vendors?.delivery_zones||[]; const okG=!g || zones.some(z=>z.governorate===g && (!d || z.district===d)); return okQ && okG; });
-    $('#productGrid').innerHTML = filtered.length ? filtered.map(p=>productCard(p,tier)).join('') : v24EmptyState('لا توجد منتجات معتمدة حالياً','الصفحة مكتملة، وستظهر المنتجات هنا بعد تسجيل الموردين وإضافة المنتجات واعتمادها من الإدارة. لا توجد بيانات تجريبية داخل التشغيل.',[{label:'تسجيل مورد',href:'/register/vendor'},{label:'الدعم',href:'/support',secondary:true}],['إضافة المنتج من المورد','مراجعة الإدارة','اعتماد المنتج','ظهوره للعميل']);
-    document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addCart(products.find(p=>p.id===b.dataset.add)));
-  } draw();
-}
-
-async function platformSettingsPage(){
-  if(!isAdminLike()) return adminGateIntro('إعدادات المنصة');
-  const st=await getPlatformSettings();
-  app.innerHTML=`<section class="pageHero"><h2>إعدادات المنصة</h2><p>صفحة إدارية فقط: بيانات الدعم، طرق الدفع، التصنيفات، الشحن، والإعدادات المالية الداخلية.</p></section>
-  <section class="card"><span class="adminOnlyBadge">إعدادات مالية وإدارية - للإدارة فقط</span><form id="settingsForm" class="form">
-  <div class="settingsGroup"><h3>الهوية والدعم</h3><div class="grid three">
-    <div class="field"><label>هاتف الطلبات</label><input name="support_phone_orders" value="${esc(st.support_phone_orders)}"></div>
-    <div class="field"><label>هاتف الموردين</label><input name="support_phone_vendors" value="${esc(st.support_phone_vendors)}"></div>
-    <div class="field"><label>هاتف المالية</label><input name="support_phone_finance" value="${esc(st.support_phone_finance)}"></div>
-    <div class="field"><label>واتساب</label><input name="whatsapp" value="${esc(st.whatsapp)}"></div>
-    <div class="field"><label>اسم البنك</label><input name="bank_name" value="${esc(st.bank_name)}"></div>
-    <div class="field"><label>IBAN</label><input name="iban" value="${esc(st.iban)}"></div>
-  </div>${v24LogoShowcase()}</div>
-  <div class="settingsGroup"><h3>الإعدادات المالية الداخلية</h3><div class="grid four">
-    <div class="field"><label>النسبة الافتراضية للمنصة %</label><input name="default_commission_percent" type="number" step="0.1" value="${esc(st.default_commission_percent)}"></div>
-    <div class="field"><label>السلة المميزة %</label><input name="default_premium_cart_percent" type="number" step="0.1" value="${esc(st.default_premium_cart_percent)}"></div>
-    <div class="field"><label>حد الطلب الافتراضي</label><input name="default_min_order" type="number" value="${esc(st.default_min_order)}"></div>
-    <div class="field"><label>حد الشحن المجاني</label><input name="free_shipping_threshold" type="number" value="${esc(st.free_shipping_threshold)}"></div>
-  </div><p class="muted">هذه الحقول لا تظهر في نموذج تسجيل المورد، وتستخدم داخلياً داخل الإدارة والمالية فقط.</p></div>
-  <div class="settingsGroup"><h3>محتوى المنصة</h3><div class="field"><label>عنوان الصفحة الرئيسية</label><textarea name="home_headline">${esc(st.home_headline)}</textarea></div><div class="grid two"><div class="field"><label>التصنيفات - كل سطر تصنيف</label><textarea name="categories">${esc(arrayToLines(st.categories))}</textarea></div><div class="field"><label>طرق الدفع - كل سطر طريقة</label><textarea name="payment_methods">${esc(arrayToLines(st.payment_methods))}</textarea></div></div></div>
-  <button class="btn">حفظ الإعدادات</button><button type="button" class="btn secondary" id="resetSettings">استرجاع الافتراضي</button></form></section>`;
-  $('#settingsForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=formData(e.target); const final={...st,...d, default_commission_percent:safeNumber(d.default_commission_percent), default_premium_cart_percent:safeNumber(d.default_premium_cart_percent), default_min_order:safeNumber(d.default_min_order), free_shipping_threshold:safeNumber(d.free_shipping_threshold), categories:linesToArray(d.categories), payment_methods:linesToArray(d.payment_methods)}; await savePlatformSettings(final); toast('تم حفظ إعدادات المنصة.'); render();});
-  $('#resetSettings')?.addEventListener('click',async()=>{await savePlatformSettings(DEFAULT_PLATFORM_SETTINGS); toast('تم استرجاع الإعدادات الافتراضية.'); render();});
-}
-
-function policies(){
-  app.innerHTML=`<section class="pageHero"><h2>السياسات التشغيلية</h2><p>قواعد واضحة لضمان طلبات صحيحة وحسابات دقيقة بين العميل والمورد والإدارة.</p></section><section class="card"><div class="grid two"><div class="featureCard"><h3>اعتماد المورد</h3><p class="muted">لا يظهر المورد في السوق إلا بعد اعتماد الإدارة ومراجعة البيانات الأساسية ومناطق التغطية.</p></div><div class="featureCard"><h3>اعتماد المنتج</h3><p class="muted">لا يظهر المنتج للعميل إلا بعد مراجعته واعتماده داخل لوحة الإدارة.</p></div><div class="featureCard"><h3>التوصيل</h3><p class="muted">إتمام الطلب مرتبط بتغطية المورد للمحافظة والمركز والقسم المختار.</p></div><div class="featureCard"><h3>السداد والتسوية</h3><p class="muted">التسويات المالية الداخلية تتم داخل لوحة الإدارة حسب حالة الطلب والتسليم.</p></div><div class="featureCard"><h3>الدفعات</h3><p class="muted">الدفعات المرسلة من الموردين لا تخصم من المتبقي إلا بعد اعتماد الإدارة.</p></div><div class="featureCard"><h3>الطلبات الملغية</h3><p class="muted">الطلبات الملغية تظهر في القوائم المالية للمتابعة ولا تدخل ضمن المنفذ.</p></div></div></section>`;
-}
-
-function invoiceHTML(o){
-  const lines = (o.order_items||[]).map(i=>`<tr><td>${esc(i.products?.name_ar||'')}</td><td>${esc(i.vendors?.store_name||'')}</td><td>${i.qty}</td><td>${fmt(i.unit_price)}</td><td>${fmt(i.subtotal)}</td></tr>`).join('');
-  return `<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>فاتورة ${short(o.id)}</title><style>body{font-family:Arial;padding:24px;color:#172033}table{width:100%;border-collapse:collapse;margin-top:16px}td,th{border:1px solid #d8dee9;padding:9px;text-align:right}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.box{border:1px solid #d8dee9;border-radius:12px;padding:14px}.logo{width:190px;height:auto}h1{margin:0 0 8px}</style></head><body><div class="head"><div><img class="logo" src="/assets/tager-logo-full.png"><p>فاتورة طلب رقم ${short(o.id)}</p></div><div class="box"><b>الإجمالي: ${fmt(o.total)}</b><br>السداد: ${statusLabel(o.payment_status)}<br>الطلب: ${statusLabel(o.status)}</div></div><p>العميل: ${esc(o.users?.name||'')} - ${esc(o.users?.phone||'')}</p><p>العنوان: ${esc([o.governorate,o.district,o.area,o.address].filter(Boolean).join(' - '))}</p><table><thead><tr><th>المنتج</th><th>المورد</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${lines}</tbody></table><h2>الشحن: ${fmt(o.shipping_fee)}</h2><h2>الإجمالي النهائي: ${fmt(o.total)}</h2></body></html>`;
-}
-
-function updateNav(){
-  const u = DB.session();
-  const c = getCart().length;
-  const links = [ ['/', 'الرئيسية'], ['/market','المنتجات'], ['/vendors','الموردون'], ['/cart',`السلة ${c?`(${c})`:''}`], ['/support','الدعم'], ['/policies','السياسات'] ];
-  if(u?.role==='customer') links.push(['/customer','حساب العميل']);
-  if(u?.role==='vendor') links.push(['/vendor','لوحة المورد']);
-  if(u?.role==='admin' || u?.role==='staff') links.push(['/admin','الإدارة'], ['/operations','التشغيل'], ['/finance','المالية'], ['/data-center','البيانات'], ['/settings','الإعدادات'], ['/launch-check','الإطلاق']);
-  nav.innerHTML = links.map(([href,label])=>`<a class="${route()===href?'active':''}" href="${href}">${label}</a>`).join('') +
-    (u ? `<button id="logoutBtn">خروج</button>` : `<a class="${route()==='/login'?'active':''}" href="/login">دخول</a>`);
-  $('#logoutBtn')?.addEventListener('click',()=>{DB.clearSession(); toast('تم تسجيل الخروج.'); go('/');});
-}
+document.addEventListener('click', e=>{
+  const a = e.target.closest('a');
+  if(a && a.getAttribute('href') && a.getAttribute('href').startsWith('/')){ e.preventDefault(); go(a.getAttribute('href')); }
+});
+window.addEventListener('popstate', route);
+document.getElementById('menuButton').addEventListener('click', ()=>document.getElementById('navLinks').classList.toggle('open'));
+window.addEventListener('error', e=>{ console.error(e.error||e.message); try{ page('حدث خطأ في الصفحة', notice(esc(e.message||'خطأ غير معروف'),'error')); }catch(_){} });
+window.addEventListener('unhandledrejection', e=>{ console.error(e.reason); try{ page('حدث خطأ في التشغيل', notice(esc(e.reason?.message||e.reason||'خطأ غير معروف'),'error')); }catch(_){} });
+route();

@@ -2,26 +2,30 @@ import fs from 'fs';
 import path from 'path';
 
 const root = process.cwd();
-const out = path.join(root, 'public');
-const keep = ['index.html', 'style.css', 'app.js', 'supabase-client.js', 'robots.txt', 'manifest.webmanifest'];
-fs.rmSync(out, { recursive: true, force: true });
-fs.mkdirSync(out, { recursive: true });
-fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
-for (const file of keep) {
+const outDir = path.join(root, 'public');
+const required = ['index.html', 'app.js', 'styles.css', 'package.json'];
+for (const file of required) {
+  if (!fs.existsSync(path.join(root, file))) {
+    console.error(`Missing required file: ${file}`);
+    process.exit(1);
+  }
+}
+fs.rmSync(outDir, { recursive: true, force: true });
+fs.mkdirSync(outDir, { recursive: true });
+const copyFiles = ['index.html','app.js','styles.css','style.css','globals.css','tager-logo.png','favicon.png','logo.svg','schema_final.sql'];
+for (const file of copyFiles) {
   const src = path.join(root, file);
-  if (fs.existsSync(src)) fs.copyFileSync(src, path.join(out, file));
+  if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outDir, file));
 }
-const assetDir = path.join(root, 'assets');
-if (fs.existsSync(assetDir)) {
-  for (const asset of fs.readdirSync(assetDir)) fs.copyFileSync(path.join(assetDir, asset), path.join(out, 'assets', asset));
+for (const dir of ['assets','images','img','static']) {
+  const src = path.join(root, dir);
+  if (fs.existsSync(src) && fs.statSync(src).isDirectory()) {
+    fs.cpSync(src, path.join(outDir, dir), { recursive: true });
+  }
 }
-const env = {
-  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-  SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
-};
-fs.writeFileSync(path.join(out, 'env.js'), `window.TAGER_ENV=${JSON.stringify(env)};
-`);
-fs.writeFileSync(path.join(out, '.nojekyll'), '');
-console.log('Tager enterprise production release V24 completed - public output ready');
-console.log('Supabase URL:', env.SUPABASE_URL ? 'loaded' : 'missing');
-console.log('Supabase key:', env.SUPABASE_ANON_KEY ? 'loaded' : 'missing');
+if (!fs.existsSync(path.join(outDir, 'index.html'))) {
+  console.error('Build failed: public/index.html was not created');
+  process.exit(1);
+}
+console.log('Tager V25 Working Enterprise build OK');
+console.log('Output Directory: public');

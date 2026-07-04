@@ -1,2 +1,1 @@
-<?php
-// Tager static release placeholder. This file is not used by the Vercel deployment.
+<?php /* Tager V7 static production: old WordPress file disabled safely. */ ?>
