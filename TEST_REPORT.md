@@ -1,1 +1,1 @@
-Static Vercel build safe. No Next.js pages/app required.
+تم فحص البناء والملفات الأساسية بنجاح.

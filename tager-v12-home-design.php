@@ -1,1 +1,3 @@
-<?php /* Tager V7 static production: old WordPress file disabled safely. */ ?>
+<?php
+// الملف غير مستخدم في التشغيل الحالي للمنصة.
+return;
