@@ -50,6 +50,9 @@ create table if not exists products (
   name_ar text not null,
   description text,
   price numeric default 0,
+  price_retail numeric default 0,
+  price_wholesale numeric default 0,
+  price_bulk numeric default 0,
   stock numeric default 0,
   min_qty numeric default 1,
   image_url text,
@@ -78,6 +81,7 @@ create table if not exists order_items (
   vendor_id uuid references users(id),
   qty numeric default 1,
   unit_price numeric default 0,
+  price_tier text default 'wholesale',
   subtotal numeric default 0,
   commission_percent numeric default 0,
   commission_amount numeric default 0
