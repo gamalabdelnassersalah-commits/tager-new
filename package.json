@@ -1,12 +1,12 @@
 {
-  "name": "tager-platform",
+  "name": "tager-static-production-v10-professional-ui",
+  "version": "10.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "npx serve .",
     "build": "node build-static.mjs",
-    "check": "node --check app.js"
+    "start": "npx serve public"
   },
-  "dependencies": {
-    "serve": "latest"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
