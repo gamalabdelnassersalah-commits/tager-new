@@ -82,6 +82,9 @@
     @media print{body{background:#fff!important}.topbar,.print-toolbar,.footer,.nav,.btn,.btn2,.btn3,.btn-danger,.btn-ok{display:none!important}.wrap{width:100%!important}.page{padding:0!important}.page-title,.sub-title{display:none!important}.invoice-print-card{box-shadow:none!important;border:0!important;border-radius:0!important;padding:0!important}.table-wrap{border:1px solid #ddd!important}.invoice-print-head img{height:54px!important}}
   
     .check-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.check-pill{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border:1px solid #d9ebe6;border-radius:999px;background:#f8fcfb}.check-pill input{accent-color:#0b6b60}.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}.art-logo-orb img{display:block}
+  
+    .floating-cart-box{position:sticky;top:94px;z-index:20;margin:0 0 14px auto;width:max-content;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #d9ebe6;border-radius:999px;background:#fff;box-shadow:0 12px 30px rgba(10,91,74,.10);cursor:pointer;color:#064f44}.floating-cart-box em{font-style:normal;background:#ff7a21;color:#fff;border-radius:999px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:900}.floating-cart-box small{color:#60716d}.floating-cart-box.has-items{border-color:#ffbf8b}.admin-manage-table input{min-width:130px}.finance-strong .price{font-size:24px}.check-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.check-pill{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border:1px solid #d9ebe6;border-radius:999px;background:#f8fcfb}.check-pill input{accent-color:#0b6b60}.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}.art-logo-orb img{display:block;max-width:78%;height:auto;object-fit:contain}
+
   </style>
 </head>
 <body>
@@ -1113,6 +1116,88 @@
 
       footer=function(){const s=load(); return `<footer class="wrap footer"><div class="footer-grid"><div><img class="logo-plain" src="/tager-logo.png" alt="Tager"><p class="muted">منصة تاجر لسوق الجملة: منتجات واضحة، موردون متاحون، أسعار مرتبة، وتغطية توصيل حسب المحافظة والمركز.</p></div><div><h3>روابط مهمة</h3><p class="muted"><a href="#products" onclick="go('products')">المنتجات</a><br><a href="#categories" onclick="go('categories')">الفئات</a><br><a href="#suppliers" onclick="go('suppliers')">الموردون</a><br><a href="#coverage" onclick="go('coverage')">المحافظات والمراكز</a></p></div><div><h3>خدمة العملاء</h3><p class="muted"><a href="#support" onclick="go('support')">الدعم</a><br><a href="#track" onclick="go('track')">تتبع الطلب</a><br><a href="#policies" onclick="go('policies')">السياسات</a></p></div><div><h3>التواصل</h3><p class="muted">واتساب: ${s.settings.whatsapp}<br>دعم: ${s.settings.supportPhone}<br>${s.settings.email}</p></div><div><h3>تطبيق تاجر</h3><span class="app-badge">Google Play</span><span class="app-badge">App Store</span><p class="muted">تطبيق الهاتف يمكن إضافته لاحقاً بنفس الهوية.</p></div></div></footer>`};
     })();
+
+
+    // Final management upgrade: password recovery, separated users, admin permissions, finance, cart shortcut.
+    (function(){
+      function currentUser(){const s=load(); return (s.users||[]).find(u=>u.id===uid()) || null}
+      function isMainAdmin(){const u=currentUser(); if(!u) return false; return u.role==='admin' && ((u.isMain===true) || !(u.permissions&&u.permissions.length));}
+      function canAdmin(key){const u=currentUser(); if(!u || u.role!=='admin') return false; if(isMainAdmin()) return true; return (u.permissions||[]).includes(key)}
+      function ensureFinalData(s){
+        s.users=s.users||[]; s.vendors=s.vendors||[]; s.orders=s.orders||[]; s.products=s.products||[];
+        s.passwordResets=Array.isArray(s.passwordResets)?s.passwordResets:[];
+        s.adminPermissions=s.adminPermissions||['customers','vendors','admins','products','orders','finance','settings','reports','support','live'];
+        s.users.forEach(u=>{ if(u.role==='admin' && !u.permissions && !u.isMain) u.permissions=['customers','vendors','products','orders']; });
+        return s;
+      }
+      const __finalLoad=load;
+      load=function(){return ensureFinalData(__finalLoad())};
+      const __finalUpdateCartCount=updateCartCount;
+      updateCartCount=function(){__finalUpdateCartCount(); const s=load(); const n=(s.cart||[]).reduce((a,i)=>a+Number(i.qty||0),0); const el=$('#floatingCartCount'); if(el) el.textContent=n; const box=$('#floatingCartBox'); if(box) box.classList.toggle('has-items',n>0)}
+      function cartTopWidget(){const s=load(); const n=(s.cart||[]).reduce((a,i)=>a+Number(i.qty||0),0); return `<div id="floatingCartBox" class="floating-cart-box ${n>0?'has-items':''}" onclick="go('cart')"><span>🛒</span><b>السلة</b><em id="floatingCartCount">${n}</em><small>انتقل للسلة</small></div>`}
+      const __finalPageShell=pageShell;
+      pageShell=function(title,sub,body){return __finalPageShell(title,sub,cartTopWidget()+body)}
+      const __finalLoginPage=loginPage;
+      loginPage=function(){
+        const base=__finalLoginPage();
+        return base.replace('</form><div id="out"',`<button type="button" class="btn3" onclick="go('forgot')">نسيت كلمة السر</button></form><div id="out"`);
+      }
+      forgotPasswordPage=function(){
+        return pageShell('استعادة كلمة السر','أدخل رقم الهاتف أو البريد المسجل، ثم اختر طريقة استلام رمز التحقق.',`<div class="card auth-card"><form id="forgotForm" class="grid2"><div class="field"><label>رقم الهاتف أو البريد</label><input name="login" required placeholder="مثال: 01000000000 أو email@domain.com"></div><div class="field"><label>طريقة الإرسال</label><select name="method"><option value="phone">رسالة على الهاتف</option><option value="email">رسالة على البريد الإلكتروني</option></select></div><button class="btn">إرسال رمز التحقق</button><button type="button" class="btn3" onclick="go('login')">رجوع للدخول</button></form><div id="out" style="margin-top:12px"></div><div class="notice section">في التشغيل الحقيقي يتم ربط هذه الصفحة بخدمة SMS أو البريد الإلكتروني لإرسال الرمز فعلياً. الواجهة جاهزة لذلك.</div></div>`)
+      }
+      function adminPermCheckboxes(selected=[]){const perms=[['customers','العملاء'],['vendors','الموردون'],['admins','الإداريون'],['products','المنتجات'],['orders','الطلبات'],['finance','المالية والفواتير'],['settings','الإعدادات'],['reports','التقارير'],['support','الدعم'],['live','النظام لايف']];return `<div class="check-pills">${perms.map(p=>`<label class="check-pill"><input type="checkbox" name="permissions" value="${p[0]}" ${selected.includes(p[0])?'checked':''}> <span>${p[1]}</span></label>`).join('')}</div>`}
+      function roleNameAr(r){return ({customer:'عميل',vendor:'مورد',admin:'إدارة'})[r]||r}
+      function userStatusAr(st){return ({approved:'مفعل',pending:'قيد المراجعة',blocked:'موقوف',deleted:'محذوف/ملغي',rejected:'مرفوض'})[st]||st||'مفعل'}
+      function adminAddUserForm(role){
+        const isVendor=role==='vendor', isAdmin=role==='admin';
+        return `<div class="card"><h3>إضافة ${roleNameAr(role)}</h3><form id="adminAdd_${role}" class="grid3 admin-add-user"><input type="hidden" name="role" value="${role}"><div class="field"><label>الاسم</label><input name="name" required></div>${isVendor?`<div class="field"><label>اسم المتجر / الشركة</label><input name="storeName" required></div><div class="field"><label>التخصصات</label><input name="activity" placeholder="مثال: مواد غذائية، مشروبات، تجارة عامة"></div>`:''}<div class="field"><label>رقم الهاتف</label><input name="phone" required></div><div class="field"><label>البريد</label><input name="email"></div><div class="field"><label>كلمة المرور</label><input name="password" value="123456"></div><div class="field"><label>المحافظة</label><select name="governorate">${optionsGov()}</select></div><div class="field"><label>المركز</label><select name="district"></select></div>${isAdmin?`<div class="field" style="grid-column:1/-1"><label>الصلاحيات</label>${adminPermCheckboxes(['customers','vendors','products','orders'])}</div>`:''}<div class="field"><label>الحالة</label><select name="status"><option value="approved">مفعل</option><option value="pending">قيد المراجعة</option></select></div><button class="btn">إضافة</button></form></div>`
+      }
+      function usersTableByRole(role){
+        const s=load(); const users=(s.users||[]).filter(u=>u.role===role && u.status!=='deleted');
+        if(!users.length) return `<div class="empty">لا توجد حسابات ${roleNameAr(role)} حالياً.</div>`;
+        return `<div class="table-wrap"><table class="admin-manage-table"><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>${role==='vendor'?'التخصصات / الشركة':'الدور'}</th><th>المنطقة</th><th>الحالة</th><th>إجراء</th></tr>${users.map(u=>{const v=(s.vendors||[]).find(x=>x.userId===u.id);return `<tr><td><input id="u_name_${u.id}" value="${escapeHtml(u.name||'')}"></td><td><input id="u_phone_${u.id}" value="${escapeHtml(u.phone||'')}"></td><td><input id="u_email_${u.id}" value="${escapeHtml(u.email||'')}"></td><td>${role==='vendor'?`<input id="u_activity_${u.id}" value="${escapeHtml((v?.activities||[]).join('، ') || v?.activity || '')}"><small>${escapeHtml(v?.storeName||'')}</small>`:roleNameAr(role)}</td><td>${escapeHtml(u.governorate||'')} ${u.district?' - '+escapeHtml(u.district):''}</td><td><span class="badge ${u.status||'approved'}">${userStatusAr(u.status)}</span></td><td><button class="btn-ok" onclick="adminSaveUser('${u.id}')">حفظ</button> <button class="btn3" onclick="adminSetUserStatus('${u.id}','approved')">تفعيل</button> <button class="btn-danger" onclick="adminSetUserStatus('${u.id}','blocked')">إيقاف</button> <button class="btn-danger" onclick="adminDeleteUser('${u.id}')">إلغاء</button></td></tr>`}).join('')}</table></div>`
+      }
+      function adminsTable(){
+        const s=load(); const admins=(s.users||[]).filter(u=>u.role==='admin' && u.status!=='deleted');
+        return `<div class="table-wrap"><table class="admin-manage-table"><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الصلاحيات</th><th>الحالة</th><th>إجراء</th></tr>${admins.map(u=>`<tr><td><input id="u_name_${u.id}" value="${escapeHtml(u.name||'')}"></td><td><input id="u_phone_${u.id}" value="${escapeHtml(u.phone||'')}"></td><td><input id="u_email_${u.id}" value="${escapeHtml(u.email||'')}"></td><td>${u.isMain?'الإدارة الرئيسية':adminPermCheckboxes(u.permissions||[]).replaceAll('name="permissions"','name="permissions_'+u.id+'"')}</td><td><span class="badge ${u.status||'approved'}">${userStatusAr(u.status)}</span></td><td><button class="btn-ok" onclick="adminSaveUser('${u.id}')">حفظ</button> ${u.isMain?'':`<button class="btn-danger" onclick="adminDeleteUser('${u.id}')">إلغاء</button>`}</td></tr>`).join('')}</table></div>`
+      }
+      function adminFinanceStrong(s){
+        const orders=s.orders||[]; const gross=orders.reduce((a,o)=>a+Number(o.total||0),0);
+        const commission=orders.reduce((a,o)=>a+Number(o.commission||0),0);
+        const premium=orders.filter(o=>o.cartType==='premium').reduce((a,o)=>a+Number(o.total||0)*(Number(s.settings.premiumBasketFee||0)/100),0);
+        const delivery=orders.reduce((a,o)=>a+Number(s.settings.deliveryBase||0),0);
+        const vendorNet=Math.max(0,gross-commission-premium);
+        const customers=(s.users||[]).filter(u=>u.role==='customer').length;
+        const vendors=(s.users||[]).filter(u=>u.role==='vendor').length;
+        return `<div class="finance-strong"><div class="grid3"><div class="card"><h3>إجمالي الطلبات</h3><div class="price">${fmt(gross)}</div><p class="muted">${orders.length} طلب</p></div><div class="card"><h3>عمولة المنصة</h3><div class="price">${fmt(commission)}</div><p class="muted">النسبة من إعدادات الإدارة</p></div><div class="card"><h3>رسوم السلة المميزة</h3><div class="price">${fmt(premium)}</div><p class="muted">${s.settings.premiumBasketFee}% عند اختيار السلة المميزة</p></div><div class="card"><h3>صافي مستحق الموردين</h3><div class="price">${fmt(vendorNet)}</div><p class="muted">تقديري قبل التسوية النهائية</p></div><div class="card"><h3>رسوم التوصيل</h3><div class="price">${fmt(delivery)}</div><p class="muted">حسب قواعد التوصيل</p></div><div class="card"><h3>العملاء / الموردون</h3><div class="price">${customers} / ${vendors}</div><p class="muted">فصل كامل للحسابات</p></div></div><div class="section grid2"><div class="card"><h3>فواتير العملاء</h3>${orders.length?ordersTable(orders):'<div class="empty">لا توجد فواتير عملاء بعد.</div>'}</div><div class="card"><h3>فواتير الموردين</h3><p class="muted">كل مورد يرى فواتير أصنافه فقط من لوحة المورد، والإدارة ترى كل الطلبات والتسويات هنا.</p>${orders.length?ordersTable(orders):'<div class="empty">لا توجد فواتير موردين بعد.</div>'}</div></div><div class="notice section">الإعدادات المالية مثل عمولة المنصة ورسوم السلة المميزة والتوصيل تبقى داخل الإدارة فقط، ولا تظهر للعميل كحقول إدارة.</div></div>`
+      }
+      adminPage=function(){
+        if(role()!=='admin') return loginRequired();
+        const s=load(), k=kpis(s);
+        const tabs=[
+          canAdmin('customers')?`<button class="tab" onclick="showLocal('a-customers')">العملاء</button>`:'',
+          canAdmin('vendors')?`<button class="tab" onclick="showLocal('a-vendors')">الموردون</button>`:'',
+          canAdmin('admins')?`<button class="tab" onclick="showLocal('a-admins')">الإداريون</button>`:'',
+          canAdmin('products')?`<button class="tab" onclick="showLocal('a-products')">المنتجات</button>`:'',
+          canAdmin('orders')?`<button class="tab" onclick="showLocal('a-orders')">الطلبات</button>`:'',
+          canAdmin('finance')?`<button class="tab" onclick="showLocal('a-finance')">المالية والفواتير</button>`:'',
+          canAdmin('settings')?`<button class="tab" onclick="showLocal('a-settings')">الإعدادات</button>`:'',
+          canAdmin('reports')?`<button class="tab" onclick="go('reports')">التقارير</button>`:''
+        ].join('');
+        return pageShell('لوحة الإدارة','إدارة منفصلة للعملاء والموردين والإداريين مع صلاحيات ومالية وفواتير.',`<div class="grid"><div class="card"><h3>العملاء</h3><div class="price">${(s.users||[]).filter(u=>u.role==='customer'&&u.status!=='deleted').length}</div></div><div class="card"><h3>الموردون</h3><div class="price">${(s.users||[]).filter(u=>u.role==='vendor'&&u.status!=='deleted').length}</div></div><div class="card"><h3>الإداريون</h3><div class="price">${(s.users||[]).filter(u=>u.role==='admin'&&u.status!=='deleted').length}</div></div><div class="card"><h3>الطلبات</h3><div class="price">${k.orders}</div></div></div><div class="tabs"><button class="tab active" onclick="showLocal('a-summary')">الملخص</button>${tabs}<button class="tab" onclick="logout()">خروج</button></div><div id="a-summary" class="local-tab"><div class="section grid3"><div class="card"><h3>فصل الحسابات</h3><p class="muted">العملاء، الموردون، والإداريون في صفحات منفصلة داخل الإدارة.</p></div><div class="card"><h3>صلاحيات الإدارة</h3><p class="muted">يمكن للحساب الرئيسي إضافة إداريين بصلاحيات محددة.</p></div><div class="card"><h3>مالية وفواتير</h3><p class="muted">مبيعات، عمولات، سلة مميزة، فواتير عملاء وموردين.</p></div></div></div><div id="a-customers" class="local-tab hidden">${adminAddUserForm('customer')}${usersTableByRole('customer')}</div><div id="a-vendors" class="local-tab hidden">${adminAddUserForm('vendor')}${usersTableByRole('vendor')}</div><div id="a-admins" class="local-tab hidden">${isMainAdmin()?adminAddUserForm('admin'):'<div class="notice">إضافة الإداريين متاحة للحساب الرئيسي فقط.</div>'}${adminsTable()}</div><div id="a-products" class="local-tab hidden">${adminProductsTable(s)}</div><div id="a-orders" class="local-tab hidden">${ordersTable(s.orders)}</div><div id="a-finance" class="local-tab hidden">${adminFinanceStrong(s)}</div><div id="a-settings" class="local-tab hidden">${settingsForm(s)}</div><div id="out" style="margin-top:12px"></div>`);
+      }
+      window.adminSaveUser=function(id){const s=load(), u=s.users.find(x=>x.id===id); if(!u)return; u.name=$('#u_name_'+id)?.value||u.name; u.phone=$('#u_phone_'+id)?.value||u.phone; u.email=$('#u_email_'+id)?.value||u.email; if(u.role==='admin'&&!u.isMain){u.permissions=Array.from(document.querySelectorAll(`[name="permissions_${id}"]:checked`)).map(x=>x.value)} if(u.role==='vendor'){const v=s.vendors.find(x=>x.userId===id); if(v){const acts=($('#u_activity_'+id)?.value||v.activity||'').split(/[،,]/).map(x=>x.trim()).filter(Boolean); v.activity=acts.join('، '); v.activities=[...new Set(acts)]}} save(s); go('admin')}
+      window.adminSetUserStatus=function(id,st){const s=load(), u=s.users.find(x=>x.id===id); if(u){u.status=st; if(u.role==='vendor'){const v=s.vendors.find(x=>x.userId===id); if(v)v.status=st} save(s)} go('admin')}
+      window.adminDeleteUser=function(id){if(!confirm('سيتم إلغاء الحساب مع الحفاظ على الفواتير والطلبات السابقة. هل أنت متأكد؟'))return; const s=load(), u=s.users.find(x=>x.id===id); if(u){u.status='deleted'; u.deletedAt=today(); if(u.role==='vendor'){const v=s.vendors.find(x=>x.userId===id); if(v)v.status='deleted'}} save(s); go('admin')}
+      function bindAdminAddForms(){
+        $$('.admin-add-user').forEach(form=>{bindArea(form); form.onsubmit=e=>{e.preventDefault(); const s=load(), fd=new FormData(form), f=Object.fromEntries(fd); if(s.users.some(u=>u.phone===f.phone)) return $('#out').innerHTML=notify('رقم الهاتف مسجل بالفعل.','error'); const role=f.role; const u={id:id(),role,status:f.status||'approved',name:f.name,phone:f.phone,email:f.email,password:f.password||'123456',governorate:f.governorate,district:f.district,createdAt:today()}; if(role==='admin'){u.permissions=fd.getAll('permissions'); u.isMain=false} s.users.push(u); if(role==='vendor'){const acts=(f.activity||'تجارة عامة').split(/[،,]/).map(x=>x.trim()).filter(Boolean); s.vendors.push({id:id(),userId:u.id,storeName:f.storeName||f.name,activity:acts.join('، '),activities:acts,governorate:f.governorate,district:f.district,zones:[],createdAt:today()})} save(s); $('#out').innerHTML=notify('تمت الإضافة بنجاح.'); go('admin')}})
+      }
+      const __finalBindForms=bindForms;
+      bindForms=function(page){__finalBindForms(page); setTimeout(()=>{if(page==='forgot'){const f=$('#forgotForm'); if(f){f.onsubmit=e=>{e.preventDefault(); const s=load(), fd=new FormData(f), login=String(fd.get('login')||'').trim(), method=fd.get('method'); const u=s.users.find(x=>x.phone===login||x.email===login); if(!u) return $('#out').innerHTML=notify('لم يتم العثور على حساب بهذه البيانات.','error'); const code=String(Math.floor(100000+Math.random()*900000)); s.passwordResets.push({id:id(),userId:u.id,method,login,code,createdAt:new Date().toISOString(),used:false}); save(s); $('#out').innerHTML=notify((method==='phone'?'تم تجهيز رسالة على الهاتف.':'تم تجهيز رسالة على البريد الإلكتروني.')+' رمز التحقق: <b>'+code+'</b><br><small>في التشغيل الحقيقي يتم إرسال الرمز عبر مزود SMS/Email.</small>')}}} if(page==='admin') bindAdminAddForms(); updateCartCount();},0)}
+      const __finalRender2=render;
+      render=function(page='home',data={}){if(page==='forgot'){navActive(page); updateCartCount(); app().innerHTML=forgotPasswordPage(); bindForms(page); return} return __finalRender2(page,data)}
+    })();
+
 
     render(location.hash.replace('#','')||'home');
   </script>
