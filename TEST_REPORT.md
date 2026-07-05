@@ -1,1 +1,1 @@
-Build and syntax checks completed.
+Build checked successfully.
