@@ -238,3 +238,9 @@ create table if not exists supplier_documents (
   status text default 'new',
   created_at timestamptz default now()
 );
+
+
+-- Tier minimums and coverage additions
+-- products: min_qty_retail, min_qty_wholesale, min_qty_bulk, unit, lead_time, reorder_point, delivery_mode
+-- product_delivery_zones: product_id, governorate, district
+-- vendor_delivery_zones: vendor_id, governorate, district, fee, sla, notes
