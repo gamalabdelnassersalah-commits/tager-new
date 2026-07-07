@@ -1,2 +1,3 @@
-// Tager platform helpers are embedded in index.html for single-page deployment.
-window.TAGER_READY = true;
+window.TAGER_SUPABASE_URL="";
+window.TAGER_SUPABASE_ANON_KEY="";
+window.TAGER_BUILD_TIME="2026-07-07T13:01:15.881Z";

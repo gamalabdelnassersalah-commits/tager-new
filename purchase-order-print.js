@@ -1,4 +1,4 @@
-import TagerDocumentFrame from '../../components/TagerDocumentFrame';
+import TagerDocumentFrame from '../components/TagerDocumentFrame';
 
 const sampleOrderData = {
   orderNo: 'TG-1001',
@@ -11,7 +11,9 @@ const sampleOrderData = {
   paymentMethod: 'نقدي عند الاستلام',
   currency: 'ج.م',
   status: 'جديد',
-  items: [{ name: 'بند تجريبي', priceType: 'سعر الشراء', quantity: 5, unitPrice: 1000, total: 5000 }],
+  items: [
+    { name: 'بند تجريبي', priceType: 'سعر الشراء', quantity: 5, unitPrice: 1000, total: 5000 }
+  ],
   totals: { products: 5000, discount: 0, tax: 0, grandTotal: 5000 }
 };
 
