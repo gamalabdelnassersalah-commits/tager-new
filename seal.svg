@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img">
+  <defs><linearGradient id="sg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#eaf7f9"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+  <circle cx="90" cy="90" r="80" fill="url(#sg)" stroke="#003c46" stroke-width="8"/>
+  <circle cx="90" cy="90" r="63" fill="none" stroke="#0b5a65" stroke-dasharray="5 5" stroke-width="3"/>
+  <path d="M90 36l7 14 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" fill="#ff6a00"/>
+  <text x="90" y="93" text-anchor="middle" font-family="Tahoma, Arial" font-size="24" font-weight="800" fill="#092e36">معتمد</text>
+  <text x="90" y="123" text-anchor="middle" font-family="Tahoma, Arial" font-size="23" font-weight="800" fill="#092e36">ومختوم</text>
+</svg>

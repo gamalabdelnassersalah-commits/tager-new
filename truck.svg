@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 190" role="img">
+  <defs><linearGradient id="t" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f8fbfc"/><stop offset="1" stop-color="#c6d2d6"/></linearGradient></defs>
+  <path d="M8 140c40-24 62-29 100-24 37 5 65 30 104 27 41-3 72-38 111-43 35-4 61 11 90 33v44H8z" fill="#dfe7ea" opacity=".75"/>
+  <g stroke="#aebdc1" stroke-width="2" fill="none" opacity=".65">
+    <path d="M292 31c27-4 47 1 67 15M318 22c17 2 30 7 42 18"/>
+  </g>
+  <g>
+    <rect x="105" y="58" width="200" height="77" rx="8" fill="url(#t)" stroke="#062f38" stroke-width="5"/>
+    <path d="M25 81h78v55H25z" fill="url(#t)" stroke="#062f38" stroke-width="5"/>
+    <path d="M26 81l18-35h44l15 35" fill="#e9f0f2" stroke="#062f38" stroke-width="5"/>
+    <path d="M43 53h32l10 28H29z" fill="#cfe0e5"/>
+    <text x="165" y="107" font-family="Arial Black, Tahoma" font-size="39" font-weight="900" fill="#073d47">Tager</text>
+    <rect x="133" y="88" width="29" height="6" rx="3" fill="#ff6a00"/><rect x="139" y="102" width="23" height="6" rx="3" fill="#ff6a00"/>
+    <circle cx="71" cy="139" r="20" fill="#061e26"/><circle cx="71" cy="139" r="9" fill="#e9f0f2"/>
+    <circle cx="267" cy="139" r="20" fill="#061e26"/><circle cx="267" cy="139" r="9" fill="#e9f0f2"/>
+  </g>
+  <g fill="#dfe7ea" stroke="#9eacb0" stroke-width="2">
+    <rect x="320" y="102" width="28" height="25"/><rect x="350" y="92" width="28" height="35"/><rect x="380" y="109" width="25" height="18"/>
+  </g>
+</svg>
