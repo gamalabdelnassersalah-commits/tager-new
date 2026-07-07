@@ -1610,6 +1610,324 @@
     })();
 
 
+
+
+    // Safe integration for the new high-quality Tager invoice / purchase order templates.
+    // The platform data remains unchanged; only print/display pages are routed to the standalone templates.
+    (function(){
+      const DOC_BASE = 'tager-documents/';
+      function safeText(v){ return String(v == null ? '' : v); }
+      function n(v){ return Number(v || 0); }
+      function egDate(){ try{return today()}catch(e){return new Date().toISOString().slice(0,10).replaceAll('-','/')} }
+      function statusName(st){
+        return ({new:'جديد',accepted:'مقبول',approved:'مقبول',processing:'قيد التجهيز',delivering:'تحت التوصيل',delivered:'تم التوصيل',cancelled:'ملغي',pending:'قيد المراجعة',rejected:'مرفوض'})[st||'new'] || st || 'جديد';
+      }
+      function formatAmount(v){
+        try { return Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+        catch(e){ return String(v||0); }
+      }
+      function orderItemsForCurrentRole(order){
+        const items = Array.isArray(order?.items) ? order.items : [];
+        try{
+          if(typeof role==='function' && role()==='vendor' && typeof uid==='function'){
+            return items.filter(i => String(i.vendorId) === String(uid()));
+          }
+        }catch(e){}
+        return items;
+      }
+      function platformName(){ return 'منصة تاجر'; }
+      function getStoreNameByVendorId(s, vendorId){
+        try{
+          const v = (s.vendors||[]).find(x => String(x.userId)===String(vendorId) || String(x.id)===String(vendorId));
+          if(v) return v.storeName || v.name || 'المورد';
+          const u = (s.users||[]).find(x => String(x.id)===String(vendorId));
+          return u?.storeName || u?.name || 'المورد';
+        }catch(e){ return 'المورد'; }
+      }
+      function getCustomerName(s, order){
+        try{
+          if(order.customerName) return order.customerName;
+          const u=(s.users||[]).find(x=>String(x.id)===String(order.customerId));
+          return u?.name || (typeof uname==='function'?uname():'العميل') || 'العميل';
+        }catch(e){ return 'العميل'; }
+      }
+      function buildDocData(order, docType){
+        const s = (typeof load==='function') ? load() : {settings:{},users:[],vendors:[]};
+        const selectedItems = orderItemsForCurrentRole(order);
+        const firstVendorId = selectedItems[0]?.vendorId || (order.items||[])[0]?.vendorId;
+        const productsTotal = selectedItems.reduce((sum,it)=>sum + n(it.price) * n(it.qty), 0);
+        const customerMode = docType === 'customer-invoice' || docType === 'order';
+        const grandTotal = customerMode ? n(order.total || productsTotal) : productsTotal;
+        const currency = s.settings?.currency || 'ج.م';
+        return {
+          documentTitle: docType === 'order' ? 'طلب شراء' : (docType === 'customer-invoice' ? 'فاتورة عميل' : 'فاتورة مورد'),
+          orderNo: safeText(order.orderNo || 'TG-1001'),
+          invoiceNo: safeText(order.invoiceNo || ('INV-' + (order.orderNo || 'TG-1001'))),
+          date: safeText(order.date || egDate()),
+          platform: platformName(),
+          customer: safeText(getCustomerName(s, order)),
+          supplier: safeText(getStoreNameByVendorId(s, firstVendorId)),
+          governorate: safeText(order.governorate || ''),
+          center: safeText(order.district || order.center || ''),
+          paymentMethod: safeText(order.paymentMethod || ''),
+          currency,
+          status: statusName(order.status),
+          itemCount: selectedItems.length,
+          totalWords: 'قيمة المستند بالجنيه المصري',
+          items: selectedItems.map(it => ({
+            name: safeText(it.name || it.productName || 'صنف'),
+            priceType: safeText(it.tierName || it.tier || 'سعر الشراء'),
+            quantity: n(it.qty || it.quantity),
+            unitPrice: n(it.price || it.unitPrice),
+            total: n(it.price || it.unitPrice) * n(it.qty || it.quantity)
+          })),
+          totals: { products: productsTotal, discount: 0, tax: 0, grandTotal },
+          signatoryName: 'Gamal',
+          signatoryTitle: 'GAMAL',
+          signatorySub: 'Authorized Signatory'
+        };
+      }
+      function encodePayload(payload){
+        return encodeURIComponent(JSON.stringify(payload));
+      }
+      function findOrder(data){
+        const s = (typeof load==='function') ? load() : {orders:[]};
+        return (s.orders||[]).find(o => String(o.id)===String(data?.id) || String(o.orderNo)===String(data?.orderNo)) || null;
+      }
+      function documentFramePage(order, docType){
+        const payload = buildDocData(order, docType);
+        const template = docType === 'order' ? 'purchase-order.html' : 'invoice.html';
+        const src = DOC_BASE + template + '?data=' + encodePayload(payload);
+        const title = payload.documentTitle;
+        return pageShell(title, 'عرض وطباعة بنفس التصميم المعتمد دون التأثير على بيانات المنصة.', `
+          <section class="tager-doc-shell">
+            <div class="doc-toolbar no-print">
+              <button class="btn" onclick="document.getElementById('tagerDocFrame').contentWindow.print()">طباعة / حفظ PDF</button>
+              <button class="btn3" onclick="history.back()">رجوع</button>
+              <a class="btn3" href="${src}" target="_blank">فتح التصميم في صفحة مستقلة</a>
+            </div>
+            <iframe id="tagerDocFrame" class="tager-doc-frame" src="${src}" title="${title}"></iframe>
+          </section>`);
+      }
+      window.vendorInvoicePrintPage = function(data={}){
+        if(typeof role==='function' && role()!=='vendor') return loginRequired();
+        const order = findOrder(data);
+        if(!order) return pageShell('فاتورة المورد','',`<div class="empty">الفاتورة غير موجودة.</div>`);
+        return documentFramePage(order, 'vendor-invoice');
+      };
+      window.invoicePrintPage = function(data={}){
+        const order = findOrder(data);
+        if(!order) return pageShell('فاتورة العميل','',`<div class="empty">الفاتورة غير موجودة.</div>`);
+        return documentFramePage(order, 'customer-invoice');
+      };
+      window.orderPrintPage = function(data={}){
+        const order = findOrder(data);
+        if(!order) return pageShell('طباعة الطلب','',`<div class="empty">الطلب غير موجود.</div>`);
+        return documentFramePage(order, 'order');
+      };
+      const __safeDocRender = render;
+      render = function(page='home', data={}){
+        if(page === 'vendorInvoicePrint'){
+          try{ if(typeof syncHeader==='function') syncHeader('vendorInvoices'); if(typeof updateCartCount==='function') updateCartCount(); }catch(e){}
+          app().innerHTML = vendorInvoicePrintPage(data || {});
+          try{ if(typeof bindForms==='function') bindForms(page); }catch(e){}
+          return;
+        }
+        if(page === 'invoicePrint'){
+          try{ if(typeof syncHeader==='function') syncHeader('track'); if(typeof updateCartCount==='function') updateCartCount(); }catch(e){}
+          app().innerHTML = invoicePrintPage(data || {});
+          try{ if(typeof bindForms==='function') bindForms(page); }catch(e){}
+          return;
+        }
+        if(page === 'orderPrint'){
+          try{ if(typeof syncHeader==='function') syncHeader('track'); if(typeof updateCartCount==='function') updateCartCount(); }catch(e){}
+          app().innerHTML = orderPrintPage(data || {});
+          try{ if(typeof bindForms==='function') bindForms(page); }catch(e){}
+          return;
+        }
+        return __safeDocRender(page, data);
+      };
+      const style = document.createElement('style');
+      style.textContent = `
+        .tager-doc-shell{max-width:1180px;margin:0 auto;padding:14px 0 30px}.doc-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px;justify-content:flex-start}.tager-doc-frame{width:100%;height:calc(100vh - 150px);min-height:780px;border:1px solid #d9e9e4;border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(0,55,48,.12)}
+        @media print{body>*:not(#app){display:none!important}.site-header,.topbar,.floating-cart-box,.doc-toolbar,.no-print{display:none!important}.tager-doc-shell{padding:0!important;margin:0!important;max-width:none!important}.tager-doc-frame{width:100vw!important;height:100vh!important;border:0!important;border-radius:0!important;box-shadow:none!important}}
+      `;
+      document.head.appendChild(style);
+    })();
+
+
+
+
+    /* =========================================================
+       Tager integrated invoice / purchase-order documents
+       Uses the uploaded document package as working SPA routes.
+       It does not change customer/vendor/order data; it only reads it.
+       ========================================================= */
+    (function(){
+      const DOC_BASE = 'tager-documents/assets/';
+      function ensureDocCss(){
+        if(!document.getElementById('tager-documents-css')){
+          const l=document.createElement('link');
+          l.id='tager-documents-css'; l.rel='stylesheet'; l.href='tager-documents/assets/css/tager-documents.css';
+          document.head.appendChild(l);
+        }
+        if(!document.getElementById('tager-documents-integration-css')){
+          const st=document.createElement('style');
+          st.id='tager-documents-integration-css';
+          st.textContent=`
+            .doc-integrated-host{width:100%;padding:18px 0 40px;background:#edf3f1;min-height:100vh}
+            .doc-integrated-host .tager-document{isolation:isolate}
+            .doc-integrated-host .doc-actions{position:sticky;top:8px;z-index:50}
+            .doc-integrated-host .doc-actions button,.doc-integrated-host .doc-actions a{font-family:Tahoma,Arial,sans-serif}
+            .doc-integrated-note{max-width:1055px;margin:0 auto 10px;background:#fff;border:1px solid #dfe7eb;border-radius:14px;padding:12px 16px;color:#003b45;font-weight:800;direction:rtl}
+            @media print{
+              body{background:#fff!important;padding:0!important;margin:0!important}
+              body > header,.header,.site-header,.topbar,.navbar,.nav,.nav-wrap,.floating-cart-box,.doc-integrated-note,.doc-actions,.no-print{display:none!important}
+              #app,.app,.page,.wrap,.doc-integrated-host{display:block!important;padding:0!important;margin:0!important;background:#fff!important;width:100%!important;max-width:none!important;box-shadow:none!important;border:0!important}
+              .tager-document{margin:0 auto!important;box-shadow:none!important;page-break-after:avoid!important}
+            }
+          `;
+          document.head.appendChild(st);
+        }
+      }
+      function E(v){ try{return escapeHtml(String(v ?? ''))}catch(e){return String(v ?? '')} }
+      function M(n){ try{return fmt(Number(n||0))}catch(e){return Number(n||0).toLocaleString('ar-EG')+' ج.م'} }
+      function stText(st){
+        return ({new:'جديد',accepted:'مقبول',approved:'مقبول',processing:'قيد التجهيز',delivering:'تحت التوصيل',delivered:'تم التوصيل',cancelled:'ملغي',pending:'قيد المراجعة',rejected:'مرفوض'})[st] || st || 'جديد';
+      }
+      function safeDate(o){ return o.date || (typeof today==='function'?today():new Date().toLocaleDateString('ar-EG')); }
+      function orderByData(data={}){
+        const s=load();
+        return (s.orders||[]).find(x=>String(x.id)===String(data.id)||String(x.orderNo)===String(data.orderNo)) || null;
+      }
+      function vendorNameFromOrder(s,o,items){
+        const vid = (items&&items[0]&&items[0].vendorId) || (o.items&&o.items[0]&&o.items[0].vendorId) || (typeof uid==='function'?uid():null);
+        const v=(s.vendors||[]).find(x=>String(x.userId)===String(vid)||String(x.id)===String(vid));
+        const u=(s.users||[]).find(x=>String(x.id)===String(vid));
+        return (v&&v.storeName)|| (v&&v.name) || (u&&u.name) || 'المورد';
+      }
+      function customerNameFromOrder(s,o){
+        const u=(s.users||[]).find(x=>String(x.id)===String(o.customerId));
+        return o.customerName || o.customer || (u&&u.name) || (typeof uname==='function'?uname():'العميل') || 'العميل';
+      }
+      function vendorItemsFromOrder(o){
+        if(typeof role==='function' && role()==='vendor'){
+          const id = typeof uid==='function'?uid():'';
+          return (o.items||[]).filter(i=>String(i.vendorId)===String(id));
+        }
+        return o.items||[];
+      }
+      function toDocData(o,type,items){
+        const s=load();
+        const list=items || (o.items||[]);
+        const sub=list.reduce((a,i)=>a+Number(i.price||i.unitPrice||0)*Number(i.qty||i.quantity||0),0);
+        const discount=Number(o.discount||0), tax=Number(o.tax||0);
+        const grand = type==='purchase-order' ? sub-discount+tax : (Number(o.total||0)||sub-discount+tax);
+        return {
+          orderNo:o.orderNo||'TG-1001',
+          invoiceNo:o.invoiceNo||('INV-'+(o.orderNo||'TG-1001')),
+          date:safeDate(o),
+          platform:'منصة تاجر',
+          customer:customerNameFromOrder(s,o),
+          supplier:vendorNameFromOrder(s,o,list),
+          governorate:o.governorate||o.city||'',
+          center:o.district||o.center||'',
+          paymentMethod:o.paymentMethod||'نقدي عند الاستلام',
+          currency:(s.settings&&s.settings.currency)||'ج.م',
+          status:stText(o.status||'new'),
+          itemCount:list.length,
+          totalWords:o.totalWords||'قيمة المستند بالجنيه المصري',
+          items:list.map(i=>({
+            name:i.name||i.productName||'',
+            priceType:i.tierName||i.priceType||i.tier||'',
+            quantity:Number(i.qty||i.quantity||0),
+            unitPrice:Number(i.price||i.unitPrice||0),
+            total:Number(i.price||i.unitPrice||0)*Number(i.qty||i.quantity||0)
+          })),
+          totals:{products:sub,discount,tax,grandTotal:grand},
+          signatoryName:'Gamal',
+          signatoryTitle:'GAMAL',
+          signatorySub:'Authorized Signatory'
+        };
+      }
+      function icon(id){return `<svg><use href="${DOC_BASE}img/icon-sprite.svg#${id}"></use></svg>`}
+      function field(data,key){return `<div class="value">${E(data[key])}</div>`}
+      function money(data,key){return E(M(data.totals[key]).replace(' ج.م',''))}
+      function itemsRows(data){
+        return data.items.map(i=>`<tr><td><span class="item-cube">◇</span>${E(i.name)}</td><td>${E(i.priceType)}</td><td>${Number(i.quantity).toLocaleString('ar-EG')}</td><td>${M(i.unitPrice)}</td><td>${M(i.total)}</td></tr>`).join('') || '<tr><td colspan="5">لا توجد بنود</td></tr>';
+      }
+      function metaBox(label,value,iconId,badge=false){return `<div class="meta-box"><div><div class="label">${label}</div><div class="value ${badge?'badge-value':''}">${E(value)}</div></div><span class="round-icon">${icon(iconId)}</span></div>`}
+      function infoCard(label,value,iconId,orange=false){return `<article class="info-card"><div><div class="label">${label}</div><div class="value">${E(value)}</div></div><span class="divider"></span><span class="round-badge ${orange?'orange':''}">${icon(iconId)}</span></article>`}
+      function documentActions(returnPage){
+        return `<div class="doc-actions no-print"><button onclick="window.print()">طباعة / حفظ PDF</button><button class="secondary" onclick="document.querySelector('.tager-document')?.classList.toggle('show-reference')">إظهار / إخفاء طبقة الأصل</button><button class="secondary" onclick="history.back()">رجوع</button><button class="secondary" onclick="go('${returnPage||'home'}')">العودة للمنصة</button></div>`;
+      }
+      function renderDoc(type,data,returnPage){
+        ensureDocCss();
+        const isOrder = type==='purchase-order';
+        const title = isOrder ? 'طلب شراء' : (data.invoiceTitle || 'فاتورة مورد');
+        const subtitle = isOrder ? 'تفاصيل الطلب قبل الفاتورة' : 'شكراً لتعاملكم معنا';
+        const ref = isOrder ? 'purchase-order-reference.png' : 'supplier-invoice-reference.png';
+        const titleIcon = isOrder ? 'clip' : 'doc';
+        const meta = isOrder
+          ? `<section class="meta-strip cols-2">${metaBox('رقم الطلب',data.orderNo,'clip',true)}${metaBox('تاريخ الطلب',data.date,'calendar')}</section>`
+          : `<section class="meta-strip cols-3">${metaBox('رقم الطلب',data.orderNo,'clip',true)}${metaBox('رقم الفاتورة',data.invoiceNo,'doc')}${metaBox('التاريخ',data.date,'calendar')}</section>`;
+        return `<section class="doc-integrated-host">${documentActions(returnPage)}<div class="doc-integrated-note no-print">هذا المستند يعمل داخل المنصة بنفس ملفات التصميم، ويمكن طباعته أو حفظه PDF من المتصفح.</div>
+        <main class="tager-document" data-document-type="${isOrder?'purchase-order':'invoice'}">
+          <img class="reference-layer" src="${DOC_BASE}reference/${ref}" alt="Original reference" />
+          <div class="doc-inner">
+            <header class="doc-header">
+              <section class="logo-wrap"><img src="${DOC_BASE}img/tager-logo.svg" alt="Tager" /></section>
+              <section class="title-wrap"><div class="doc-title"><h1>${title}</h1><p>${subtitle}</p></div><div class="title-icon">${icon(titleIcon)}<span class="mini-check"></span></div></section>
+            </header>
+            ${meta}
+            <section class="info-grid">
+              ${infoCard('المورد',data.supplier,'people',true)}
+              ${infoCard('العميل',data.customer,'person',false)}
+              ${infoCard('المنصة',data.platform,'box',true)}
+              ${infoCard('المحافظة',data.governorate,'location',true)}
+              ${infoCard('المركز',data.center,'building',false)}
+              ${infoCard('طريقة الدفع',data.paymentMethod,'wallet',false)}
+              ${infoCard('عدد البنود',data.itemCount,'box',false)}
+              ${infoCard('حالة الطلب',data.status,'clip',false)}
+              ${infoCard('العملة',data.currency,'money',false)}
+            </section>
+            <table class="items-table"><thead><tr><th>الصنف</th><th>نوع السعر</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${itemsRows(data)}</tbody></table>
+            <section class="summary-section"><div class="total-hero"><img src="${DOC_BASE}img/cube.svg" alt="" /><div class="total-hero-content"><div class="small-title">${isOrder?'إجمالي الطلب':'الإجمالي المستحق'}</div><div><span class="amount">${money(data,'grandTotal')}</span><span class="currency">${E(data.currency)}</span></div><div class="line"></div><div class="words">${E(data.totalWords)}</div></div></div><div class="totals-card"><div class="total-row"><div class="total-label">إجمالي المنتجات</div><div class="total-value">${money(data,'products')}</div><div class="total-currency">${E(data.currency)}</div></div><div class="total-row"><div class="total-label">الخصم</div><div class="total-value">${money(data,'discount')}</div><div class="total-currency">${E(data.currency)}</div></div><div class="total-row"><div class="total-label">الضريبة</div><div class="total-value">${money(data,'tax')}</div><div class="total-currency">${E(data.currency)}</div></div><div class="total-row grand-row"><div class="total-label">${isOrder?'إجمالي الطلب':'الإجمالي المستحق'}</div><div class="total-value">${money(data,'grandTotal')}</div><div class="total-currency">${E(data.currency)}</div></div></div></section>
+            <footer class="approval-strip"><section class="signature-box"><img class="rosette" src="${DOC_BASE}img/rosette.svg" alt="" /><div><div class="signature-title">اعتماد وتوقيع</div><div class="signature-name">${E(data.signatoryName)}</div><div class="signature-label">${E(data.signatoryTitle)}</div><div class="signature-sub">${E(data.signatorySub)}</div></div></section><section class="seal-box"><img src="${DOC_BASE}img/seal.svg" alt="معتمد ومختوم" /></section><section class="logistics-box"><img src="${DOC_BASE}img/truck.svg" alt="Tager delivery" /></section></footer>
+          </div>
+        </main></section>`;
+      }
+      window.tagerIntegratedDocumentPage=function(page,data={}){
+        const o=orderByData(data); if(!o) return pageShell('المستند','',`<div class="empty">المستند غير موجود.</div>`);
+        let items=o.items||[], type='invoice', title='فاتورة عميل';
+        if(page==='vendorInvoicePrint'){items=vendorItemsFromOrder(o); title='فاتورة مورد';}
+        if(page==='orderPrint'){type='purchase-order'; title='طلب شراء'; if(typeof role==='function'&&role()==='vendor')items=vendorItemsFromOrder(o);}
+        const d=toDocData(o,type,items); d.invoiceTitle=title;
+        return renderDoc(type,d,page==='vendorInvoicePrint'?'vendorInvoices':page==='orderPrint'?'track':'invoices');
+      }
+      window.vendorInvoicePrintPage=function(data={}){const html=tagerIntegratedDocumentPage('vendorInvoicePrint',data); setTimeout(()=>{if(data.print==='1')window.print()},300); return html;};
+      window.invoicePrintPage=function(data={}){return tagerIntegratedDocumentPage('invoicePrint',data);};
+      window.orderPrintPage=function(data={}){return tagerIntegratedDocumentPage('orderPrint',data);};
+      window.tagerDocumentsStandalone=function(kind){
+        ensureDocCss();
+        const sample={id:'sample',orderNo:'TG-1001',invoiceNo:'INV-1001',date:'2026/7/6',customerName:'Gamal Gemy',governorate:'الدقهلية',district:'المنصورة',paymentMethod:'نقدي عند الاستلام',status:'new',items:[{name:'بند تجريبي',tierName:'سعر الشراء',qty:5,price:1000,vendorId:'sample'}],total:5000,totalWords:'خمسة آلاف جنيه مصري لا غير'};
+        const d=toDocData(sample,kind==='order'?'purchase-order':'invoice',sample.items); d.supplier='شركة الأخوة'; d.invoiceTitle=kind==='order'?'طلب شراء':'فاتورة مورد';
+        return renderDoc(kind==='order'?'purchase-order':'invoice',d,'home');
+      };
+      const __tagerDocsRender=render;
+      render=function(page='home',data={}){
+        if(page==='vendorInvoicePrint'||page==='invoicePrint'||page==='orderPrint'){
+          try{syncHeader('');updateCartCount();}catch(e){}
+          app().innerHTML=tagerIntegratedDocumentPage(page,data||{});
+          try{bindForms(page)}catch(e){}
+          return;
+        }
+        if(page==='docInvoice'){try{syncHeader('');updateCartCount();}catch(e){} app().innerHTML=tagerDocumentsStandalone('invoice'); return;}
+        if(page==='docOrder'){try{syncHeader('');updateCartCount();}catch(e){} app().innerHTML=tagerDocumentsStandalone('order'); return;}
+        return __tagerDocsRender(page,data);
+      }
+    })();
+
     render(location.hash.replace('#','')||'home');
   </script>
 </body>
