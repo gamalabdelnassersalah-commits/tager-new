@@ -25,7 +25,7 @@ for (const file of copyFiles) {
 for (const file of fs.readdirSync(root)) {
   if (/^product-.*\.svg$/.test(file)) fs.copyFileSync(path.join(root,file), path.join(outDir,file));
 }
-for (const dir of ['assets','images','img','static']) {
+for (const dir of ['assets','images','img','static','tager-documents']) {
   const src = path.join(root, dir);
   if (fs.existsSync(src) && fs.statSync(src).isDirectory()) fs.cpSync(src, path.join(outDir, dir), { recursive: true });
 }
