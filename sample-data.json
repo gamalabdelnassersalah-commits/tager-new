@@ -2,21 +2,30 @@
   "orderNo": "TG-1001",
   "invoiceNo": "INV-1001",
   "date": "2026/7/6",
-  "platform": "منصة تاجر",
-  "customer": "Gamal Gemy",
-  "supplier": "شركة الأخوة",
+  "orderDate": "2026/7/6",
+  "status": "جديد",
+  "platformName": "منصة تاجر",
+  "platformDescription": "منصة مصرية للتجارة والتوريد",
+  "vendorName": "شركة الأخوة",
+  "vendorDescription": "بيانات المورد داخل المنصة",
+  "customerName": "Gamal Gemy",
+  "customerLocation": "الدقهلية - المنصورة",
   "governorate": "الدقهلية",
-  "center": "المنصورة",
+  "district": "المنصورة",
   "paymentMethod": "نقدي عند الاستلام",
   "currency": "ج.م",
-  "status": "جديد",
-  "itemCount": 1,
-  "totalWords": "خمسة آلاف جنيه مصري لا غير",
   "items": [
-    { "name": "بند تجريبي", "priceType": "سعر الشراء", "quantity": 5, "unitPrice": 1000, "total": 5000 }
+    {
+      "name": "بند تجريبي",
+      "priceType": "سعر الشراء",
+      "qty": 5,
+      "unitPrice": 1000,
+      "total": 5000
+    }
   ],
-  "totals": { "products": 5000, "discount": 0, "tax": 0, "grandTotal": 5000 },
-  "signatoryName": "Gamal",
-  "signatoryTitle": "GAMAL",
-  "signatorySub": "Authorized Signatory"
+  "subtotal": 5000,
+  "discount": 0,
+  "tax": 0,
+  "total": 5000,
+  "amountText": "خمسة آلاف جنيه مصري لا غير"
 }
