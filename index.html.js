@@ -1364,5 +1364,15 @@
       `; document.head.appendChild(sfStyle);
     })();
 
+    (function(){
+      const patchStyle = document.createElement('style');
+      patchStyle.innerHTML = `
+        #app{max-width:100vw;overflow-x:hidden}
+        .register-side img{width:72px;height:72px;object-fit:contain;display:block;margin-bottom:10px}
+        #app img{max-width:100%}
+      `;
+      document.head.appendChild(patchStyle);
+    })();
+
     render(location.hash.replace('#','')||'home');
   
