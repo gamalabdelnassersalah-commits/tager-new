@@ -17,7 +17,7 @@ window.TAGER_SUPABASE_ANON_KEY=${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE
 window.TAGER_BUILD_TIME=${JSON.stringify(new Date().toISOString())};
 `;
 fs.writeFileSync(path.join(outDir, 'config.js'), config);
-const copyFiles = ['index.html','tager-logo.png','logo.svg','style.css','styles.css','globals.css','inline.js','app.js','config.js','schema_final.sql',];
+const copyFiles = ['index.html','tager-logo.png','logo.svg','style.css','styles.css','globals.css','inline.js','app.js','config.js','schema_final.sql'];
 for (const file of copyFiles) {
   const src = path.join(root, file);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outDir, file));
@@ -25,7 +25,7 @@ for (const file of copyFiles) {
 for (const file of fs.readdirSync(root)) {
   if (/^product-.*\.svg$/.test(file)) fs.copyFileSync(path.join(root,file), path.join(outDir,file));
 }
-for (const dir of ['assets','images','img','static']) {
+for (const dir of ['assets','images','img','static','tager-documents']) {
   const src = path.join(root, dir);
   if (fs.existsSync(src) && fs.statSync(src).isDirectory()) fs.cpSync(src, path.join(outDir, dir), { recursive: true });
 }
