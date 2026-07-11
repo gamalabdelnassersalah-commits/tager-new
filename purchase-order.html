@@ -1,19 +1,92 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>طلب شراء - Tager</title>
-  <link rel="stylesheet" href="assets/css/tager-print.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tager - طلب شراء</title>
+  <link rel="stylesheet" href="assets/css/tager-documents.css" />
 </head>
-<body data-doc="order">
-  <main class="tg-page-shell">
-    <div class="tg-toolbar no-print">
-      <button class="tg-btn" onclick="window.print()">طباعة / حفظ PDF</button>
-      <a class="tg-btn secondary" href="index.html">رجوع</a>
+<body>
+  <div class="doc-actions">
+    <button data-print>طباعة / حفظ PDF</button>
+    <button class="secondary" data-reference>إظهار طبقة الصورة الأصلية</button>
+    <a class="secondary" href="invoice.html">فاتورة مورد</a>
+    <a class="secondary" href="index.html">الرئيسية</a>
+  </div>
+
+  <main class="tager-document" data-document-type="purchase-order">
+    <img class="reference-layer" src="assets/reference/purchase-order-reference.png" alt="Original purchase order reference" />
+    <div class="doc-inner">
+      <header class="doc-header">
+        <section class="logo-wrap"><img src="assets/img/tager-logo.svg" alt="Tager" /></section>
+        <section class="title-wrap">
+          <div class="doc-title">
+            <h1>طلب شراء</h1>
+            <p>تفاصيل الطلب قبل الفاتورة</p>
+          </div>
+          <div class="title-icon">
+            <svg><use href="assets/img/icon-sprite.svg#clip"></use></svg>
+            <span class="mini-check"></span>
+          </div>
+        </section>
+      </header>
+
+      <section class="meta-strip cols-2" aria-label="بيانات الطلب">
+        <div class="meta-box">
+          <div><div class="label">رقم الطلب</div><div class="value badge-value" data-field="orderNo"></div></div>
+          <span class="round-icon"><svg><use href="assets/img/icon-sprite.svg#clip"></use></svg></span>
+        </div>
+        <div class="meta-box">
+          <div><div class="label">تاريخ الطلب</div><div class="value" data-field="date"></div></div>
+          <span class="round-icon"><svg><use href="assets/img/icon-sprite.svg#calendar"></use></svg></span>
+        </div>
+      </section>
+
+      <section class="info-grid" aria-label="بيانات العميل والمورد">
+        <article class="info-card"><div><div class="label">المورد</div><div class="value" data-field="supplier"></div></div><span class="divider"></span><span class="round-badge orange"><svg><use href="assets/img/icon-sprite.svg#people"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">العميل</div><div class="value" data-field="customer"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#person"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">المنصة</div><div class="value" data-field="platform"></div></div><span class="divider"></span><span class="round-badge orange"><svg><use href="assets/img/icon-sprite.svg#box"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">المحافظة</div><div class="value" data-field="governorate"></div></div><span class="divider"></span><span class="round-badge orange"><svg><use href="assets/img/icon-sprite.svg#location"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">المركز</div><div class="value" data-field="center"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#building"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">طريقة الدفع</div><div class="value" data-field="paymentMethod"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#wallet"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">العملة</div><div class="value" data-field="currency"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#money"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">حالة الطلب</div><div class="value" data-field="status"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#clip"></use></svg></span></article>
+        <article class="info-card"><div><div class="label">عدد البنود</div><div class="value" data-field="itemCount"></div></div><span class="divider"></span><span class="round-badge"><svg><use href="assets/img/icon-sprite.svg#box"></use></svg></span></article>
+      </section>
+
+      <table class="items-table" aria-label="بنود طلب الشراء">
+        <thead><tr><th>الصنف</th><th>نوع السعر</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
+        <tbody data-items-body></tbody>
+      </table>
+
+      <section class="summary-section">
+        <div class="total-hero">
+          <img src="assets/img/cube.svg" alt="" />
+          <div class="total-hero-content">
+            <div class="small-title">إجمالي الطلب</div>
+            <div><span class="amount" data-money="grandTotal"></span><span class="currency" data-currency></span></div>
+            <div class="line"></div>
+          </div>
+        </div>
+        <div class="totals-card">
+          <div class="total-row"><div class="total-label">إجمالي المنتجات</div><div class="total-value" data-money="products"></div><div class="total-currency" data-currency></div></div>
+          <div class="total-row"><div class="total-label">الخصم</div><div class="total-value" data-money="discount"></div><div class="total-currency" data-currency></div></div>
+          <div class="total-row"><div class="total-label">الضريبة</div><div class="total-value" data-money="tax"></div><div class="total-currency" data-currency></div></div>
+          <div class="total-row grand-row"><div class="total-label">إجمالي الطلب</div><div class="total-value" data-money="grandTotal"></div><div class="total-currency" data-currency></div></div>
+        </div>
+      </section>
+
+      <footer class="approval-strip">
+        <section class="signature-box">
+          <img class="rosette" src="assets/img/rosette.svg" alt="" />
+          <div><div class="signature-title">اعتماد وتوقيع</div><div class="signature-name" data-field="signatoryName"></div><div class="signature-label" data-field="signatoryTitle"></div><div class="signature-sub" data-field="signatorySub"></div></div>
+        </section>
+        <section class="seal-box"><img src="assets/img/seal.svg" alt="معتمد ومختوم" /></section>
+        <section class="logistics-box"><img src="assets/img/truck.svg" alt="Tager delivery" /></section>
+      </footer>
     </div>
-    <article id="doc-root" class="tg-document tg-order"></article>
   </main>
-  <script src="assets/js/tager-print.js"></script>
+
+  <script src="assets/js/tager-documents.js"></script>
 </body>
 </html>
