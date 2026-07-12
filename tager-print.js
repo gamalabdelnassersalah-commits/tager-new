@@ -56,7 +56,6 @@
   function rowHtml(d){
     return d.items.map((i,idx)=>`
       <tr>
-        <td>${(idx+1).toLocaleString('ar-EG')}</td>
         <td class="tg-item-name">${ar(i.name)} ${icon('box','tg-cube-ic')}</td>
         <td>${ar(i.priceType || i.tierName || i.tier || 'سعر الشراء')}</td>
         <td>${num(i.qty).toLocaleString('ar-EG')}</td>
@@ -109,7 +108,7 @@
 
         <section class="tg-table-wrap">
           <table class="tg-items">
-            <thead><tr><th>#</th><th>الصنف</th><th>نوع السعر</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
+            <thead><tr><th>الصنف</th><th>نوع السعر</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
             <tbody>${rowHtml(d)}</tbody>
           </table>
         </section>
@@ -139,6 +138,8 @@
           <img class="stamp" src="assets/img/seal.svg" alt="">
           <div class="truck-art"><img src="assets/img/truck.svg" alt="Tager"></div>
         </section>
+
+        ${d.notes ? `<section class="tg-notes"><b>ملاحظات</b><p>${ar(d.notes)}</p></section>` : ''}
 
         <footer class="tg-footer"><b>Tager</b><em>منصة تجارة ذكية تربط الأسواق وتدعم النمو</em></footer>
       </div>`;

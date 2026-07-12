@@ -167,6 +167,10 @@ body{direction:rtl}
 .tg-footer b{font-size:20pt}
 .tg-footer:before,.tg-footer:after{content:"";height:1px;width:32mm;background:#b7c9c4}
 
+.tg-notes{border:1px dashed var(--tg-line);border-radius:5mm;background:var(--tg-soft);padding:5mm 6mm;margin-bottom:6mm;font-size:10.5pt;line-height:1.8}
+.tg-notes b{display:block;color:var(--tg-green);font-size:11.5pt;margin-bottom:2mm}
+.tg-notes p{margin:0;color:#2b423e;white-space:pre-line}
+
 .tg-po .tg-title h1{font-size:33pt}
 .tg-po .tg-meta-strip{grid-template-columns:repeat(2,1fr)}
 
@@ -183,6 +187,14 @@ body{direction:rtl}
   .tg-document{
     box-shadow:none!important;border:0!important;border-radius:0!important;
     width:210mm!important;min-height:297mm!important;margin:0!important;
-    padding:15mm 11mm 8mm!important;page-break-inside:avoid;break-inside:avoid;
+    padding:15mm 11mm 8mm!important;overflow:visible!important;
   }
+  /* تمنع القص العشوائي نص الصفحة: كل قسم بيتنقل كامل لو مش هيكمّل في الصفحة الحالية */
+  .tg-header,.tg-meta-strip,.tg-party-grid,.tg-info-grid,.tg-total-area,.tg-sign-panel,.tg-notes,.tg-footer{
+    page-break-inside:avoid;break-inside:avoid;
+  }
+  .tg-table-wrap{overflow:visible}
+  .tg-items{border-collapse:collapse}
+  .tg-items thead{display:table-header-group} /* تكرار رأس الجدول أعلى كل صفحة لو الجدول امتد لأكتر من صفحة */
+  .tg-items tr{page-break-inside:avoid;break-inside:avoid} /* منع تقطيع صف واحد بين صفحتين */
 }
