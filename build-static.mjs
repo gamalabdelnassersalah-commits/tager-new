@@ -17,7 +17,7 @@ window.TAGER_SUPABASE_ANON_KEY=${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE
 window.TAGER_BUILD_TIME=${JSON.stringify(new Date().toISOString())};
 `;
 fs.writeFileSync(path.join(outDir, 'config.js'), config);
-const copyFiles = ['index.html','tager-logo.png','logo.svg','style.css','styles.css','globals.css','inline.js','app.js','config.js','schema_final.sql'];
+const copyFiles = ['index.html','tager-logo.png','logo.svg','style.css','styles.css','globals.css','inline.js','app.js','config.js','schema_final.sql','invoice-ledger-core.js','tager-invoice-module.js'];
 for (const file of copyFiles) {
   const src = path.join(root, file);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outDir, file));
