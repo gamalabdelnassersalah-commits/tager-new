@@ -118,6 +118,11 @@ export function createInvoice(order, invoices = [], options = {}) {
       productId: item.productId || item.id || null,
       vendorId: item.vendorId || item.supplierId || null,
       name: item.name || '',
+      // Keep a snapshot of the merchandise shown at the time of issuing.  The
+      // product record can change later, while the invoice must remain a
+      // faithful commercial document.
+      image: item.image || item.imageUrl || item.productImage || '',
+      sku: item.sku || item.code || '',
       qty: money(item.qty),
       price: money(item.price),
       total: orderLineTotal(item),

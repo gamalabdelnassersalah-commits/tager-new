@@ -1012,7 +1012,7 @@
         const min=minQtyForTier(p,tier), price=tierPrice(p,tier);
         const found=s.cart.find(i=>i.productId===productId&&i.tier===tier);
         if(found) found.qty=Number(found.qty||0)+min;
-        else s.cart.push({productId:p.id,vendorId:p.vendorId,name:p.name,price,priceRetail:tierPrice(p,'retail'),priceWholesale:tierPrice(p,'wholesale'),priceBulk:tierPrice(p,'bulk'),tier,tierName:tierLabel(tier),qty:min,minQty:min,unit:p.unit||'قطعة'});
+        else s.cart.push({productId:p.id,vendorId:p.vendorId,name:p.name,image:p.image||productImageForCategory(p.category),sku:p.sku||p.code||'',price,priceRetail:tierPrice(p,'retail'),priceWholesale:tierPrice(p,'wholesale'),priceBulk:tierPrice(p,'bulk'),tier,tierName:tierLabel(tier),qty:min,minQty:min,unit:p.unit||'قطعة'});
         save(s); alert('تمت الإضافة للسلة بسعر '+tierLabel(tier)+' وبحد أدنى '+min.toLocaleString('ar-EG')+' '+(p.unit||'قطعة'));
       };
       updateQty=function(idx,val){const s=load(); const item=s.cart[idx]; if(item){const p=s.products.find(x=>x.id===item.productId)||item; const min=Number(item.minQty||minQtyForTier(p,item.tier)); const next=Math.max(min,Number(val||min)); item.qty=next; item.minQty=min;} save(s); go('cart')};
@@ -1514,12 +1514,15 @@
       function money(v){ try{return fmt(Number(v||0))}catch(e){return Number(v||0).toLocaleString('ar-EG')+' ج.م'} }
       function todaySafe(){ try{return today()}catch(e){return new Date().toLocaleDateString('ar-EG')} }
       function getOrders(){ try{return (load().orders||[])}catch(e){return []} }
+      function invoiceForOrder(o){ try{return (load().invoices||[]).find(i=>String(i.orderId)===String(o?.id)||String(i.orderNo)===String(o?.orderNo))||null}catch(e){return null} }
+      function documentItems(o){ const inv=invoiceForOrder(o); return inv?.items?.length ? inv.items : (o?.invoiceItemsSnapshot?.length ? o.invoiceItemsSnapshot : (o?.items||[])); }
+      function invoiceApproval(o){ return invoiceForOrder(o)?.approval||o?.invoiceApproval||{status:'pending'}; }
       function findOrder(d={}){ const orders=getOrders(); return orders.find(o=>String(o.id)===String(d.id)||String(o.orderNo)===String(d.orderNo)||String(o.orderNo)===String(d.ref)) || orders[0] || null; }
-      function vendorItems(o){ try{ if(role && role()==='vendor'){ const me=uid(); return (o.items||[]).filter(i=>String(i.vendorId)===String(me)); } }catch(e){} return o.items||[]; }
+      function vendorItems(o){ const items=documentItems(o); try{ if(role && role()==='vendor'){ const me=uid(); return items.filter(i=>String(i.vendorId)===String(me)); } }catch(e){} return items; }
       function sub(items){ return (items||[]).reduce((a,i)=>a+(Number(i.price||0)*Number(i.qty||0)),0); }
       function platformCard(){ return {title:'منصة Tager',line:'منصة مصرية للتجارة والتوريد'}; }
       function vendorName(o){
-        try{ const s=load(); const first=(o.items||[])[0]; const v=(s.vendors||[]).find(x=>String(x.userId)===String(first?.vendorId)||String(x.id)===String(first?.vendorId)); return v?.storeName || o.vendorName || 'المورد'; }catch(e){ return o.vendorName || 'المورد'; }
+        try{ const s=load(); const first=documentItems(o)[0]; const v=(s.vendors||[]).find(x=>String(x.userId)===String(first?.vendorId)||String(x.id)===String(first?.vendorId)); return v?.storeName || o.vendorName || 'المورد'; }catch(e){ return o.vendorName || 'المورد'; }
       }
       function customerName(o){ return o.customerName || o.customer || (typeof uname==='function'?uname():'') || 'العميل'; }
       function invoiceNo(o){ return o.invoiceNo || ('INV-'+(o.orderNo||'TG-1001')); }
@@ -1542,8 +1545,10 @@
         return `<svg ${common}><circle ${stroke} cx="32" cy="32" r="22"/></svg>`;
       }
       function infoBox(label,value,icon){ return `<div class="tgd-info"><div class="tgd-icon">${iconSvg(icon)}</div><div class="tgd-label">${qsafe(label)}</div><div class="tgd-value">${qsafe(value)}</div></div>`; }
+      function itemImage(i){const candidate=String(i?.image||i?.imageUrl||i?.productImage||'').trim();return /^(https?:\/\/|data:image\/(?:png|jpe?g|webp|svg\+xml);base64,|[A-Za-z0-9][A-Za-z0-9_.\/-]*$)/.test(candidate)&&!candidate.includes('..')?candidate:'product-default.svg';}
+      function approvalLabel(approval){return approval?.status==='approved'?'معتمدة':approval?.status==='needs_revision'?'تحتاج مراجعة':'بانتظار الاعتماد';}
       function rows(items){
-        return (items||[]).map((i,idx)=>`<tr><td>${(idx+1).toLocaleString('ar-EG')}</td><td><span class="tgd-cube">◇</span>${qsafe(i.name||'')}</td><td>${qsafe(i.tierName||i.tier||'')}</td><td>${Number(i.qty||0).toLocaleString('ar-EG')}</td><td>${money(i.price||0)}</td><td>${money(Number(i.qty||0)*Number(i.price||0))}</td></tr>`).join('') || `<tr><td colspan="6">لا توجد بنود</td></tr>`;
+        return (items||[]).map((i,idx)=>`<tr><td>${(idx+1).toLocaleString('ar-EG')}</td><td><div class="tgd-item-name"><img src="${qsafe(itemImage(i))}" alt="${qsafe(i.name||'صورة المنتج')}" onerror="this.src='product-default.svg'"><span><span class="tgd-cube">◇</span>${qsafe(i.name||'')}</span></div></td><td>${qsafe(i.tierName||i.tier||'')}</td><td>${Number(i.qty||0).toLocaleString('ar-EG')}</td><td>${money(i.price||0)}</td><td>${money(Number(i.qty||0)*Number(i.price||0))}</td></tr>`).join('') || `<tr><td colspan="6">لا توجد بنود</td></tr>`;
       }
       function totalText(kind){ return kind==='order'?'إجمالي الطلب':'الإجمالي المستحق'; }
       function printDoc(o,items,kind='invoice'){
@@ -1551,6 +1556,10 @@
         const total = kind==='invoice' && !isVendor ? Number(o.total||sub(items)) : sub(items);
         const p=platformCard();
         const title=docTitle(kind,isVendor);
+        const approval=invoiceApproval(o);
+        const approved=approval.status==='approved';
+        const signature=String(approval.signatureData||'');
+        const safeSignature=/^data:image\/(?:png|jpe?g|webp);base64,/.test(signature)?signature:'';
         return `<section class="tgd-page-wrap">
           <div class="tgd-toolbar no-print"><button class="btn" onclick="window.print()">${kind==='order'?'طباعة الطلب':'طباعة الفاتورة'}</button><button class="btn3" onclick="history.back()">رجوع</button></div>
           <article class="tgd-doc ${kind==='order'?'tgd-order':'tgd-invoice'}" id="printArea" dir="rtl" data-version="${DOC_VERSION}">
@@ -1584,10 +1593,10 @@
               <div class="tgd-total-table"><div><span>إجمالي المنتجات</span><b>${money(sub(items))}</b></div><div><span>الخصم</span><b>${money(0)}</b></div><div><span>الضريبة</span><b>${money(0)}</b></div><div class="tgd-total-last"><span>${totalText(kind)}</span><b>${money(total)}</b></div></div>
             </section>
             <section class="tgd-sign">
-              <div class="tgd-medal">✓</div>
-              <div class="tgd-signature"><small>اعتماد وتوقيع</small><b>Gamal</b><strong>GAMAL</strong><span>Authorized Signatory</span></div>
-              <div class="tgd-stamp"><span>معتمد<br>ومختوم</span></div>
-              <div class="tgd-truck"><span>تم الاعتماد من منصة Tager</span><div class="tgd-truck-draw">▱▱▱</div></div>
+              <div class="tgd-medal">${approved?'✓':'…'}</div>
+              <div class="tgd-signature"><small>اعتماد وتوقيع</small>${safeSignature?`<img src="${qsafe(safeSignature)}" alt="توقيع ${qsafe(approval.signerName||'المعتمد')}">`:`<b>${qsafe(approval.signerName||'بانتظار التوقيع')}</b>`}<strong>${qsafe(approval.signerName||'مسؤول الاعتماد')}</strong><span>${qsafe(approval.signerTitle||approvalLabel(approval))}</span></div>
+              <div class="tgd-stamp"><span>${approved?'معتمد<br>ومختوم':approval.status==='needs_revision'?'تحتاج<br>مراجعة':'قيد<br>المراجعة'}</span></div>
+              <div class="tgd-truck"><span>${approved?`تم الاعتماد من منصة Tager${approval.signedAt?` — ${qsafe(new Date(approval.signedAt).toLocaleDateString('ar-EG'))}`:''}`:'لا تُعد الفاتورة معتمدة قبل اكتمال التوقيع'}</span><div class="tgd-truck-draw">▱▱▱</div></div>
             </section>
             <footer class="tgd-footer"><span></span><b>Tager</b><em>منصة تجارة ذكية تربط الأسواق وتدعم النمو</em><span></span></footer>
           </article>
@@ -1609,6 +1618,69 @@
       `;document.head.appendChild(css);
     })();
 
+    (function(){
+      const style=document.createElement('style');
+      style.textContent=`.tgd-item-name{display:flex;align-items:center;gap:10px}.tgd-item-name img{width:46px;height:46px;object-fit:contain;border-radius:9px;border:1px solid #dbe9e5;background:#fff}.tgd-signature b{font-size:32px;line-height:1.1}.tgd-signature img{display:block;max-width:180px;width:100%;height:54px;object-fit:contain;object-position:right}@media(max-width:900px){.tgd-item-name img{width:42px;height:42px}}@media print{.tgd-item-name img{width:9mm;height:9mm}.tgd-signature b{font-size:18pt}.tgd-signature img{max-width:38mm;height:12mm}}`;
+      document.head.appendChild(style);
+    })();
+
+    // Supplier directory: normalises legacy approval records and uses a
+    // dedicated responsive card layout so approved suppliers remain visible
+    // on narrow mobile screens.
+    (function(){
+      const approvedStatuses=new Set(['approved','active','published']);
+      const normalise=v=>String(v||'').trim().toLowerCase();
+      approvedVendors=function(s){
+        const usersById=new Map((s.users||[]).map(u=>[String(u.id),u]));
+        return (s.vendors||[]).filter(v=>{
+          const user=usersById.get(String(v.userId));
+          const status=normalise(user?.status ?? v.status);
+          return approvedStatuses.has(status);
+        });
+      };
+      supplierGrid=function(list){
+        return `<div class="supplier-grid">${(list||[]).map(v=>{
+          const zones=(v.zones||[]).filter(z=>z&&z.governorate).length;
+          const title=escapeHtml(v.storeName||v.name||'مورد');
+          const activity=escapeHtml(v.activity||v.activities?.join('، ')||'توريد وتجارة جملة');
+          const place=[v.governorate,v.district].filter(Boolean).map(escapeHtml).join(' - ')||'تغطية قيد التحديث';
+          return `<article class="supplier-directory-card"><div class="supplier-directory-card__mark">🏬</div><div class="supplier-directory-card__content"><div><span class="supplier-directory-card__status">مورد معتمد</span><h3>${title}</h3><p>${activity}</p></div><div class="supplier-directory-card__meta"><span>📍 ${place}</span><span>🚚 ${zones?`${zones.toLocaleString('ar-EG')} مناطق تغطية`:'تحقق من التغطية'}</span></div></div><button class="btn3" onclick="go('supplierDetails',{id:'${escapeHtml(v.id)}'})">عرض المورد</button></article>`;
+        }).join('')}</div>`;
+      };
+      suppliersPage=function(filter={}){
+        const s=load();
+        const q=String(filter.q||'').trim().toLocaleLowerCase('ar-EG');
+        const governorate=String(filter.gov||'');
+        const arr=approvedVendors(s).filter(v=>{
+          const searchable=[v.storeName,v.name,v.activity,Array.isArray(v.activities)?v.activities.join(' '):''].join(' ').toLocaleLowerCase('ar-EG');
+          return (!q||searchable.includes(q))&&(!governorate||String(v.governorate||'')===governorate);
+        });
+        return pageShell('الموردون','موردون معتمدون، مع نشاطهم ومناطق تغطيتهم، ومصممة للعرض الواضح على الجوال.',`<div class="supplier-directory-toolbar"><input id="sQ" value="${escapeHtml(filter.q||'')}" placeholder="بحث باسم المورد أو النشاط"><select id="sGov"><option value="">كل المحافظات</option>${optionsGov(governorate)}</select><button class="btn2" onclick="go('suppliers',{q:$('#sQ').value,gov:$('#sGov').value})">بحث</button></div><div class="supplier-directory-summary"><span>${arr.length.toLocaleString('ar-EG')} مورد متاح</span><small>تظهر قائمة الموردين المعتمدين فقط لحماية تجربة الشراء.</small></div>${arr.length?supplierGrid(arr):`<div class="empty">لا يوجد مورد معتمد مطابق للبحث حالياً. يستطيع مدير المنصة اعتماد الموردين من لوحة الإدارة قبل ظهورهم للعملاء.</div>`}`);
+      };
+      const baseDownloadCsv=downloadCsv;
+      downloadCsv=function(kind){
+        if(kind!=='invoices') return baseDownloadCsv(kind);
+        const s=load();
+        const rows=[['invoice_no','order_no','issued_at','due_at','total','paid','balance','payment_status','approval_status','approved_by','approved_at','item_count'],...(s.invoices||[]).map(i=>[
+          i.number||'',i.orderNo||'',i.issuedAt||'',i.dueAt||'',Number(i.total||0),Number(i.paidAmount||0),Number(i.balance??(Number(i.total||0)-Number(i.paidAmount||0))),i.status||'',i.approval?.status||'pending',i.approval?.signerName||'',i.approval?.signedAt||'',(i.items||[]).length
+        ])];
+        const csv='\ufeff'+rows.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='tager-invoices-financial-report.csv';link.click();URL.revokeObjectURL(link.href);
+      };
+      function financialSummary(s){
+        const invoices=(s.invoices||[]).filter(i=>i.status!=='void');
+        return invoices.reduce((a,i)=>{const total=Number(i.total||0),paid=Number(i.paidAmount??(i.payments||[]).reduce((sum,p)=>sum+Number(p.amount||0),0));a.issued+=total;a.collected+=paid;a.receivable+=Math.max(0,total-paid);if(i.status==='overdue')a.overdue+=Math.max(0,total-paid);if(i.approval?.status==='approved')a.approved+=1;else a.pendingApproval+=1;return a;},{count:invoices.length,issued:0,collected:0,receivable:0,overdue:0,approved:0,pendingApproval:0});
+      }
+      reportsPage=function(){
+        if(role()!=='admin') return loginRequired();
+        const s=load(), f=financialSummary(s), invoices=(s.invoices||[]).slice().sort((a,b)=>String(b.issuedAt||'').localeCompare(String(a.issuedAt||''))).slice(0,12);
+        const label=status=>status==='approved'?'معتمدة':status==='needs_revision'?'تحتاج مراجعة':'بانتظار الاعتماد';
+        return pageShell('التقارير المالية والتشغيلية','ملخص موثّق للفوترة والتحصيل والاعتماد مع تصدير سجل الفواتير.',`<section class="financial-report-grid"><article><span>إجمالي الفوترة</span><b>${fmt(f.issued)}</b><small>${f.count.toLocaleString('ar-EG')} فاتورة نشطة</small></article><article><span>المحصّل</span><b>${fmt(f.collected)}</b><small>دفعات مسجلة</small></article><article><span>المستحق</span><b>${fmt(f.receivable)}</b><small>رصيد قيد التحصيل</small></article><article class="financial-report-grid__alert"><span>المتأخر</span><b>${fmt(f.overdue)}</b><small>يحتاج متابعة مالية</small></article><article><span>بانتظار الاعتماد</span><b>${f.pendingApproval.toLocaleString('ar-EG')}</b><small>اعتماد وتوقيع</small></article></section><section class="financial-report-actions"><div><h2>تصدير البيانات</h2><p class="muted">تصدير الفواتير يتضمن حالة السداد والاعتماد والمبالغ والبنود.</p></div><div class="copy-row"><button class="btn" onclick="downloadCsv('invoices')">تصدير الفواتير CSV</button><button class="btn3" onclick="downloadCsv('orders')">تصدير الطلبات</button><button class="btn3" onclick="downloadCsv('vendors')">تصدير الموردين</button></div></section><section class="financial-report-table"><div class="section-head"><div><h2>آخر الفواتير</h2><p class="muted">يمكن استكمال الاعتماد والتحصيل من مركز الفواتير.</p></div><button class="btn3" onclick="go('invoices')">فتح مركز الفواتير</button></div>${invoices.length?`<div class="table-wrap"><table><tr><th>الفاتورة</th><th>الطلب</th><th>الإصدار</th><th>الإجمالي</th><th>المحصّل</th><th>المتبقي</th><th>الاعتماد</th></tr>${invoices.map(i=>`<tr><td><b>${escapeHtml(i.number||'—')}</b></td><td>${escapeHtml(i.orderNo||'—')}</td><td>${escapeHtml(i.issuedAt?new Date(i.issuedAt).toLocaleDateString('ar-EG'):'—')}</td><td>${fmt(i.total)}</td><td>${fmt(i.paidAmount)}</td><td>${fmt(i.balance??(Number(i.total||0)-Number(i.paidAmount||0)))}</td><td><span class="financial-approval financial-approval--${escapeHtml(i.approval?.status||'pending')}">${label(i.approval?.status)}</span></td></tr>`).join('')}</table></div>`:'<div class="empty">لم تصدر فواتير بعد. ابدأ من مركز الفواتير بعد قبول الطلب.</div>'}</section>`);
+      };
+      const style=document.createElement('style');
+      style.textContent=`.supplier-directory-toolbar{display:grid;grid-template-columns:1.5fr 1fr auto;gap:12px;padding:16px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:var(--shadow2);margin-bottom:14px}.supplier-directory-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #dcefe7;border-radius:16px;background:#f7fcfa;color:#2c5148;margin-bottom:14px}.supplier-directory-summary span{font-weight:1000;color:var(--green)}.supplier-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.supplier-directory-card{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:16px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:var(--shadow2)}.supplier-directory-card__mark{width:54px;height:54px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(135deg,#eaf8f3,#fff4e8);font-size:28px}.supplier-directory-card__content{min-width:0}.supplier-directory-card__status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#ecfdf3;color:#067647;font-size:11px;font-weight:900}.supplier-directory-card h3{margin:8px 0 4px;color:var(--green);font-size:18px}.supplier-directory-card p{margin:0;color:var(--muted);line-height:1.65;overflow-wrap:anywhere}.supplier-directory-card__meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.supplier-directory-card__meta span{padding:6px 8px;border-radius:10px;background:#f7fbf9;color:#36534b;font-size:12px;font-weight:800}.supplier-directory-card .btn3{grid-column:1/-1;width:100%}.financial-report-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.financial-report-grid article,.financial-report-actions,.financial-report-table{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--shadow2)}.financial-report-grid span,.financial-report-grid small{display:block;color:var(--muted);font-weight:800}.financial-report-grid b{display:block;color:var(--green);font-size:25px;margin:8px 0}.financial-report-grid__alert{background:#fffaf5!important;border-color:#fed7aa!important}.financial-report-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:16px 0}.financial-report-actions h2{margin:0;color:var(--green)}.financial-report-actions p{margin:5px 0 0}.financial-report-table .section-head{margin-bottom:14px}.financial-approval{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:900}.financial-approval--approved{background:#ecfdf3;color:#067647}.financial-approval--needs_revision{background:#fff2f0;color:#b42318}.financial-approval--pending{background:#fff7ed;color:#9a4212}@media(max-width:1000px){.supplier-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.financial-report-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.financial-report-actions{align-items:flex-start;flex-direction:column}}@media(max-width:720px){.supplier-directory-toolbar{grid-template-columns:1fr}.supplier-directory-summary{align-items:flex-start;flex-direction:column}.supplier-grid,.financial-report-grid{grid-template-columns:1fr}.supplier-directory-card{grid-template-columns:auto 1fr;padding:14px}.supplier-directory-card__mark{width:48px;height:48px;font-size:25px}.supplier-directory-card .btn3{min-height:44px}.supplier-directory-toolbar input,.supplier-directory-toolbar select,.supplier-directory-toolbar button{min-height:48px}}`;
+      document.head.appendChild(style);
+    })();
 
     render(location.hash.replace('#','')||'home');
   </script>
