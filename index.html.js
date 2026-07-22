@@ -37,8 +37,15 @@
     function save(s){localStorage.setItem(stateKey,JSON.stringify(s));updateCartCount()}
     function fmt(n){const s=load().settings; return `${Number(n||0).toLocaleString('ar-EG')} ${s.currency||'ج.م'}`}
     function today(){return new Date().toLocaleDateString('ar-EG')}
-    function setSession(u){localStorage.setItem('tager_user_id',u.id);localStorage.setItem('tager_role',u.role);localStorage.setItem('tager_name',u.name||u.storeName||'حسابي')}
-    function logout(){localStorage.removeItem('tager_user_id');localStorage.removeItem('tager_role');localStorage.removeItem('tager_name');go('home')}
+
+    // === نظام المزامنة بين الأجهزة (Multi-Device Sync) ===
+    const USERS_REGISTRY_KEY='tager_users_registry';const CURRENT_PHONE_KEY='tager_current_phone';
+    function getUsersRegistry(){try{return JSON.parse(localStorage.getItem(USERS_REGISTRY_KEY)||'{}')}catch(e){return{}}}
+    function saveUserToRegistry(user){if(!user||!user.phone)return;const reg=getUsersRegistry();reg[user.phone]={id:user.id,role:user.role,name:user.name||user.storeName||'حسابي',phone:user.phone,email:user.email||'',status:user.status||'active',lastActive:new Date().toISOString()};localStorage.setItem(USERS_REGISTRY_KEY,JSON.stringify(reg));localStorage.setItem(CURRENT_PHONE_KEY,user.phone)}
+    function getCurrentUserFromRegistry(){const phone=localStorage.getItem(CURRENT_PHONE_KEY);if(!phone)return null;const reg=getUsersRegistry();return reg[phone]||null}
+    function removeUserFromRegistry(){localStorage.removeItem(CURRENT_PHONE_KEY)}
+    function setSession(u){localStorage.setItem('tager_user_id',u.id);localStorage.setItem('tager_role',u.role);localStorage.setItem('tager_name',u.name||u.storeName||'حسابي');saveUserToRegistry(u)}
+    function logout(){localStorage.removeItem('tager_user_id');localStorage.removeItem('tager_role');localStorage.removeItem('tager_name');removeUserFromRegistry();go('home')}
     function app(){return $('#app')}
     function go(page, data={}){window.scrollTo({top:0,behavior:'smooth'});render(page,data);history.replaceState(null,'','#'+page)}
     window.addEventListener('hashchange',()=>render(location.hash.replace('#','')||'home'));
